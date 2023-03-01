@@ -1,0 +1,4 @@
+name = "sns-sdk-proxy"
+main = "src/index.ts"
+compatibility_date = "2023-02-27"
+node_compat = true
