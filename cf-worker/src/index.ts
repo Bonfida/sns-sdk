@@ -1,9 +1,25 @@
+import { Hono, Context } from "hono";
+import {
+  getDomainKeySync,
+  resolve,
+  getReverseKeySync,
+  Record,
+  getRecordKeySync,
+  getRecord,
+  reverseLookup,
+  registerDomainName,
+  findSubdomains,
+  getAllDomains,
+  getFavoriteDomain,
+} from "@bonfida/spl-name-service";
+import { Connection, PublicKey, Transaction } from "@solana/web3.js";
+import { getAssociatedTokenAddress } from "@solana/spl-token";
+
+const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+
 export interface Env {
   RPC_URL: string;
 }
-import { Hono, Context } from "hono";
-import { getDomainKey, resolve } from "@bonfida/spl-name-service";
-import { Connection } from "@solana/web3.js";
 
 const getConnection = (c: Context<any>) => {
   return new Connection(c.env?.RPC_URL as string);
@@ -15,49 +31,205 @@ function response<T>(success: boolean, result: T) {
 
 const app = new Hono();
 
-app.get("/", async (c) => c.text("Visit https://..."));
+app.get("/", async (c) => c.text("Visit https://github.com/Bonfida/sns-sdk"));
 
+/**
+ * Resolves to the current owner of the domain
+ */
 app.get("/resolve/:domain", async (c) => {
   const { domain } = c.req.param();
   try {
     const res = await resolve(getConnection(c), domain);
     return c.json(response(true, res));
   } catch (err) {
+    console.log(err);
     return c.json(response(false, "Domain not found"));
   }
 });
 
-app.get("/domain-key/:domain", async (c) => {
+/**
+ * Returns the public key of a domain
+ */
+app.get("/domain-key/:domain", (c) => {
   try {
     const { domain } = c.req.param();
     const query = c.req.query("record");
-    const res = await getDomainKey(domain, query === "true");
+    const res = getDomainKeySync(domain, query === "true");
     return c.json(response(true, res.pubkey.toBase58()));
   } catch (err) {
+    console.log(err);
     return c.json(response(false, "Invalid domain input"));
   }
 });
 
-app.get("/all-domains/:owner", async () => {});
+/**
+ * Returns all the domains of the specified owner
+ */
+app.get("/domains/:owner", async (c) => {
+  try {
+    const { owner } = c.req.param();
+    const res = await getAllDomains(getConnection(c), new PublicKey(owner));
+    return c.json(
+      response(
+        true,
+        res.map((e) => e.toBase58())
+      )
+    );
+  } catch (err) {
+    console.log(err);
+    return c.json(response(false, "Invalid domain input"));
+  }
+});
 
-app.get("/reverse-key", async () => {});
+/**
+ * Returns the public key of the reverse account for the specified domain
+ */
+app.get("/reverse-key/:domain", (c) => {
+  try {
+    const { domain } = c.req.param();
+    const query = c.req.query("sub");
+    const res = getReverseKeySync(domain, query === "true");
+    return c.json(response(true, res.toBase58()));
+  } catch (err) {
+    console.log(err);
+    return c.json(response(false, "Invalid domain input"));
+  }
+});
 
-app.get("/record-key/:domain/:record", async () => {});
+/**
+ * Returns the public key of the record for the specified domain
+ */
+app.get("/record-key/:domain/:record", (c) => {
+  try {
+    const { domain, record } = c.req.param();
+    const res = getRecordKeySync(domain, record as Record);
+    return c.json(response(true, res.toBase58()));
+  } catch (err) {
+    console.log(err);
+    return c.json(response(false, "Invalid input"));
+  }
+});
 
-app.get("/record/:domain/:record", async () => {});
+/**
+ * Returns the base64 encoded content of a record for the specified domain
+ */
+app.get("/record/:domain/:record", async (c) => {
+  try {
+    const { domain, record } = c.req.param();
+    const res = await getRecord(getConnection(c), domain, record as Record);
+    return c.json(response(true, res.data?.toString("base64")));
+  } catch (err) {
+    console.log(err);
+    return c.json(response(false, "Invalid input"));
+  }
+});
 
-app.get("/favorite-domain/:domain/:record", async () => {});
+/**
+ * Returns the favorite domain for the specified owner and null if it does not exist
+ */
+app.get("/favorite-domain/:owner", async (c) => {
+  try {
+    const { owner } = c.req.param();
+    const res = await getFavoriteDomain(getConnection(c), new PublicKey(owner));
+    return c.json(
+      response(true, { domain: res.domain.toBase58(), reverse: res.reverse })
+    );
+  } catch (err) {
+    console.log(err);
+    if (err instanceof Error) {
+      if (err.message.includes("Favourite domain not found")) {
+        return c.json(response(true, null));
+      }
+    }
+    return c.json(response(false, "Invalid domain input"));
+  }
+});
 
-app.get("/constants");
+/**
+ * Returns the list of supported records
+ */
+app.get("/types/record", (c) => {
+  return c.json(response(true, Record));
+});
 
-app.get("/types/record", async () => {});
+/**
+ * Returns the reverse domain for the specified public key
+ */
+app.get("/reverse-lookup/:pubkey", async (c) => {
+  try {
+    const { pubkey } = c.req.param();
+    const res = reverseLookup(getConnection(c), new PublicKey(pubkey));
+    return c.json(response(true, res));
+  } catch (err) {
+    console.log(err);
+    return c.json(response(false, "Invalid input"));
+  }
+});
 
-app.get("/reverse-lookup/:pubkey", async () => {});
+/**
+ * Returns the subdomains for the specified parent
+ */
+app.get("/subdomains/:parent", async (c) => {
+  try {
+    const { parent } = c.req.param();
+    const subs = await findSubdomains(
+      getConnection(c),
+      getDomainKeySync(parent).pubkey
+    );
+    return c.json(response(true, subs));
+  } catch (err) {
+    console.log(err);
+    return c.json(response(false, "Invalid input"));
+  }
+});
 
-app.get("/subdomains/:parentKey", async () => {});
-
+////////////////////////////////////////////////////////////////
 // Instruction
+////////////////////////////////////////////////////////////////
 
-app.get("/register/:domain", async () => {});
+/**
+ * Returns the base64 transaction to register a domain
+ */
+app.get("/register", async (c) => {
+  try {
+    const buyerStr = c.req.query("buyer");
+    const domain = c.req.query("domain");
+    const space = c.req.query("space");
+
+    if (!buyerStr || !domain || !space) {
+      return c.json(response(false, "Missing input"));
+    }
+
+    const buyer = new PublicKey(buyerStr);
+
+    const ata = await getAssociatedTokenAddress(
+      new PublicKey(USDC_MINT),
+      buyer,
+      true
+    );
+
+    const [, ix] = await registerDomainName(
+      domain,
+      parseInt(space),
+      buyer,
+      ata
+    );
+
+    const tx = new Transaction().add(...ix);
+    const connection = getConnection(c);
+
+    tx.feePayer = buyer;
+    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+    const ser = tx.serialize({
+      requireAllSignatures: false,
+      verifySignatures: false,
+    });
+    return c.json(response(true, ser.toString("base64")));
+  } catch (err) {
+    console.log(err);
+    return c.json(response(false, "Invalid input"));
+  }
+});
 
 export default app;
