@@ -1,10 +1,11 @@
 import { Record } from "./types/record";
 import { Connection } from "@solana/web3.js";
-import { getDomainKey } from "./utils";
+import { getDomainKey, getDomainKeySync } from "./utils";
 import { NameRegistryState } from "./state";
 import { SOL_RECORD_SIG_LEN } from "./constants";
 
 /**
+ * @deprecated Use {@link getRecordKeySync} instead
  * This function can be used to derive a record key
  * @param domain The .sol domain name
  * @param record The record to derive the key for
@@ -12,6 +13,17 @@ import { SOL_RECORD_SIG_LEN } from "./constants";
  */
 export const getRecordKey = async (domain: string, record: Record) => {
   const { pubkey } = await getDomainKey(record + "." + domain, true);
+  return pubkey;
+};
+
+/**
+ * This function can be used to derive a record key
+ * @param domain The .sol domain name
+ * @param record The record to derive the key for
+ * @returns
+ */
+export const getRecordKeySync = (domain: string, record: Record) => {
+  const { pubkey } = getDomainKeySync(record + "." + domain, true);
   return pubkey;
 };
 
