@@ -17,7 +17,7 @@ import {
   updateInstruction,
 } from "./instructions";
 import { NameRegistryState } from "./state";
-import { getHashedName, getNameAccountKey } from "./utils";
+import { getHashedName, getNameAccountKey } from "./deprecated/utils";
 import { Numberu32, Numberu64 } from "./int";
 import { deserializeUnchecked, Schema, serialize } from "borsh";
 

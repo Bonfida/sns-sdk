@@ -1,6 +1,6 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { getSolRecord } from "./record";
-import { getDomainKey } from "./utils";
+import { getDomainKeySync } from "./utils";
 import { NameRegistryState } from "./state";
 import { sign } from "tweetnacl";
 import { Record } from "./types/record";
@@ -27,7 +27,7 @@ export const checkSolRecord = (
  * @returns
  */
 export const resolve = async (connection: Connection, domain: string) => {
-  const { pubkey } = await getDomainKey(domain);
+  const { pubkey } = getDomainKeySync(domain);
 
   const { registry, nftOwner } = await NameRegistryState.retrieve(
     connection,
@@ -39,7 +39,7 @@ export const resolve = async (connection: Connection, domain: string) => {
   }
 
   try {
-    const recordKey = await getDomainKey(Record.SOL + "." + domain, true);
+    const recordKey = getDomainKeySync(Record.SOL + "." + domain, true);
     const solRecord = await getSolRecord(connection, domain);
 
     if (!solRecord.data) {

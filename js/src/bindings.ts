@@ -15,7 +15,11 @@ import {
 } from "./instructions";
 import { NameRegistryState } from "./state";
 import { Numberu64, Numberu32 } from "./int";
-import { getHashedName, getNameAccountKey, getNameOwner } from "./utils";
+import {
+  getHashedName,
+  getNameAccountKey,
+  getNameOwner,
+} from "./deprecated/utils";
 import {
   NAME_PROGRAM_ID,
   ROOT_DOMAIN_ACCOUNT,

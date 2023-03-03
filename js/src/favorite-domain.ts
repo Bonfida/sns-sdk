@@ -1,5 +1,5 @@
 import { FavouriteDomain, NAME_OFFERS_ID } from "@bonfida/name-offers";
-import { performReverseLookup } from "./utils";
+import { reverseLookup } from "./utils";
 import { PublicKey, Connection } from "@solana/web3.js";
 
 /**
@@ -19,7 +19,7 @@ export const getFavoriteDomain = async (
 
   const favorite = await FavouriteDomain.retrieve(connection, favKey);
 
-  const reverse = await performReverseLookup(connection, favorite.nameAccount);
+  const reverse = await reverseLookup(connection, favorite.nameAccount);
 
   return { domain: favorite.nameAccount, reverse };
 };

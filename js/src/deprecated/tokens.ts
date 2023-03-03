@@ -1,11 +1,17 @@
 import { PublicKey, Connection } from "@solana/web3.js";
 import { getHashedName, getNameAccountKey } from "./utils";
-import { NameRegistryState, TokenData, Mint } from "./state";
+import { NameRegistryState, TokenData, Mint } from "../state";
 
+/**
+ * @deprecated
+ */
 export const TOKEN_TLD = new PublicKey(
   "6NSu2tci4apRKQtt257bAVcvqYjB3zV2H1dWo56vgpa6"
 );
 
+/**
+ * @deprecated
+ */
 export const getTokenInfoFromMint = async (
   connection: Connection,
   mint: PublicKey
@@ -22,6 +28,9 @@ export const getTokenInfoFromMint = async (
   return TokenData.deserialize(registry.data);
 };
 
+/**
+ * @deprecated
+ */
 export const getTokenInfoFromName = async (
   connection: Connection,
   name: string
