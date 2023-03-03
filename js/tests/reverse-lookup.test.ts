@@ -1,10 +1,7 @@
 import { test, jest, expect } from "@jest/globals";
-import {
-  performReverseLookupBatch,
-  reverseLookupBatch,
-  reverseLookup,
-} from "../src/utils";
+import { reverseLookupBatch, reverseLookup } from "../src/utils";
 import { Connection, clusterApiUrl, PublicKey } from "@solana/web3.js";
+import { performReverseLookupBatch } from "../src/deprecated/utils";
 
 jest.setTimeout(5_000);
 

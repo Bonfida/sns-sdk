@@ -1,5 +1,6 @@
 import { test, expect } from "@jest/globals";
-import { getDomainKey, getDomainKeySync } from "../src/utils";
+import { getDomainKey } from "../src/deprecated/utils";
+import { getDomainKeySync } from "../src/utils";
 
 const items = [
   {
