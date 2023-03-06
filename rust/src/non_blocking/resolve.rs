@@ -30,7 +30,7 @@ pub fn check_sol_record(record: &[u8], signed_record: &[u8], pubkey: Pubkey) -> 
 
 pub async fn resolve_owner(rpc_client: &RpcClient, domain: &str) -> Result<Pubkey, SnsError> {
     let key = get_domain_key(domain, false)?;
-    let (header, _) = resolve_name_registry(rpc_client, key).await?;
+    let (header, _) = resolve_name_registry(rpc_client, &key).await?;
 
     let nft_owner = resolve_nft_owner(rpc_client, &key).await?;
 
@@ -39,7 +39,7 @@ pub async fn resolve_owner(rpc_client: &RpcClient, domain: &str) -> Result<Pubke
     }
 
     let sol_record_key = get_domain_key(&format!("SOL.{domain}"), true)?;
-    match resolve_name_registry(rpc_client, sol_record_key).await {
+    match resolve_name_registry(rpc_client, &sol_record_key).await {
         Ok((_, data)) => {
             let data = &data[..96];
             let record = [&data[..32], &sol_record_key.to_bytes()].concat();
@@ -64,11 +64,67 @@ pub async fn resolve_owner(rpc_client: &RpcClient, domain: &str) -> Result<Pubke
     Ok(header.owner)
 }
 
-pub async fn resolve_record() {}
+pub enum Record {
+    Ipfs,
+    Arwv,
+    Sol,
+    Eth,
+    Btc,
+    Ltc,
+    Doge,
+    Email,
+    Url,
+    Discord,
+    Github,
+    Reddit,
+    Twitter,
+    Telegram,
+    Pic,
+    Shdw,
+    Point,
+    Bsc,
+    Injective,
+}
+
+impl Record {
+    fn as_str(&self) -> &'static str {
+        match self {
+            Record::Ipfs => "IPFS",
+            Record::Arwv => "ARWV",
+            Record::Sol => "SOL",
+            Record::Eth => "ETH",
+            Record::Btc => "BTC",
+            Record::Ltc => "LTC",
+            Record::Doge => "DOGE",
+            Record::Email => "email",
+            Record::Url => "url",
+            Record::Discord => "discord",
+            Record::Github => "github",
+            Record::Reddit => "reddit",
+            Record::Twitter => "twitter",
+            Record::Telegram => "telegram",
+            Record::Pic => "pic",
+            Record::Shdw => "SHDW",
+            Record::Point => "POINT",
+            Record::Bsc => "BSC",
+            Record::Injective => "INJECT",
+        }
+    }
+}
+
+pub async fn resolve_record(
+    rpc_client: &RpcClient,
+    domain: &str,
+    record: Record,
+) -> Result<(NameRecordHeader, Vec<u8>), SnsError> {
+    let key = get_domain_key(&format!("{}.{domain}", record.as_str()), true)?;
+    let res = resolve_name_registry(rpc_client, &key).await?;
+    Ok(res)
+}
 
 pub async fn resolve_name_registry<'a>(
     rpc_client: &RpcClient,
-    key: Pubkey,
+    key: &Pubkey,
 ) -> Result<(NameRecordHeader, Vec<u8>), SnsError> {
     let acc = rpc_client.get_account(&key).await?;
     let header = NameRecordHeader::unpack_unchecked(&acc.data[0..NameRecordHeader::LEN])?;
@@ -76,7 +132,7 @@ pub async fn resolve_name_registry<'a>(
     Ok((header, data))
 }
 
-pub async fn resolve_reverse(rpc_client: &RpcClient, key: Pubkey) -> Result<String, SnsError> {
+pub async fn resolve_reverse(rpc_client: &RpcClient, key: &Pubkey) -> Result<String, SnsError> {
     let hashed = get_hashed_name(&key.to_string());
     let (key, _) = get_seeds_and_key(
         &spl_name_service::ID,
@@ -84,7 +140,7 @@ pub async fn resolve_reverse(rpc_client: &RpcClient, key: Pubkey) -> Result<Stri
         Some(&REVERSE_LOOKUP_CLASS),
         None,
     );
-    let (_, data) = resolve_name_registry(rpc_client, key).await?;
+    let (_, data) = resolve_name_registry(rpc_client, &key).await?;
     let len = u32::from_le_bytes(data[0..4].try_into().unwrap());
     let reverse =
         String::from_utf8(data[4..4 + len as usize].to_vec()).or(Err(SnsError::InvalidReverse))?;
@@ -202,7 +258,7 @@ mod tests {
         dotenv().ok();
         let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
         let key: Pubkey = pubkey!("Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb");
-        let reverse = resolve_reverse(&client, key).await.unwrap();
+        let reverse = resolve_reverse(&client, &key).await.unwrap();
         assert_eq!(reverse, "bonfida");
     }
 
