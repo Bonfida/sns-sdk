@@ -8,6 +8,9 @@ use crate::error::SnsError;
 pub const ROOT_DOMAIN_ACCOUNT: Pubkey = pubkey!("58PwtjSDuFHuUkYjH9BYnnQKHfwo9reZhC2zMJv9JPkx");
 pub const REVERSE_LOOKUP_CLASS: Pubkey = pubkey!("33m47vH6Eav6jr5Ry86XjhRft2jRBLDnDgPSHoquXi2Z");
 
+pub const MINT_PREFIX: &[u8; 14] = b"tokenized_name";
+pub const NAME_TOKENIZER_ID: Pubkey = pubkey!("nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk");
+
 pub enum Domain {
     Main,
     Sub,
@@ -44,7 +47,8 @@ pub fn get_domain_key(domain: &str, record: bool) -> Result<Pubkey, SnsError> {
         }
         (2, _) => {
             let parent = derive(splitted[1], &ROOT_DOMAIN_ACCOUNT);
-            let sub_domain = get_prefix(Domain::Sub) + splitted[0];
+            let sub_domain =
+                get_prefix(if record { Domain::Record } else { Domain::Sub }) + splitted[0];
             let key = derive(&sub_domain, &parent);
             Ok(key)
         }
@@ -89,6 +93,10 @@ pub fn get_reverse_key(domain: &str) -> Result<Pubkey, SnsError> {
         }
         _ => Err(SnsError::InvalidDomain),
     }
+}
+
+pub fn get_domain_mint(domain_key: &Pubkey) -> Pubkey {
+    Pubkey::find_program_address(&[MINT_PREFIX, &domain_key.to_bytes()], &NAME_TOKENIZER_ID).0
 }
 
 #[cfg(test)]

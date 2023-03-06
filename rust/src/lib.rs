@@ -1,18 +1,6 @@
 pub mod derivation;
 pub mod error;
-pub mod resolve;
 
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+#[cfg(feature = "async")]
+pub mod non_blocking;
+pub mod sync;
