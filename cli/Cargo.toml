@@ -1,0 +1,15 @@
+[package]
+name = "cli"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.1.8", features = ["derive"] }
+sns-sdk = { path = "../rust", features = ["async"] }
+tokio = { version = "1.26.0", features = ["macros", "rt-multi-thread"] }
+solana-sdk = "1.15.2"
+solana-client = "1.15.2"
+spl-name-service = {git = "https://github.com/solana-labs/solana-program-library", features = ["no-entrypoint"]}
+solana-program = "1.9.2"

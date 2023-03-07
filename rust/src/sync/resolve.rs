@@ -36,7 +36,7 @@ pub fn resolve_owner(rpc_client: &RpcClient, domain: &str) -> Result<Pubkey, Sns
             let data = &data[..96];
             let record = [&data[..32], &sol_record_key.to_bytes()].concat();
             let sig = &data[32..];
-            let encoded = hex::encode(&record);
+            let encoded = hex::encode(record);
             if check_sol_record(encoded.as_bytes(), sig, header.owner)? {
                 return Ok(Pubkey::new_from_array(data[0..32].try_into().unwrap()));
             }
@@ -66,11 +66,11 @@ pub fn resolve_record(
     Ok(res)
 }
 
-pub fn resolve_name_registry<'a>(
+pub fn resolve_name_registry(
     rpc_client: &RpcClient,
     key: &Pubkey,
 ) -> Result<(NameRecordHeader, Vec<u8>), SnsError> {
-    let acc = rpc_client.get_account(&key)?;
+    let acc = rpc_client.get_account(key)?;
     let header = NameRecordHeader::unpack_unchecked(&acc.data[0..NameRecordHeader::LEN])?;
     let data = acc.data[NameRecordHeader::LEN..].to_vec();
     Ok((header, data))
@@ -106,7 +106,7 @@ pub fn get_domains_owner(rpc_client: &RpcClient, owner: Pubkey) -> Result<Vec<Pu
             ..Default::default()
         },
     };
-    let res = rpc_client.get_program_accounts_with_config(&spl_name_service::ID, config.clone())?;
+    let res = rpc_client.get_program_accounts_with_config(&spl_name_service::ID, config)?;
     let keys = res.into_iter().map(|x| x.0).collect::<Vec<_>>();
     Ok(keys)
 }
@@ -126,7 +126,7 @@ pub fn get_subdomains(rpc_client: &RpcClient, parent: Pubkey) -> Result<Vec<Stri
             ..Default::default()
         },
     };
-    let res = rpc_client.get_program_accounts_with_config(&spl_name_service::ID, config.clone())?;
+    let res = rpc_client.get_program_accounts_with_config(&spl_name_service::ID, config)?;
 
     let res = res
         .into_iter()
@@ -134,9 +134,7 @@ pub fn get_subdomains(rpc_client: &RpcClient, parent: Pubkey) -> Result<Vec<Stri
             let mut offset = NameRecordHeader::LEN;
             let len = u32::from_le_bytes(acc.data[offset..offset + 4].try_into().unwrap());
             offset += 4;
-            let reverse =
-                String::from_utf8(acc.data[offset..offset + len as usize].to_vec()).unwrap();
-            reverse
+            String::from_utf8(acc.data[offset..offset + len as usize].to_vec()).unwrap()
         })
         .map(|x| x.strip_prefix('\0').unwrap().to_owned())
         .collect::<Vec<_>>();
@@ -167,7 +165,7 @@ pub fn resolve_nft_owner(
             ..Default::default()
         },
     };
-    let res = rpc_client.get_program_accounts_with_config(&spl_token::ID, config.clone())?;
+    let res = rpc_client.get_program_accounts_with_config(&spl_token::ID, config)?;
 
     if let Some((_, acc)) = res.first() {
         return Ok(Some(

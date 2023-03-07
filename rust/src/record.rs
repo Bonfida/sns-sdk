@@ -50,7 +50,11 @@ impl Record {
     }
 }
 
-pub fn check_sol_record(record: &[u8], signed_record: &[u8], pubkey: Pubkey) -> Result<bool, SnsError> {
+pub fn check_sol_record(
+    record: &[u8],
+    signed_record: &[u8],
+    pubkey: Pubkey,
+) -> Result<bool, SnsError> {
     let key = ed25519_dalek::PublicKey::from_bytes(&pubkey.to_bytes())?;
     let sig = ed25519_dalek::Signature::from_bytes(signed_record)?;
     let res = key.verify_strict(record, &sig).is_ok();

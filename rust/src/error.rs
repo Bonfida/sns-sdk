@@ -1,8 +1,8 @@
 use {
     derive_more::{Display, Error},
+    ed25519_dalek::ed25519,
     solana_client::client_error::ClientError,
     solana_program::program_error::ProgramError,
-    ed25519_dalek::ed25519
 };
 
 #[derive(Debug, Display, Error)]
@@ -12,7 +12,7 @@ pub enum SnsError {
     SolanaClient(ClientError),
     SolanaProgramError(ProgramError),
     InvalidReverse,
-    ED25519(ed25519::Error)
+    ED25519(ed25519::Error),
 }
 
 impl From<ClientError> for SnsError {
@@ -28,7 +28,7 @@ impl From<ProgramError> for SnsError {
 }
 
 impl From<ed25519::Error> for SnsError {
-    fn from(e:ed25519::Error) ->Self {
+    fn from(e: ed25519::Error) -> Self {
         Self::ED25519(e)
     }
 }

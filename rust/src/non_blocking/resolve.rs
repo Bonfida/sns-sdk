@@ -66,14 +66,44 @@ pub async fn resolve_record(
     Ok(res)
 }
 
-pub async fn resolve_name_registry<'a>(
+pub fn deserialize_name_registry(data: Vec<u8>) -> Result<(NameRecordHeader, Vec<u8>), SnsError> {
+    let header = NameRecordHeader::unpack_unchecked(&data[0..NameRecordHeader::LEN])?;
+    let data = data[NameRecordHeader::LEN..].to_vec();
+    Ok((header, data))
+}
+
+pub fn deserialize_reverse(data: Vec<u8>) -> Result<String, SnsError> {
+    let len = u32::from_le_bytes(data[0..4].try_into().unwrap());
+    let reverse =
+        String::from_utf8(data[4..4 + len as usize].to_vec()).or(Err(SnsError::InvalidReverse))?;
+    Ok(reverse)
+}
+
+pub async fn resolve_name_registry(
     rpc_client: &RpcClient,
     key: &Pubkey,
 ) -> Result<(NameRecordHeader, Vec<u8>), SnsError> {
     let acc = rpc_client.get_account(&key).await?;
-    let header = NameRecordHeader::unpack_unchecked(&acc.data[0..NameRecordHeader::LEN])?;
-    let data = acc.data[NameRecordHeader::LEN..].to_vec();
-    Ok((header, data))
+    deserialize_name_registry(acc.data)
+}
+
+pub async fn resolve_name_registry_batch(
+    rpc_client: &RpcClient,
+    keys: &Vec<Pubkey>,
+) -> Result<Vec<Option<(NameRecordHeader, Vec<u8>)>>, SnsError> {
+    let mut res = vec![];
+    for k in keys.chunks(100) {
+        let accs = rpc_client.get_multiple_accounts(k).await?;
+        for acc in accs {
+            if let Some(acc) = acc {
+                let des = deserialize_name_registry(acc.data)?;
+                res.push(Some(des))
+            } else {
+                res.push(None)
+            }
+        }
+    }
+    Ok(res)
 }
 
 pub async fn resolve_reverse(rpc_client: &RpcClient, key: &Pubkey) -> Result<String, SnsError> {
@@ -85,10 +115,40 @@ pub async fn resolve_reverse(rpc_client: &RpcClient, key: &Pubkey) -> Result<Str
         None,
     );
     let (_, data) = resolve_name_registry(rpc_client, &key).await?;
-    let len = u32::from_le_bytes(data[0..4].try_into().unwrap());
-    let reverse =
-        String::from_utf8(data[4..4 + len as usize].to_vec()).or(Err(SnsError::InvalidReverse))?;
-    Ok(reverse)
+    Ok(deserialize_reverse(data)?)
+}
+
+pub async fn resolve_reverse_batch(
+    rpc_client: &RpcClient,
+    keys: &Vec<Pubkey>,
+) -> Result<Vec<Option<String>>, SnsError> {
+    let mut res = vec![];
+
+    let reverse_keys = keys
+        .into_iter()
+        .map(|k| {
+            let hashed = get_hashed_name(&k.to_string());
+            let (key, _) = get_seeds_and_key(
+                &spl_name_service::ID,
+                hashed,
+                Some(&REVERSE_LOOKUP_CLASS),
+                None,
+            );
+            key
+        })
+        .collect::<Vec<_>>();
+
+    let reverses = resolve_name_registry_batch(rpc_client, &reverse_keys).await?;
+    for r in reverses {
+        if let Some((_, data)) = r {
+            let des = deserialize_reverse(data)?;
+            res.push(Some(des))
+        } else {
+            res.push(None)
+        }
+    }
+
+    Ok(res)
 }
 
 pub async fn get_domains_owner(
@@ -118,7 +178,7 @@ pub async fn get_domains_owner(
 
 pub async fn get_subdomains(
     rpc_client: &RpcClient,
-    parent: Pubkey,
+    parent: &Pubkey,
 ) -> Result<Vec<String>, SnsError> {
     let config = RpcProgramAccountsConfig {
         filters: Some(vec![
@@ -211,7 +271,7 @@ mod tests {
         dotenv().ok();
         let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
         let parent: Pubkey = get_domain_key("bonfida.sol", false).unwrap();
-        let mut reverse = get_subdomains(&client, parent).await.unwrap();
+        let mut reverse = get_subdomains(&client, &parent).await.unwrap();
         reverse.sort();
         assert_eq!(reverse, vec!["dex", "naming", "test"]);
     }
@@ -232,5 +292,24 @@ mod tests {
         // Normal case
         let res = resolve_owner(&client, "bonfida").await.unwrap();
         assert_eq!(res, pubkey!("HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA"));
+    }
+
+    #[tokio::test]
+    async fn batch_resolve_reverses() {
+        dotenv().ok();
+        let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
+        let reverses = resolve_reverse_batch(
+            &client,
+            &vec![
+                pubkey!("Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb"),
+                pubkey!("Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb"),
+            ],
+        )
+        .await
+        .unwrap();
+        assert_eq!(
+            reverses,
+            vec![Some("bonfida".to_string()), Some("bonfida".to_string())]
+        )
     }
 }

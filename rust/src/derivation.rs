@@ -39,7 +39,7 @@ pub fn derive(domain: &str, parent: &Pubkey) -> Pubkey {
 
 pub fn get_domain_key(domain: &str, record: bool) -> Result<Pubkey, SnsError> {
     let domain = domain.strip_suffix(".sol").unwrap_or(domain);
-    let splitted = domain.split(".").collect::<Vec<_>>();
+    let splitted = domain.split('.').collect::<Vec<_>>();
     match (splitted.len(), record) {
         (1, _) => {
             let key = derive(domain, &ROOT_DOMAIN_ACCOUNT);
@@ -66,7 +66,7 @@ pub fn get_domain_key(domain: &str, record: bool) -> Result<Pubkey, SnsError> {
 
 pub fn get_reverse_key(domain: &str) -> Result<Pubkey, SnsError> {
     let domain = domain.strip_suffix(".sol").unwrap_or(domain);
-    let splitted = domain.split(".").collect::<Vec<_>>();
+    let splitted = domain.split('.').collect::<Vec<_>>();
     match splitted.len() {
         1 => {
             let domain_key = get_domain_key(domain, false)?;
