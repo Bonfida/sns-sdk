@@ -1,32 +1,24 @@
 use {
-    ed25519_dalek,
     solana_account_decoder::UiAccountEncoding,
-    solana_client::client_error::{ClientError, ClientErrorKind},
-    solana_client::nonblocking::rpc_client::RpcClient,
-    solana_client::rpc_config::{RpcAccountInfoConfig, RpcProgramAccountsConfig},
-    solana_client::rpc_filter::{Memcmp, RpcFilterType},
-    solana_client::rpc_request::RpcError::RpcRequestError,
-    solana_program::program_pack::Pack,
-    solana_program::pubkey::Pubkey,
-    spl_name_service::state::get_seeds_and_key,
-    spl_name_service::state::NameRecordHeader,
+    solana_client::{
+        client_error::{ClientError, ClientErrorKind},
+        nonblocking::rpc_client::RpcClient,
+        rpc_config::{RpcAccountInfoConfig, RpcProgramAccountsConfig},
+        rpc_filter::{Memcmp, RpcFilterType},
+        rpc_request::RpcError::RpcRequestError,
+    },
+    solana_program::{program_pack::Pack, pubkey::Pubkey},
+    spl_name_service::state::{get_seeds_and_key, NameRecordHeader},
     spl_token::state::Mint,
 };
 
 use crate::{
     derivation::{
-        get_domain_key, get_domain_mint, get_hashed_name, get_reverse_key, REVERSE_LOOKUP_CLASS,
-        ROOT_DOMAIN_ACCOUNT,
+        get_domain_key, get_domain_mint, get_hashed_name, REVERSE_LOOKUP_CLASS, ROOT_DOMAIN_ACCOUNT,
     },
     error::SnsError,
+    record::{check_sol_record, Record},
 };
-
-pub fn check_sol_record(record: &[u8], signed_record: &[u8], pubkey: Pubkey) -> bool {
-    let key = ed25519_dalek::PublicKey::from_bytes(&pubkey.to_bytes()).unwrap();
-    let sig = ed25519_dalek::Signature::from_bytes(signed_record).unwrap();
-    let res = key.verify_strict(record, &sig).is_ok();
-    res
-}
 
 pub async fn resolve_owner(rpc_client: &RpcClient, domain: &str) -> Result<Pubkey, SnsError> {
     let key = get_domain_key(domain, false)?;
@@ -45,7 +37,7 @@ pub async fn resolve_owner(rpc_client: &RpcClient, domain: &str) -> Result<Pubke
             let record = [&data[..32], &sol_record_key.to_bytes()].concat();
             let sig = &data[32..];
             let encoded = hex::encode(&record);
-            if check_sol_record(encoded.as_bytes(), sig, header.owner) {
+            if check_sol_record(encoded.as_bytes(), sig, header.owner)? {
                 return Ok(Pubkey::new_from_array(data[0..32].try_into().unwrap()));
             }
         }
@@ -62,54 +54,6 @@ pub async fn resolve_owner(rpc_client: &RpcClient, domain: &str) -> Result<Pubke
     }
 
     Ok(header.owner)
-}
-
-pub enum Record {
-    Ipfs,
-    Arwv,
-    Sol,
-    Eth,
-    Btc,
-    Ltc,
-    Doge,
-    Email,
-    Url,
-    Discord,
-    Github,
-    Reddit,
-    Twitter,
-    Telegram,
-    Pic,
-    Shdw,
-    Point,
-    Bsc,
-    Injective,
-}
-
-impl Record {
-    fn as_str(&self) -> &'static str {
-        match self {
-            Record::Ipfs => "IPFS",
-            Record::Arwv => "ARWV",
-            Record::Sol => "SOL",
-            Record::Eth => "ETH",
-            Record::Btc => "BTC",
-            Record::Ltc => "LTC",
-            Record::Doge => "DOGE",
-            Record::Email => "email",
-            Record::Url => "url",
-            Record::Discord => "discord",
-            Record::Github => "github",
-            Record::Reddit => "reddit",
-            Record::Twitter => "twitter",
-            Record::Telegram => "telegram",
-            Record::Pic => "pic",
-            Record::Shdw => "SHDW",
-            Record::Point => "POINT",
-            Record::Bsc => "BSC",
-            Record::Injective => "INJECT",
-        }
-    }
 }
 
 pub async fn resolve_record(
@@ -267,8 +211,9 @@ mod tests {
         dotenv().ok();
         let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
         let parent: Pubkey = get_domain_key("bonfida.sol", false).unwrap();
-        let reverse = get_subdomains(&client, parent).await.unwrap();
-        println!("{:?}", reverse);
+        let mut reverse = get_subdomains(&client, parent).await.unwrap();
+        reverse.sort();
+        assert_eq!(reverse, vec!["dex", "naming", "test"]);
     }
 
     #[tokio::test]
