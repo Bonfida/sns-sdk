@@ -278,7 +278,7 @@ async fn process_register(
                     AccountMeta::new_readonly(Pubkey::from_str(&key.pubkey).unwrap(), key.is_signer)
                 })
             });
-            let data = base64::engine::general_purpose::STANDARD_NO_PAD.decode(r.data)?;
+            let data = base64::engine::general_purpose::URL_SAFE.decode(r.data)?;
             ixs.push(Instruction::new_with_bytes(program_id, &data, accounts))
         }
 
