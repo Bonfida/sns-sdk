@@ -42,17 +42,17 @@ enum Commands {
     },
     #[command(arg_required_else_help = true)]
     Transfer {
-        #[arg(required = true)]
-        domain: Vec<String>,
         owner_keypair: String,
         #[arg(required = true)]
         new_owner: String,
+        #[arg(required = true)]
+        domain: Vec<String>,
     },
     #[command(arg_required_else_help = true)]
     Burn {
+        keypair_path: String,
         #[arg(required = true)]
         domain: Vec<String>,
-        keypair_path: String,
     },
     #[command(arg_required_else_help = true)]
     Lookup {
