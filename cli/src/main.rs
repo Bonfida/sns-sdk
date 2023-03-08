@@ -1,8 +1,11 @@
 use {
+    base64::Engine,
     clap::{Parser, Subcommand},
     prettytable::{row, Table},
+    serde::Deserialize,
     sns_sdk::non_blocking::resolve,
     solana_client::nonblocking::rpc_client::RpcClient,
+    solana_program::instruction::{AccountMeta, Instruction},
     solana_program::pubkey::Pubkey,
     solana_sdk::signer::keypair::read_keypair_file,
     solana_sdk::{signer::Signer, transaction::Transaction},
@@ -27,9 +30,11 @@ enum Commands {
     #[command(arg_required_else_help = true)]
     Register {
         #[arg(required = true)]
-        domain: String,
-        #[arg(required = true)]
         keypair_path: String,
+        #[arg(required = true)]
+        space: u64,
+        #[arg(required = true)]
+        domains: Vec<String>,
     },
     #[command(arg_required_else_help = true)]
     Transfer {
@@ -56,24 +61,6 @@ enum Commands {
         key: String,
     },
     #[command(arg_required_else_help = true)]
-    CreateSub {
-        #[arg(required = true)]
-        sub: String,
-        #[arg(required = true)]
-        parent: String,
-        #[arg(required = true)]
-        keypair_path: String,
-    },
-    #[command(arg_required_else_help = true)]
-    CreateRecord {
-        #[arg(required = true)]
-        sub: String,
-        #[arg(required = true)]
-        parent: String,
-        #[arg(required = true)]
-        keypair_path: String,
-    },
-    #[command(arg_required_else_help = true)]
     Bridge {
         #[arg(required = true)]
         target_chain: String,
@@ -90,7 +77,6 @@ enum Commands {
 }
 
 const RPC_URL: &str = "https://api.mainnet-beta.solana.com";
-
 
 #[allow(dead_code)]
 fn get_rpc_client(url: Option<String>) -> RpcClient {
@@ -229,6 +215,84 @@ async fn process_reverse_lookup(rpc_client: &RpcClient, key: &str) -> CliResult 
     table.add_row(row!["Public key", "Reverse"]);
     let reverse = resolve::resolve_reverse(rpc_client, &Pubkey::from_str(key)?).await?;
     table.add_row(row![key, reverse]);
+    table.printstd();
+    Ok(())
+}
+
+#[derive(Deserialize)]
+struct RegisterResponse {
+    #[allow(dead_code)]
+    pub s: String,
+    pub result: Vec<ApiResult>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ApiResult {
+    pub program_id: String,
+    pub data: String,
+    pub keys: Vec<Key>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Key {
+    pub pubkey: String,
+    pub is_writable: bool,
+    pub is_signer: bool,
+}
+
+async fn process_register(
+    rpc_client: &RpcClient,
+    keypair_path: &str,
+    domains: Vec<String>,
+    space: u64,
+) -> CliResult {
+    println!("Registering domains...");
+    let mut table = Table::new();
+    table.add_row(row!["Domain", "Transaction", "Explorer"]);
+    let client = reqwest::Client::new();
+    let keypair = read_keypair_file(keypair_path)?;
+
+    for domain in domains {
+        let response = client
+            .get(format!(
+                "https://sns-sdk-proxy.bonfida.workers.dev/register?buyer={}&domain={}&space={}",
+                keypair.pubkey(),
+                domain,
+                space
+            ))
+            .send()
+            .await?
+            .json::<RegisterResponse>()
+            .await?;
+
+        let mut ixs = vec![];
+        for r in response.result {
+            let program_id = Pubkey::from_str(&r.program_id)?;
+            let mut accounts = vec![];
+            r.keys.into_iter().for_each(|key| {
+                accounts.push(if key.is_writable {
+                    AccountMeta::new(Pubkey::from_str(&key.pubkey).unwrap(), key.is_signer)
+                } else {
+                    AccountMeta::new_readonly(Pubkey::from_str(&key.pubkey).unwrap(), key.is_signer)
+                })
+            });
+            let data = base64::engine::general_purpose::STANDARD_NO_PAD.decode(r.data)?;
+            ixs.push(Instruction::new_with_bytes(program_id, &data, accounts))
+        }
+
+        let mut tx = Transaction::new_with_payer(&ixs, Some(&keypair.pubkey()));
+        let blockhash = rpc_client.get_latest_blockhash().await?;
+        tx.partial_sign(&[&keypair], blockhash);
+        let sig = rpc_client.send_and_confirm_transaction(&tx).await?;
+        table.add_row(row![
+            domain,
+            sig,
+            format!("https://explorer.solana.com/tx/{sig}")
+        ]);
+    }
+    table.printstd();
     Ok(())
 }
 
@@ -251,7 +315,16 @@ async fn main() {
         } => process_transfer(&rpc_client, domain, &owner_keypair, &new_owner).await,
         Commands::Lookup { domain } => process_lookup(&rpc_client, domain).await,
         Commands::ReverseLookup { key } => process_reverse_lookup(&rpc_client, &key).await,
-        _ => todo!(),
+        Commands::Bridge {
+            target_chain,
+            domain,
+            keypair_path,
+        } => unimplemented!(),
+        Commands::Register {
+            domains,
+            keypair_path,
+            space,
+        } => process_register(&rpc_client, &keypair_path, domains, space).await,
     };
 
     if let Err(err) = res {
