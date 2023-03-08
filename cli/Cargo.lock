@@ -668,6 +668,7 @@ version = "0.1.0"
 dependencies = [
  "base64 0.21.0",
  "clap 4.1.8",
+ "indicatif",
  "prettytable-rs",
  "reqwest",
  "serde",

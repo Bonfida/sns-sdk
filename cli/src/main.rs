@@ -1,6 +1,7 @@
 use {
     base64::Engine,
     clap::{Parser, Subcommand},
+    indicatif::{ProgressBar, ProgressState, ProgressStyle},
     prettytable::{row, Table},
     serde::Deserialize,
     sns_sdk::non_blocking::resolve,
@@ -9,6 +10,7 @@ use {
     solana_program::pubkey::Pubkey,
     solana_sdk::signer::keypair::read_keypair_file,
     solana_sdk::{signer::Signer, transaction::Transaction},
+    std::fmt::Write,
     std::str::FromStr,
 };
 
@@ -88,13 +90,30 @@ fn get_rpc_client(url: Option<String>) -> RpcClient {
 
 pub fn log_error() {}
 
+pub fn progress_bar(len: usize) -> ProgressBar {
+    let pb = ProgressBar::new(len as u64);
+    pb.set_style(
+        ProgressStyle::with_template(
+            "{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] ({eta})",
+        )
+        .unwrap()
+        .with_key("eta", |state: &ProgressState, w: &mut dyn Write| {
+            write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap()
+        })
+        .progress_chars("#>-"),
+    );
+    pb
+}
+
 type CliResult = Result<(), Box<dyn std::error::Error>>;
 
 async fn process_domains(rpc_client: &RpcClient, owners: Vec<String>) -> CliResult {
     println!("Resolving domains...\n");
     let mut table = Table::new();
     table.add_row(row!["Domain", "Link"]);
-    for owner in owners {
+    let pb = progress_bar(owners.len());
+
+    for (idx, owner) in owners.into_iter().enumerate() {
         let owner_key = Pubkey::from_str(&owner)?;
         let domains = resolve::get_domains_owner(rpc_client, owner_key).await?;
         resolve::resolve_reverse_batch(rpc_client, &domains)
@@ -104,7 +123,9 @@ async fn process_domains(rpc_client: &RpcClient, owners: Vec<String>) -> CliResu
             .for_each(|x| {
                 table.add_row(row![x, format!("https://naming.bonfida.org/domain/{x}")]);
             });
+        pb.set_position(idx as u64);
     }
+    pb.finish();
     table.printstd();
     Ok(())
 }
@@ -113,14 +134,18 @@ async fn process_resolve(rpc_client: &RpcClient, domains: Vec<String>) -> CliRes
     println!("Resolving domains...\n");
     let mut table = Table::new();
     table.add_row(row!["Domain", "Owner", "Explorer"]);
-    for domain in domains {
+
+    let pb = progress_bar(domains.len());
+    for (idx, domain) in domains.into_iter().enumerate() {
         let owner = resolve::resolve_owner(rpc_client, &domain).await?;
         table.add_row(row![
             domain,
             owner,
             format!("https://explorer.solana.com/address/{owner}")
         ]);
+        pb.set_position(idx as u64);
     }
+    pb.finish();
     table.printstd();
     Ok(())
 }
@@ -133,7 +158,8 @@ async fn process_burn(
     println!("Burning domain...");
     let mut table = Table::new();
     table.add_row(row!["Domain", "Transaction", "Explorer"]);
-    for domain in domains {
+    let pb = progress_bar(domains.len());
+    for (idx, domain) in domains.into_iter().enumerate() {
         let domain_key = sns_sdk::derivation::get_domain_key(&domain, false)?;
         let keypair = read_keypair_file(keypair_path)?;
         let ix = spl_name_service::instruction::delete(
@@ -151,7 +177,9 @@ async fn process_burn(
             sig,
             format!("https://explorer.solana.com/tx/{sig}")
         ]);
+        pb.set_position(idx as u64);
     }
+    pb.finish();
     table.printstd();
     Ok(())
 }
@@ -165,7 +193,8 @@ async fn process_transfer(
     println!("Transfering domains...");
     let mut table = Table::new();
     table.add_row(row!["Domain", "Transaction", "Explorer"]);
-    for domain in domains {
+    let pb = progress_bar(domains.len());
+    for (idx, domain) in domains.into_iter().enumerate() {
         let domain_key = sns_sdk::derivation::get_domain_key(&domain, false)?;
         let keypair = read_keypair_file(owner_keypair)?;
         let ix = spl_name_service::instruction::transfer(
@@ -184,7 +213,9 @@ async fn process_transfer(
             sig,
             format!("https://explorer.solana.com/tx/{sig}")
         ]);
+        pb.set_position(idx as u64);
     }
+    pb.finish();
     table.printstd();
     Ok(())
 }
@@ -193,7 +224,8 @@ async fn process_lookup(rpc_client: &RpcClient, domains: Vec<String>) -> CliResu
     println!("Fetching information...\n");
     let mut table = Table::new();
     table.add_row(row!["Domain", "Domain key", "Parent", "Owner", "Data"]);
-    for domain in domains {
+    let pb = progress_bar(domains.len());
+    for (idx, domain) in domains.into_iter().enumerate() {
         let domain_key = sns_sdk::derivation::get_domain_key(&domain, false)?;
         let (header, data) = resolve::resolve_name_registry(rpc_client, &domain_key).await?;
         let data = String::from_utf8(data)?;
@@ -204,7 +236,9 @@ async fn process_lookup(rpc_client: &RpcClient, domains: Vec<String>) -> CliResu
             header.owner,
             data
         ]);
+        pb.set_position(idx as u64);
     }
+    pb.finish();
     table.printstd();
     Ok(())
 }
@@ -251,10 +285,11 @@ async fn process_register(
     println!("Registering domains...");
     let mut table = Table::new();
     table.add_row(row!["Domain", "Transaction", "Explorer"]);
+    let pb = progress_bar(domains.len());
     let client = reqwest::Client::new();
     let keypair = read_keypair_file(keypair_path)?;
 
-    for domain in domains {
+    for (idx, domain) in domains.into_iter().enumerate() {
         let response = client
             .get(format!(
                 "https://sns-sdk-proxy.bonfida.workers.dev/register?buyer={}&domain={}&space={}",
@@ -291,7 +326,9 @@ async fn process_register(
             sig,
             format!("https://explorer.solana.com/tx/{sig}")
         ]);
+        pb.set_position(idx as u64);
     }
+    pb.finish();
     table.printstd();
     Ok(())
 }
