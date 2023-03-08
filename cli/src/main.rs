@@ -1,3 +1,5 @@
+use anyhow::anyhow;
+
 use {
     base64::Engine,
     clap::{Parser, Subcommand},
@@ -289,7 +291,12 @@ async fn process_register(
     let client = reqwest::Client::new();
     let keypair = read_keypair_file(keypair_path)?;
 
+    let re = regex::Regex::new(r"^[a-z\d\-_]+$").unwrap();
+
     for (idx, domain) in domains.into_iter().enumerate() {
+        if !re.is_match(&domain) {
+            return Err(anyhow!("Invalid domain").into());
+        }
         let response = client
             .get(format!(
                 "https://sns-sdk-proxy.bonfida.workers.dev/register?buyer={}&domain={}&space={}",

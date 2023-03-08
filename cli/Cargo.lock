@@ -666,10 +666,12 @@ dependencies = [
 name = "cli"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "base64 0.21.0",
  "clap 4.1.8",
  "indicatif",
  "prettytable-rs",
+ "regex",
  "reqwest",
  "serde",
  "serde_json",
