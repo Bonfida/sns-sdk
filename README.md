@@ -33,6 +33,7 @@ SNS SDK monorepo
 6. [Swift](#swift)
 7. [CLI](#cli)
 8. [Examples](#examples)
+   - Resolving a domain
 
 <br />
 <a name="javascript"></a>
@@ -134,3 +135,47 @@ Work in progress
 <a name="examples"></a>
 <h2 align="center">Examples</h2>
 <br />
+
+<br />
+<h3 align="center">Resolving a domain</h2>
+<br />
+
+The following examples show how to resolve the domain `bonfida.sol`:
+
+1. With the JS SDK
+
+```js
+const connection = new Connection(clusterApiUrl("mainnet-beta"));
+const owner = await resolve(connection, "bonfida");
+expect(owner.toBase58()).toBe("HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA");
+```
+
+2. With the Rust SDK
+
+```rust
+let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
+let res = resolve_owner(&client, "bonfida").await.unwrap();
+assert_eq!(res, pubkey!("HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA"));
+```
+
+3. With the CLI
+
+```bash
+$ sns resolve bonfida
+
++---------+----------------------------------------------+----------------------------------------------------------------------------------+
+| Domain  | Owner                                        | Explorer                                                                         |
++---------+----------------------------------------------+----------------------------------------------------------------------------------+
+| bonfida | HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA | https://explorer.solana.com/address/HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA |
++---------+----------------------------------------------+----------------------------------------------------------------------------------+
+```
+
+4. With the Cloudflare worker
+
+```bash
+GET https://sns-sdk-proxy.bonfida.workers.dev/resolve/bonfida
+```
+
+```json
+{ "s": "ok", "result": "HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA" }
+```

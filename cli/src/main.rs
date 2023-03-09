@@ -14,6 +14,7 @@ use {
     solana_sdk::{signer::Signer, transaction::Transaction},
     std::fmt::Write,
     std::str::FromStr,
+    console::Term
 };
 
 #[derive(Debug, Parser)]
@@ -82,6 +83,7 @@ enum Commands {
 
 const RPC_URL: &str = "https://api.mainnet-beta.solana.com";
 
+
 #[allow(dead_code)]
 fn get_rpc_client(url: Option<String>) -> RpcClient {
     match url {
@@ -128,6 +130,7 @@ async fn process_domains(rpc_client: &RpcClient, owners: Vec<String>) -> CliResu
         pb.set_position(idx as u64);
     }
     pb.finish();
+    Term::stdout().clear_screen()?;
     table.printstd();
     Ok(())
 }
@@ -148,6 +151,7 @@ async fn process_resolve(rpc_client: &RpcClient, domains: Vec<String>) -> CliRes
         pb.set_position(idx as u64);
     }
     pb.finish();
+    Term::stdout().clear_screen()?;
     table.printstd();
     Ok(())
 }
@@ -182,6 +186,7 @@ async fn process_burn(
         pb.set_position(idx as u64);
     }
     pb.finish();
+    Term::stdout().clear_screen()?;
     table.printstd();
     Ok(())
 }
@@ -218,6 +223,7 @@ async fn process_transfer(
         pb.set_position(idx as u64);
     }
     pb.finish();
+    Term::stdout().clear_screen()?;
     table.printstd();
     Ok(())
 }
@@ -241,6 +247,7 @@ async fn process_lookup(rpc_client: &RpcClient, domains: Vec<String>) -> CliResu
         pb.set_position(idx as u64);
     }
     pb.finish();
+    Term::stdout().clear_screen()?;
     table.printstd();
     Ok(())
 }
@@ -251,6 +258,7 @@ async fn process_reverse_lookup(rpc_client: &RpcClient, key: &str) -> CliResult 
     table.add_row(row!["Public key", "Reverse"]);
     let reverse = resolve::resolve_reverse(rpc_client, &Pubkey::from_str(key)?).await?;
     table.add_row(row![key, reverse]);
+    Term::stdout().clear_line()?;
     table.printstd();
     Ok(())
 }
@@ -336,6 +344,7 @@ async fn process_register(
         pb.set_position(idx as u64);
     }
     pb.finish();
+    Term::stdout().clear_screen()?;
     table.printstd();
     Ok(())
 }

@@ -669,6 +669,7 @@ dependencies = [
  "anyhow",
  "base64 0.21.0",
  "clap 4.1.8",
+ "console",
  "indicatif",
  "prettytable-rs",
  "regex",
