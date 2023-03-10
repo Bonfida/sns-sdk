@@ -1,0 +1,8 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@bonfida/spl-name-service": "^0.1.67",
+    "@bonfida/utils": "^0.0.6",
+    "@solana/web3.js": "^1.73.3"
+  }
+}

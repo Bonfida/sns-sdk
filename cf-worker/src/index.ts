@@ -195,6 +195,7 @@ app.get("/register", async (c) => {
     const buyerStr = c.req.query("buyer");
     const domain = c.req.query("domain");
     const space = c.req.query("space");
+    const serialize = c.req.query("serialize");
 
     if (!buyerStr || !domain || !space) {
       return c.json(response(false, "Missing input"));
@@ -215,17 +216,35 @@ app.get("/register", async (c) => {
       ata
     );
 
-    const tx = new Transaction().add(...ix);
-    const connection = getConnection(c);
+    if (serialize === "true") {
+      const tx = new Transaction().add(...ix);
+      const connection = getConnection(c);
 
-    tx.feePayer = buyer;
-    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+      tx.feePayer = buyer;
+      tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+      const ser = tx.serialize({
+        requireAllSignatures: false,
+        verifySignatures: false,
+      });
+      return c.json(response(true, ser));
+    }
 
-    const ser = tx.serialize({
-      requireAllSignatures: false,
-      verifySignatures: false,
-    });
-    return c.json(response(true, ser.toString("base64")));
+    const result = [];
+    for (let i of ix) {
+      result.push({
+        programId: i.programId.toBase58(),
+        keys: i.keys.map((e) => {
+          return {
+            isSigner: e.isSigner,
+            isWritable: e.isWritable,
+            pubkey: e.pubkey.toBase58(),
+          };
+        }),
+        data: i.data.toString("base64"),
+      });
+    }
+
+    return c.json(response(true, result));
   } catch (err) {
     console.log(err);
     return c.json(response(false, "Invalid input"));
