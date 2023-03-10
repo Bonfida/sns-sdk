@@ -1,5 +1,5 @@
 import { useAsync } from "react-async-hook";
-import { findSubdomains, getDomainKeySync } from "@bonfida/spl-name-service";
+import { findSubdomains } from "@bonfida/spl-name-service";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { toKey } from "../../utils/domain-to-key";
 
