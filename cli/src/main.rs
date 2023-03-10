@@ -3,6 +3,7 @@ use anyhow::anyhow;
 use {
     base64::Engine,
     clap::{Parser, Subcommand},
+    console::Term,
     indicatif::{ProgressBar, ProgressState, ProgressStyle},
     prettytable::{row, Table},
     serde::Deserialize,
@@ -14,7 +15,6 @@ use {
     solana_sdk::{signer::Signer, transaction::Transaction},
     std::fmt::Write,
     std::str::FromStr,
-    console::Term
 };
 
 #[derive(Debug, Parser)]
@@ -27,43 +27,99 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
-    #[command(arg_required_else_help = true)]
+    #[command(
+        arg_required_else_help = true,
+        about = "Resolve the owner of the specified domain names"
+    )]
     Resolve {
-        #[arg(required = true)]
+        #[arg(
+            required = true,
+            help = "The list of domains to resolve with or without .sol suffix"
+        )]
         domain: Vec<String>,
+        #[arg(long, short, help = "Optional custom RPC URL")]
+        url: Option<String>,
     },
-    #[command(arg_required_else_help = true)]
+    #[command(
+        arg_required_else_help = true,
+        about = "Register the specified domain names"
+    )]
     Register {
-        #[arg(required = true)]
+        #[arg(
+            required = true,
+            help = "The path to the wallet private key used to register the domains"
+        )]
         keypair_path: String,
-        #[arg(required = true)]
+        #[arg(
+            required = true,
+            help = "The space to allocate for each domain (1kB to 10kB"
+        )]
         space: u64,
-        #[arg(required = true)]
+        #[arg(
+            required = true,
+            help = "The list of domains to register with or without .sol suffix"
+        )]
         domains: Vec<String>,
+        #[arg(long, short, help = "Optional custom RPC URL")]
+        url: Option<String>,
     },
-    #[command(arg_required_else_help = true)]
+    #[command(
+        arg_required_else_help = true,
+        about = "Transfer a list of domains to a new owner"
+    )]
     Transfer {
+        #[arg(
+            required = true,
+            help = "The path to the wallet private key which currently owns the domains to transfer"
+        )]
         owner_keypair: String,
-        #[arg(required = true)]
+        #[arg(required = true, help = "The new owner of the domains")]
         new_owner: String,
-        #[arg(required = true)]
+        #[arg(
+            required = true,
+            help = "The list of domains to transfer with or without .sol suffix"
+        )]
         domain: Vec<String>,
+        #[arg(long, short, help = "Optional custom RPC URL")]
+        url: Option<String>,
     },
-    #[command(arg_required_else_help = true)]
+    #[command(
+        arg_required_else_help = true,
+        about = "⛔️ Burn a list of domain names"
+    )]
     Burn {
+        #[arg(
+            required = true,
+            help = "The path to the wallet private key which currently owns the domains to burn"
+        )]
         keypair_path: String,
-        #[arg(required = true)]
+        #[arg(
+            required = true,
+            help = "The list of domains to burn with or without .sol suffix"
+        )]
         domain: Vec<String>,
+        #[arg(long, short, help = "Optional custom RPC URL")]
+        url: Option<String>,
     },
-    #[command(arg_required_else_help = true)]
+    #[command(
+        arg_required_else_help = true,
+        about = "Fetch the name registry data for the specified domain names"
+    )]
     Lookup {
-        #[arg(required = true)]
+        #[arg(
+            required = true,
+            help = "The list of domains to fetch with or without .sol suffix"
+        )]
         domain: Vec<String>,
+        #[arg(long, short, help = "Optional custom RPC URL")]
+        url: Option<String>,
     },
-    #[command(arg_required_else_help = true)]
+    #[command(arg_required_else_help = true, about = "Perform a reverse lookup")]
     ReverseLookup {
-        #[arg(required = true)]
+        #[arg(required = true, help = "The public key (base58 encoded) to lookup")]
         key: String,
+        #[arg(long, short, help = "Optional custom RPC URL")]
+        url: Option<String>,
     },
     #[command(arg_required_else_help = true)]
     Bridge {
@@ -74,17 +130,20 @@ enum Commands {
         #[arg(required = true)]
         keypair_path: String,
     },
-    #[command(arg_required_else_help = true)]
+    #[command(
+        arg_required_else_help = true,
+        about = "Fetch all the domain names owned for the specified wallets"
+    )]
     Domains {
-        #[arg(required = true)]
-        owner: Vec<String>,
+        #[arg(long, short, help = "Optional custom RPC URL")]
+        url: Option<String>,
+        #[arg(required = true, help = "The list of wallets")]
+        owners: Vec<String>,
     },
 }
 
 const RPC_URL: &str = "https://api.mainnet-beta.solana.com";
 
-
-#[allow(dead_code)]
 fn get_rpc_client(url: Option<String>) -> RpcClient {
     match url {
         Some(url) => RpcClient::new(url),
@@ -92,7 +151,12 @@ fn get_rpc_client(url: Option<String>) -> RpcClient {
     }
 }
 
-pub fn log_error() {}
+fn format_domain(domain: &str) -> String {
+    if domain.ends_with(".sol") {
+        return domain.to_owned();
+    }
+    return format!("{domain}.sol");
+}
 
 pub fn progress_bar(len: usize) -> ProgressBar {
     let pb = ProgressBar::new(len as u64);
@@ -114,7 +178,7 @@ type CliResult = Result<(), Box<dyn std::error::Error>>;
 async fn process_domains(rpc_client: &RpcClient, owners: Vec<String>) -> CliResult {
     println!("Resolving domains...\n");
     let mut table = Table::new();
-    table.add_row(row!["Domain", "Link"]);
+    table.add_row(row!["Domain", "Owner", "Link"]);
     let pb = progress_bar(owners.len());
 
     for (idx, owner) in owners.into_iter().enumerate() {
@@ -125,7 +189,11 @@ async fn process_domains(rpc_client: &RpcClient, owners: Vec<String>) -> CliResu
             .into_iter()
             .flatten()
             .for_each(|x| {
-                table.add_row(row![x, format!("https://naming.bonfida.org/domain/{x}")]);
+                table.add_row(row![
+                    format_domain(&x),
+                    owner,
+                    format!("https://naming.bonfida.org/domain/{x}")
+                ]);
             });
         pb.set_position(idx as u64);
     }
@@ -144,7 +212,7 @@ async fn process_resolve(rpc_client: &RpcClient, domains: Vec<String>) -> CliRes
     for (idx, domain) in domains.into_iter().enumerate() {
         let owner = resolve::resolve_owner(rpc_client, &domain).await?;
         table.add_row(row![
-            domain,
+            format_domain(&domain),
             owner,
             format!("https://explorer.solana.com/address/{owner}")
         ]);
@@ -179,7 +247,7 @@ async fn process_burn(
         tx.partial_sign(&[&keypair], blockhash);
         let sig = rpc_client.send_and_confirm_transaction(&tx).await?;
         table.add_row(row![
-            domain,
+            format_domain(&domain),
             sig,
             format!("https://explorer.solana.com/tx/{sig}")
         ]);
@@ -216,7 +284,7 @@ async fn process_transfer(
         tx.partial_sign(&[&keypair], blockhash);
         let sig = rpc_client.send_and_confirm_transaction(&tx).await?;
         table.add_row(row![
-            domain,
+            format_domain(&domain),
             sig,
             format!("https://explorer.solana.com/tx/{sig}")
         ]);
@@ -238,7 +306,7 @@ async fn process_lookup(rpc_client: &RpcClient, domains: Vec<String>) -> CliResu
         let (header, data) = resolve::resolve_name_registry(rpc_client, &domain_key).await?;
         let data = String::from_utf8(data)?;
         table.add_row(row![
-            domain,
+            format_domain(&domain),
             domain_key,
             header.parent_name,
             header.owner,
@@ -257,7 +325,7 @@ async fn process_reverse_lookup(rpc_client: &RpcClient, key: &str) -> CliResult 
     let mut table = Table::new();
     table.add_row(row!["Public key", "Reverse"]);
     let reverse = resolve::resolve_reverse(rpc_client, &Pubkey::from_str(key)?).await?;
-    table.add_row(row![key, reverse]);
+    table.add_row(row![key, format_domain(&reverse)]);
     Term::stdout().clear_line()?;
     table.printstd();
     Ok(())
@@ -337,7 +405,7 @@ async fn process_register(
         tx.partial_sign(&[&keypair], blockhash);
         let sig = rpc_client.send_and_confirm_transaction(&tx).await?;
         table.add_row(row![
-            domain,
+            format_domain(&domain),
             sig,
             format!("https://explorer.solana.com/tx/{sig}")
         ]);
@@ -352,22 +420,25 @@ async fn process_register(
 #[tokio::main]
 async fn main() {
     let args = Cli::parse();
-    let rpc_client = RpcClient::new(RPC_URL.to_string());
 
     let res = match args.command {
-        Commands::Resolve { domain } => process_resolve(&rpc_client, domain).await,
-        Commands::Domains { owner } => process_domains(&rpc_client, owner).await,
+        Commands::Resolve { domain, url } => process_resolve(&get_rpc_client(url), domain).await,
+        Commands::Domains { owners, url } => process_domains(&get_rpc_client(url), owners).await,
         Commands::Burn {
             domain,
             keypair_path,
-        } => process_burn(&rpc_client, &keypair_path, domain).await,
+            url,
+        } => process_burn(&get_rpc_client(url), &keypair_path, domain).await,
         Commands::Transfer {
             domain,
             owner_keypair,
             new_owner,
-        } => process_transfer(&rpc_client, domain, &owner_keypair, &new_owner).await,
-        Commands::Lookup { domain } => process_lookup(&rpc_client, domain).await,
-        Commands::ReverseLookup { key } => process_reverse_lookup(&rpc_client, &key).await,
+            url,
+        } => process_transfer(&get_rpc_client(url), domain, &owner_keypair, &new_owner).await,
+        Commands::Lookup { domain, url } => process_lookup(&get_rpc_client(url), domain).await,
+        Commands::ReverseLookup { key, url } => {
+            process_reverse_lookup(&get_rpc_client(url), &key).await
+        }
         Commands::Bridge {
             target_chain,
             domain,
@@ -377,7 +448,8 @@ async fn main() {
             domains,
             keypair_path,
             space,
-        } => process_register(&rpc_client, &keypair_path, domains, space).await,
+            url,
+        } => process_register(&get_rpc_client(url), &keypair_path, domains, space).await,
     };
 
     if let Err(err) = res {
