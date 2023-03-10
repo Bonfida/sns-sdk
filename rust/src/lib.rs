@@ -3,7 +3,8 @@ pub mod error;
 
 pub mod record;
 
-#[cfg(feature = "async")]
+#[cfg(not(feature = "blocking"))]
 pub mod non_blocking;
-#[cfg(not(feature = "async"))]
-pub mod sync;
+
+#[cfg(feature = "blocking")]
+pub mod blocking;
