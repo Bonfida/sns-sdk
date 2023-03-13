@@ -19,6 +19,11 @@ SNS SDK monorepo
 <div align="center">
 <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" />
 <img src="https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white" />
+<img src="https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB" />
+<img src="https://img.shields.io/badge/Cloudflare-F38020?style=for-the-badge&logo=Cloudflare&logoColor=white" />
+<img src="https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54" />
+<img src="https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=java&logoColor=white" />
+<img src="https://img.shields.io/badge/swift-F54A2A?style=for-the-badge&logo=swift&logoColor=white" />
 </div>
 
 <br />
@@ -202,7 +207,7 @@ GET https://sns-sdk-proxy.bonfida.workers.dev/resolve/bonfida
 { "s": "ok", "result": "HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA" }
 ```
 
-5. With the React example
+5. With the React SDK
 
 ```ts
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
