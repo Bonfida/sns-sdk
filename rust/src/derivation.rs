@@ -11,6 +11,7 @@ pub const REVERSE_LOOKUP_CLASS: Pubkey = pubkey!("33m47vH6Eav6jr5Ry86XjhRft2jRBL
 pub const MINT_PREFIX: &[u8; 14] = b"tokenized_name";
 pub const NAME_TOKENIZER_ID: Pubkey = pubkey!("nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk");
 
+#[derive(Copy, Clone, Debug)]
 pub enum Domain {
     Main,
     Sub,
