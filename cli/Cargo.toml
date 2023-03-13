@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.1.8", features = ["derive"] }
-sns-sdk = { path = "../rust", features = ["async"] }
+sns-sdk = { path = "../rust"  }
 tokio = { version = "1.26.0", features = ["macros", "rt-multi-thread"] }
 solana-sdk = "1.15.2"
 solana-client = "1.15.2"

@@ -2,6 +2,7 @@ use crate::error::SnsError;
 
 use {ed25519_dalek, solana_program::pubkey::Pubkey};
 
+#[derive(Copy, Clone, Debug)]
 pub enum Record {
     Ipfs,
     Arwv,

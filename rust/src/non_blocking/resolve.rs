@@ -66,13 +66,13 @@ pub async fn resolve_record(
     Ok(res)
 }
 
-pub fn deserialize_name_registry(data: Vec<u8>) -> Result<(NameRecordHeader, Vec<u8>), SnsError> {
+pub fn deserialize_name_registry(data: &[u8]) -> Result<(NameRecordHeader, Vec<u8>), SnsError> {
     let header = NameRecordHeader::unpack_unchecked(&data[0..NameRecordHeader::LEN])?;
     let data = data[NameRecordHeader::LEN..].to_vec();
     Ok((header, data))
 }
 
-pub fn deserialize_reverse(data: Vec<u8>) -> Result<String, SnsError> {
+pub fn deserialize_reverse(data: &[u8]) -> Result<String, SnsError> {
     let len = u32::from_le_bytes(data[0..4].try_into().unwrap());
     let reverse =
         String::from_utf8(data[4..4 + len as usize].to_vec()).or(Err(SnsError::InvalidReverse))?;
@@ -84,19 +84,19 @@ pub async fn resolve_name_registry(
     key: &Pubkey,
 ) -> Result<(NameRecordHeader, Vec<u8>), SnsError> {
     let acc = rpc_client.get_account(&key).await?;
-    deserialize_name_registry(acc.data)
+    deserialize_name_registry(&acc.data)
 }
 
 pub async fn resolve_name_registry_batch(
     rpc_client: &RpcClient,
-    keys: &Vec<Pubkey>,
+    keys: &[Pubkey],
 ) -> Result<Vec<Option<(NameRecordHeader, Vec<u8>)>>, SnsError> {
     let mut res = vec![];
     for k in keys.chunks(100) {
         let accs = rpc_client.get_multiple_accounts(k).await?;
         for acc in accs {
             if let Some(acc) = acc {
-                let des = deserialize_name_registry(acc.data)?;
+                let des = deserialize_name_registry(&acc.data)?;
                 res.push(Some(des))
             } else {
                 res.push(None)
@@ -115,12 +115,12 @@ pub async fn resolve_reverse(rpc_client: &RpcClient, key: &Pubkey) -> Result<Str
         None,
     );
     let (_, data) = resolve_name_registry(rpc_client, &key).await?;
-    Ok(deserialize_reverse(data)?)
+    Ok(deserialize_reverse(&data)?)
 }
 
 pub async fn resolve_reverse_batch(
     rpc_client: &RpcClient,
-    keys: &Vec<Pubkey>,
+    keys: &[Pubkey],
 ) -> Result<Vec<Option<String>>, SnsError> {
     let mut res = vec![];
 
@@ -141,7 +141,7 @@ pub async fn resolve_reverse_batch(
     let reverses = resolve_name_registry_batch(rpc_client, &reverse_keys).await?;
     for r in reverses {
         if let Some((_, data)) = r {
-            let des = deserialize_reverse(data)?;
+            let des = deserialize_reverse(&data)?;
             res.push(Some(des))
         } else {
             res.push(None)
