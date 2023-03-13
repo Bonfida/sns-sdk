@@ -22,6 +22,12 @@ SNS SDK monorepo
 </div>
 
 <br />
+<h3 align="center">
+🚧 This repository is in active development and is subject to changes 🚧
+</h3>
+<br />
+
+<br />
 <h2 align="center">Table of contents</h2>
 <br />
 
@@ -32,7 +38,8 @@ SNS SDK monorepo
 5. [Java](#java)
 6. [Swift](#swift)
 7. [CLI](#cli)
-8. [Examples](#examples)
+8. [React](#react)
+9. [Examples](#examples)
    - Resolving a domain
 
 <br />
@@ -133,6 +140,21 @@ Work in progress
 
 <br />
 <a name="examples"></a>
+<h2 align="center">React</h2>
+<br />
+
+This package contains a set of useful React hooks to help you build your perfect dApp. If you are interested in a hook that is not included in this package please open an issue to let us know!
+
+```
+npm i @bonfida/sns-react
+```
+
+```
+yarn add @bonfida/sns-react
+```
+
+<br />
+<a name="examples"></a>
 <h2 align="center">Examples</h2>
 <br />
 
@@ -178,4 +200,18 @@ GET https://sns-sdk-proxy.bonfida.workers.dev/resolve/bonfida
 
 ```json
 { "s": "ok", "result": "HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA" }
+```
+
+5. With the React example
+
+```ts
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useDomainOwner, useDomainsForOwner } from "@bonfida/sns-react";
+
+export const Example = () => {
+  const { connection } = useConnection();
+  const { publicKey, connected } = useWallet();
+  const { result } = useDomainOwner(connection, "bonfida");
+  // ...
+};
 ```
