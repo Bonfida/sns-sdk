@@ -1,6 +1,6 @@
 import { useAsync } from "react-async-hook";
 import { Connection, PublicKey } from "@solana/web3.js";
-import { toKey } from "../../utils/domain-to-key";
+import { toDomainKey } from "../../utils/domain-to-key";
 import { NameRegistryState } from "@bonfida/spl-name-service";
 
 /**
@@ -13,10 +13,11 @@ export const useDomainSize = (
   connection: Connection,
   domain: string | PublicKey
 ) => {
-  const key = toKey(domain);
+  const key = toDomainKey(domain);
   return useAsync(async () => {
+    if (!key) return;
     const acc = await connection.getAccountInfo(key);
     if (!acc) return 0;
     return (acc.data.length - NameRegistryState.HEADER_LEN) / 1_000; // in kB;
-  }, [key.toBase58()]);
+  }, [key?.toBase58()]);
 };

@@ -8,9 +8,13 @@ import { Connection, PublicKey } from "@solana/web3.js";
  * @param pubkey The public key to look up
  * @returns The domain name
  */
-export const useReverseLookup = (connection: Connection, pubkey: PublicKey) => {
+export const useReverseLookup = (
+  connection: Connection,
+  pubkey: PublicKey | null | undefined
+) => {
   return useAsync(async () => {
+    if (!pubkey) return;
     const reverse = await reverseLookup(connection, pubkey);
     return reverse;
-  }, [pubkey.toBase58()]);
+  }, [pubkey?.toBase58()]);
 };

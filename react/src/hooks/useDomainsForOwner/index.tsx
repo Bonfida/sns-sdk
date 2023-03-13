@@ -1,6 +1,7 @@
 import { useAsync } from "react-async-hook";
 import { getAllDomains, reverseLookupBatch } from "@bonfida/spl-name-service";
 import { Connection, PublicKey } from "@solana/web3.js";
+import { toKey } from "../../utils/pubkey";
 
 type Result = { pubkey: PublicKey; domain: string }[];
 
@@ -12,10 +13,11 @@ type Result = { pubkey: PublicKey; domain: string }[];
  */
 export const useDomainsForOwner = (
   connection: Connection,
-  owner: string | PublicKey
+  owner: string | PublicKey | null | undefined
 ) => {
-  const key = typeof owner === "string" ? new PublicKey(owner) : owner;
+  const key = toKey(owner);
   return useAsync(async () => {
+    if (!key) return;
     const domains = await getAllDomains(connection, key);
     const reverses = await reverseLookupBatch(connection, domains);
     const result = domains
@@ -24,5 +26,5 @@ export const useDomainsForOwner = (
       })
       .filter((e) => !!e.domain) as Result;
     return result;
-  }, [key.toBase58()]);
+  }, [key?.toBase58()]);
 };

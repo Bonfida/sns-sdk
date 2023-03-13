@@ -4,8 +4,9 @@ import { Connection, PublicKey } from "@solana/web3.js";
 
 const fn = async (
   connection: Connection,
-  domain: string
-): Promise<PublicKey> => {
+  domain: string | null | undefined
+): Promise<PublicKey | undefined> => {
+  if (!domain) return;
   const owner = await resolve(connection, domain);
   return owner;
 };
@@ -16,6 +17,9 @@ const fn = async (
  * @param domain The domain name to resolve
  * @returns The `PublicKey` of the current owner of `domain`
  */
-export const useDomainOwner = (connection: Connection, domain: string) => {
+export const useDomainOwner = (
+  connection: Connection,
+  domain: string | null | undefined
+) => {
   return useAsync(fn, [connection, domain]);
 };
