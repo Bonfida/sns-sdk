@@ -94,7 +94,7 @@ The SDK proxy is a Cloudflare worker that proxies the JS SDK via REST calls. It'
 The CLI can be installed with:
 
 ```
-TODO
+cargo install --git https://github.com/Bonfida/sns-sdk.git sns
 ```
 
 The CLI has the following commands:
