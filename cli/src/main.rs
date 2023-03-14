@@ -198,7 +198,7 @@ async fn process_domains(rpc_client: &RpcClient, owners: Vec<String>) -> CliResu
         pb.set_position(idx as u64);
     }
     pb.finish();
-    Term::stdout().clear_screen()?;
+    Term::stdout().clear_to_end_of_screen()?;
     table.printstd();
     Ok(())
 }
@@ -219,7 +219,7 @@ async fn process_resolve(rpc_client: &RpcClient, domains: Vec<String>) -> CliRes
         pb.set_position(idx as u64);
     }
     pb.finish();
-    Term::stdout().clear_screen()?;
+    Term::stdout().clear_to_end_of_screen()?;
     table.printstd();
     Ok(())
 }
@@ -254,7 +254,7 @@ async fn process_burn(
         pb.set_position(idx as u64);
     }
     pb.finish();
-    Term::stdout().clear_screen()?;
+    Term::stdout().clear_to_end_of_screen()?;
     table.printstd();
     Ok(())
 }
@@ -291,7 +291,7 @@ async fn process_transfer(
         pb.set_position(idx as u64);
     }
     pb.finish();
-    Term::stdout().clear_screen()?;
+    Term::stdout().clear_to_end_of_screen()?;
     table.printstd();
     Ok(())
 }
@@ -315,7 +315,7 @@ async fn process_lookup(rpc_client: &RpcClient, domains: Vec<String>) -> CliResu
         pb.set_position(idx as u64);
     }
     pb.finish();
-    Term::stdout().clear_screen()?;
+    Term::stdout().clear_to_end_of_screen()?;
     table.printstd();
     Ok(())
 }
@@ -412,7 +412,7 @@ async fn process_register(
         pb.set_position(idx as u64);
     }
     pb.finish();
-    Term::stdout().clear_screen()?;
+    Term::stdout().clear_to_end_of_screen()?;
     table.printstd();
     Ok(())
 }
