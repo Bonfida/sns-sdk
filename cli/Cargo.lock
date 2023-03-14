@@ -663,28 +663,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "base64 0.21.0",
- "clap 4.1.8",
- "console",
- "indicatif",
- "prettytable-rs",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "sns-sdk",
- "solana-client",
- "solana-program",
- "solana-sdk",
- "spl-name-service",
- "tokio",
-]
-
-[[package]]
 name = "codespan-reporting"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3188,6 +3166,28 @@ name = "smallvec"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
+
+[[package]]
+name = "sns"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "base64 0.21.0",
+ "clap 4.1.8",
+ "console",
+ "indicatif",
+ "prettytable-rs",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sns-sdk",
+ "solana-client",
+ "solana-program",
+ "solana-sdk",
+ "spl-name-service",
+ "tokio",
+]
 
 [[package]]
 name = "sns-sdk"
