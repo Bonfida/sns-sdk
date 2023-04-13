@@ -196,6 +196,8 @@ app.get("/register", async (c) => {
     const domain = c.req.query("domain");
     const space = c.req.query("space");
     const serialize = c.req.query("serialize");
+    const refKey = c.req.query("referrerKey");
+    const mint = c.req.query("mint") || USDC_MINT;
 
     if (!buyerStr || !domain || !space) {
       return c.json(response(false, "Missing input"));
@@ -209,16 +211,20 @@ app.get("/register", async (c) => {
       true
     );
 
+    const connection = getConnection(c);
+
     const [, ix] = await registerDomainName(
+      connection,
       domain,
       parseInt(space),
       buyer,
-      ata
+      ata,
+      new PublicKey(mint),
+      refKey ? new PublicKey(refKey) : undefined
     );
 
     if (serialize === "true") {
       const tx = new Transaction().add(...ix);
-      const connection = getConnection(c);
 
       tx.feePayer = buyer;
       tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
