@@ -10,8 +10,8 @@ import {
   deleteInstruction,
   transferInstruction,
   updateInstruction,
-  createV2Instruction,
   createReverseInstruction,
+  createInstructionV3,
 } from "./instructions";
 import { NameRegistryState } from "./state";
 import { Numberu64, Numberu32 } from "./int";
@@ -24,8 +24,21 @@ import {
   NAME_PROGRAM_ID,
   ROOT_DOMAIN_ACCOUNT,
   REGISTER_PROGRAM_ID,
-  BONFIDA_USDC_BNB,
+  REFERRERS,
+  USDC_MINT,
+  TOKENS_SYM_MINT,
+  PYTH_MAPPING_ACC,
+  VAULT_OWNER,
 } from "./constants";
+import {
+  getPythProgramKeyForCluster,
+  PythHttpClient,
+} from "@pythnetwork/client";
+import { getHashedNameSync, getNameAccountKeySync } from "./utils";
+import {
+  TOKEN_PROGRAM_ID,
+  getAssociatedTokenAddressSync,
+} from "@solana/spl-token";
 
 /**
  * Creates a name account with the given rent budget, allocated space, owner and class.
@@ -227,53 +240,85 @@ export async function deleteNameRegistry(
 
 /**
  * This function can be used to register a .sol domain
+ * @param connection The Solana RPC connection object
  * @param name The domain name to register e.g bonfida if you want to register bonfida.sol
  * @param space The domain name account size (max 10kB)
  * @param buyer The public key of the buyer
  * @param buyerTokenAccount The buyer token account (USDC)
+ * @param mint Optional mint used to purchase the domain, defaults to USDC
+ * @param referrerKey Optional referrer key
  * @returns
  */
 export const registerDomainName = async (
+  connection: Connection,
   name: string,
   space: number,
   buyer: PublicKey,
-  buyerTokenAccount: PublicKey
+  buyerTokenAccount: PublicKey,
+  mint = USDC_MINT,
+  referrerKey?: PublicKey
 ) => {
-  const [centralState] = await PublicKey.findProgramAddress(
+  const [cs] = PublicKey.findProgramAddressSync(
     [REGISTER_PROGRAM_ID.toBuffer()],
     REGISTER_PROGRAM_ID
   );
 
-  const hashed = await getHashedName(name);
-  const nameAccount = await getNameAccountKey(
+  const hashed = getHashedNameSync(name);
+  const nameAccount = getNameAccountKeySync(
     hashed,
     undefined,
     ROOT_DOMAIN_ACCOUNT
   );
 
-  const hashedReverseLookup = await getHashedName(nameAccount.toBase58());
-  const reverseLookupAccount = await getNameAccountKey(
-    hashedReverseLookup,
-    centralState
-  );
+  const hashedReverseLookup = getHashedNameSync(nameAccount.toBase58());
+  const reverseLookupAccount = getNameAccountKeySync(hashedReverseLookup, cs);
 
-  const [derived_state] = await PublicKey.findProgramAddress(
+  const [derived_state] = PublicKey.findProgramAddressSync(
     [nameAccount.toBuffer()],
     REGISTER_PROGRAM_ID
   );
 
-  const ix = new createV2Instruction({ name, space }).getInstruction(
+  const referrerIdx = REFERRERS.findIndex((e) => referrerKey?.equals(e));
+
+  const pythConnection = new PythHttpClient(
+    connection,
+    getPythProgramKeyForCluster("mainnet-beta")
+  );
+  const data = await pythConnection.getData();
+
+  const symbol = TOKENS_SYM_MINT.get(mint.toBase58());
+
+  if (!symbol) {
+    throw new Error("Symbol not found");
+  }
+
+  const priceData = data.productPrice.get("Crypto." + symbol + "/USD")!;
+  const productData = data.productFromSymbol.get("Crypto." + symbol + "/USD")!;
+
+  const vault = getAssociatedTokenAddressSync(mint, VAULT_OWNER);
+
+  const ix = new createInstructionV3({
+    name,
+    space,
+    referrerIdxOpt: referrerIdx != -1 ? referrerIdx : null,
+  }).getInstruction(
     REGISTER_PROGRAM_ID,
-    SYSVAR_RENT_PUBKEY,
     NAME_PROGRAM_ID,
     ROOT_DOMAIN_ACCOUNT,
     nameAccount,
     reverseLookupAccount,
-    centralState,
+    SystemProgram.programId,
+    cs,
     buyer,
     buyerTokenAccount,
-    BONFIDA_USDC_BNB,
-    derived_state
+    PYTH_MAPPING_ACC,
+    priceData.productAccountKey,
+    new PublicKey(productData.price_account),
+    vault,
+    TOKEN_PROGRAM_ID,
+    SYSVAR_RENT_PUBKEY,
+    derived_state,
+    referrerKey
   );
 
   return [[], [ix]];

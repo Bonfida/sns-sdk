@@ -54,7 +54,8 @@
   },
   "dependencies": {
     "@bonfida/name-offers": "^0.0.4",
-    "@ethersproject/sha2": "^5.5.0"
+    "@ethersproject/sha2": "^5.5.0",
+    "@pythnetwork/client": "^2.17.0"
   },
   "peerDependencies": {
     "@solana/buffer-layout": "^4.0.0",

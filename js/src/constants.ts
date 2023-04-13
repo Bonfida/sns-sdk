@@ -69,3 +69,26 @@ export const SOL_RECORD_SIG_LEN = 96;
 export const BONFIDA_USDC_BNB = new PublicKey(
   "DmSyHDSM9eSLyvoLsPvDr5fRRFZ7Bfr3h3ULvWpgQaq7"
 );
+
+export const USDC_MINT = new PublicKey(
+  "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+);
+
+export const REFERRERS: PublicKey[] = [];
+
+export const TOKENS_SYM_MINT = new Map<string, string>([
+  ["EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", "USDC"],
+  ["Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", "USDT"],
+  ["So11111111111111111111111111111111111111112", "SOL"],
+  ["EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp", "FIDA"],
+  ["FeGn77dhg1KXRRFeSwwMiykZnZPw5JXW6naf2aQgZDQf", "ETH"],
+  ["mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So", "MSOL"],
+]);
+
+export const PYTH_MAPPING_ACC = new PublicKey(
+  "AHtgzX45WTKfkPG53L6WYhGEXwQkN1BVknET3sVsLL8J"
+);
+
+export const VAULT_OWNER = new PublicKey(
+  "GcWEQ9K78FV7LEHteFVciYApERk5YvQuFDQPk1yYJVXi"
+);
