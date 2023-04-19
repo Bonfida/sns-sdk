@@ -38,6 +38,7 @@ import { getHashedNameSync, getNameAccountKeySync } from "./utils";
 import {
   TOKEN_PROGRAM_ID,
   getAssociatedTokenAddressSync,
+  createAssociatedTokenAccountInstruction,
 } from "@solana/spl-token";
 
 /**
@@ -278,7 +279,24 @@ export const registerDomainName = async (
     REGISTER_PROGRAM_ID
   );
 
-  const referrerIdx = REFERRERS.findIndex((e) => referrerKey?.equals(e));
+  const refIdx = REFERRERS.findIndex((e) => referrerKey?.equals(e));
+  let refTokenAccount: PublicKey | undefined = undefined;
+
+  const ixs: TransactionInstruction[] = [];
+
+  if (refIdx !== -1 && !!referrerKey) {
+    refTokenAccount = getAssociatedTokenAddressSync(mint, referrerKey, true);
+    const acc = await connection.getAccountInfo(refTokenAccount);
+    if (!acc?.data) {
+      const ix = createAssociatedTokenAccountInstruction(
+        buyer,
+        refTokenAccount,
+        referrerKey,
+        mint
+      );
+      ixs.push(ix);
+    }
+  }
 
   const pythConnection = new PythHttpClient(
     connection,
@@ -300,7 +318,7 @@ export const registerDomainName = async (
   const ix = new createInstructionV3({
     name,
     space,
-    referrerIdxOpt: referrerIdx != -1 ? referrerIdx : null,
+    referrerIdxOpt: refIdx != -1 ? refIdx : null,
   }).getInstruction(
     REGISTER_PROGRAM_ID,
     NAME_PROGRAM_ID,
@@ -318,10 +336,11 @@ export const registerDomainName = async (
     TOKEN_PROGRAM_ID,
     SYSVAR_RENT_PUBKEY,
     derived_state,
-    referrerKey
+    refTokenAccount
   );
+  ixs.push(ix);
 
-  return [[], [ix]];
+  return [[], ixs];
 };
 
 /**
