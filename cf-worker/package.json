@@ -12,7 +12,7 @@
     "deploy": "wrangler publish"
   },
   "dependencies": {
-    "@bonfida/spl-name-service": "^0.2.0",
+    "@bonfida/spl-name-service": "^0.2.2",
     "@solana/spl-token": "^0.3.7",
     "@solana/web3.js": "^1.73.3",
     "hono": "^3.0.2",
