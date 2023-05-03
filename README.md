@@ -67,6 +67,23 @@ The JS SDK is the most complete SDK, it contains all the utils methods to intera
 <h2 align="center">Rust</h2>
 <br />
 
+The Rust SDK provides everything you need for resolving domain ownership and records within the Solana Name Service (SNS)
+
+- `resolve_owner`: Resolves the owner of a given domain
+- `resolve_record`: Resolves a specific record of a given domain
+- `resolve_name_registry`: Resolves the name registry of a given public key
+- `resolve_name_registry_batch`: Resolves the name registry of a given list of public keys
+- `resolve_reverse`: Resolves the reverse record of a given public key
+- `resolve_reverse_batch`: Resolves the reverse records for a given list of public keys
+- `get_domains_owner`: Retrieves all domains owned by a given public key
+- `get_subdomains`: Retrieves all subdomains of a given parent domain
+- `resolve_nft_owner`: Resolves the NFT owner of a given domain key
+- `get_domain_key`: Takes a domain string and a boolean indicating whether it is a record. It returns the public key for the given domain, or an error if the domain is invalid
+- `get_reverse_key`: Takes a domain string and returns the public key for the reverse lookup account of the domain, or an error if the domain is invalid
+- `get_domain_mint`: Takes a domain key and returns the corresponding domain NFT mint's public key
+
+The functions in this code are available in both blocking and non-blocking (asynchronous) versions. To use the blocking version one must enable the `blocking` feature.
+
 <br />
 <a name="sdk-proxy"></a>
 <h2 align="center">SDK Proxy</h2>
