@@ -1,10 +1,5 @@
 import { test, jest } from "@jest/globals";
-import {
-  Connection,
-  PublicKey,
-  Transaction,
-  clusterApiUrl,
-} from "@solana/web3.js";
+import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { registerDomainName } from "../src/bindings";
 import { randomBytes } from "crypto";
 import { REFERRERS, USDC_MINT, VAULT_OWNER } from "../src/constants";
