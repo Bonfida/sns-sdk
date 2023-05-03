@@ -2,6 +2,9 @@
 name = "sns-sdk"
 version = "0.1.0"
 edition = "2021"
+description = "The Rust SDK provides everything you need for resolving domain ownership and records within the Solana Name Service (SNS)"
+license = "MIT"
+authors = ["Bonfida <contact@bonfida.com>"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -9,7 +12,7 @@ edition = "2021"
 blocking = []
 
 [dependencies]
-spl-name-service = {git = "https://github.com/solana-labs/solana-program-library", features = ["no-entrypoint"]}
+spl-name-service = {git = "https://github.com/solana-labs/solana-program-library", features = ["no-entrypoint"], version = "0.2.0"}
 solana-program = "1.9.2"
 derive_more = "0.99.17"
 solana-sdk = "1.15.2"
