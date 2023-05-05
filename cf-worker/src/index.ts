@@ -11,9 +11,11 @@ import {
   findSubdomains,
   getAllDomains,
   getFavoriteDomain,
+  reverseLookupBatch,
 } from "@bonfida/spl-name-service";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
+import { cors } from "hono/cors";
 
 const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
@@ -30,6 +32,8 @@ function response<T>(success: boolean, result: T) {
 }
 
 const app = new Hono();
+
+app.use("/*", cors({ origin: "*" }));
 
 app.get("/", async (c) => c.text("Visit https://github.com/Bonfida/sns-sdk"));
 
@@ -69,10 +73,13 @@ app.get("/domains/:owner", async (c) => {
   try {
     const { owner } = c.req.param();
     const res = await getAllDomains(getConnection(c), new PublicKey(owner));
+    const revs = await reverseLookupBatch(getConnection(c), res);
     return c.json(
       response(
         true,
-        res.map((e) => e.toBase58())
+        res.map((e, idx) => {
+          return { key: e.toBase58(), domain: revs[idx] };
+        })
       )
     );
   } catch (err) {
