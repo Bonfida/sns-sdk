@@ -1,3 +1,4 @@
+import { Buffer } from "buffer";
 import BN from "bn.js";
 
 export class Numberu32 extends BN {

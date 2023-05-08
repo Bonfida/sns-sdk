@@ -1,6 +1,7 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { deserializeUnchecked, Schema, serialize } from "borsh";
 import { retrieveNftOwner } from "./nft";
+import { Buffer } from "buffer";
 
 export class NameRegistryState {
   static HEADER_LEN = 96;

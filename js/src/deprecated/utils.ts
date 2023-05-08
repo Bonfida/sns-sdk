@@ -8,6 +8,7 @@ import {
 } from "../constants";
 import { NameRegistryState } from "../state";
 import { REVERSE_LOOKUP_CLASS } from "../constants";
+import { Buffer } from "buffer";
 
 /**
  * @deprecated Use {@link resolve} instead

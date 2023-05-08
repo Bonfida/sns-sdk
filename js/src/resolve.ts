@@ -2,8 +2,9 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { getSolRecord } from "./record";
 import { getDomainKeySync } from "./utils";
 import { NameRegistryState } from "./state";
-import { sign } from "tweetnacl";
+import * as tweetnacl from "tweetnacl";
 import { Record } from "./types/record";
+import { Buffer } from "buffer";
 
 /**
  * This function can be used to verify the validity of a SOL record
@@ -17,7 +18,7 @@ export const checkSolRecord = (
   signedRecord: Uint8Array,
   pubkey: PublicKey
 ) => {
-  return sign.detached.verify(record, signedRecord, pubkey.toBytes());
+  return tweetnacl.sign.detached.verify(record, signedRecord, pubkey.toBytes());
 };
 
 /**

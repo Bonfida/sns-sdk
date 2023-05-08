@@ -4,6 +4,7 @@ import { sha256 } from "@ethersproject/sha2";
 import { HASH_PREFIX, NAME_PROGRAM_ID, ROOT_DOMAIN_ACCOUNT } from "./constants";
 import { NameRegistryState } from "./state";
 import { REVERSE_LOOKUP_CLASS } from "./constants";
+import { Buffer } from "buffer";
 
 export const getHashedNameSync = (name: string): Buffer => {
   const input = HASH_PREFIX + name;
