@@ -3191,7 +3191,7 @@ dependencies = [
 
 [[package]]
 name = "sns-sdk"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "derive_more",
  "ed25519-dalek",
