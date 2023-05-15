@@ -20,5 +20,6 @@ export enum Record {
   SHDW = "SHDW",
   POINT = "POINT",
   BSC = "BSC",
-  Injective = "INJECT",
+  Injective = "INJ",
+  Backpack = "backpack",
 }

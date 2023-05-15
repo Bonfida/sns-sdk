@@ -23,6 +23,7 @@ pub enum Record {
     Point,
     Bsc,
     Injective,
+    Backpack,
 }
 
 impl Record {
@@ -46,7 +47,8 @@ impl Record {
             Record::Shdw => "SHDW",
             Record::Point => "POINT",
             Record::Bsc => "BSC",
-            Record::Injective => "INJECT",
+            Record::Injective => "INJ",
+            Record::Backpack => "backpack",
         }
     }
 }

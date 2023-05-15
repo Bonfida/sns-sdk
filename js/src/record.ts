@@ -254,3 +254,16 @@ export const getInjectiveRecord = async (
 ) => {
   return await getRecord(connection, domain, Record.Injective);
 };
+
+/**
+ * This function can be used to retrieve the Backpack record of a domain name
+ * @param connection The Solana RPC connection object
+ * @param domain The .sol domain name
+ * @returns
+ */
+export const getBackpackRecord = async (
+  connection: Connection,
+  domain: string
+) => {
+  return await getRecord(connection, domain, Record.Backpack);
+};
