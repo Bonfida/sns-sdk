@@ -1,22 +1,23 @@
-import { Buffer } from "buffer";
 import {
   PublicKey,
   Connection,
   GetProgramAccountsFilter,
+  MemcmpFilter,
 } from "@solana/web3.js";
-import { getMint, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-
-/**
- * Mainnet program ID
- */
-export const NAME_TOKENIZER_ID = new PublicKey(
-  "nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk"
-);
-
-/**
- * PDA prefix
- */
-export const MINT_PREFIX = Buffer.from("tokenized_name");
+import {
+  getMint,
+  TOKEN_PROGRAM_ID,
+  RawAccount,
+  AccountLayout,
+} from "@solana/spl-token";
+import {
+  NAME_TOKENIZER_ID,
+  MINT_PREFIX,
+  NftRecord,
+  getRecordFromMint,
+} from "@bonfida/name-tokenizer";
+import { reverseLookupBatch } from "./utils";
+import { Buffer } from "buffer";
 
 /**
  * This function can be used to retrieve the owner of a tokenized domain name
@@ -93,4 +94,66 @@ export const retrieveNfts = async (connection: Connection) => {
   return result.map(
     (e) => new PublicKey(e.account.data.slice(offset, offset + 32))
   );
+};
+
+const getFilter = (owner: string) => {
+  const filters: MemcmpFilter[] = [
+    {
+      memcmp: { offset: 32, bytes: owner },
+    },
+    { memcmp: { offset: 64, bytes: "2" } },
+  ];
+  return filters;
+};
+
+const closure = async (connection: Connection, acc: RawAccount) => {
+  const record = await getRecordFromMint(connection, acc.mint);
+  if (record.length === 1) {
+    return NftRecord.deserialize(record[0].account.data);
+  }
+};
+
+const retrieveRecords = async (connection: Connection, owner: PublicKey) => {
+  const filters: GetProgramAccountsFilter[] = [
+    ...getFilter(owner.toBase58()),
+    { dataSize: 165 },
+  ];
+  const result = await connection.getProgramAccounts(TOKEN_PROGRAM_ID, {
+    filters,
+  });
+
+  const tokenAccs = result.map((e) => AccountLayout.decode(e.account.data));
+
+  const promises = tokenAccs.map((acc) => closure(connection, acc));
+  const records = await Promise.all(promises);
+
+  return records.filter((e) => e !== undefined) as NftRecord[];
+};
+
+/**
+ * This function can be used to retrieve all the tokenized domains of an owner
+ * @param connection The Solana RPC connection object
+ * @param owner The owner of the tokenized domains
+ * @returns
+ */
+export const getTokenizedDomains = async (
+  connection: Connection,
+  owner: PublicKey
+) => {
+  const nftRecords = await retrieveRecords(connection, owner);
+
+  const names = await reverseLookupBatch(
+    connection,
+    nftRecords.map((e) => e.nameAccount)
+  );
+
+  return names
+    .map((e, idx) => {
+      return {
+        key: nftRecords[idx].nameAccount,
+        mint: nftRecords[idx].nftMint,
+        reverse: e,
+      };
+    })
+    .filter((e) => !!e.reverse);
 };

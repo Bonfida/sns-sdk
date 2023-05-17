@@ -58,6 +58,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@bonfida/name-tokenizer": "0.0.5",
     "@ethersproject/sha2": "^5.7.0",
     "@pythnetwork/client": "2.17.0",
     "@solana/buffer-layout": "^4.0.1",
