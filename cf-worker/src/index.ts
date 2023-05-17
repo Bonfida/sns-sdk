@@ -12,6 +12,7 @@ import {
   getAllDomains,
   getFavoriteDomain,
   reverseLookupBatch,
+  getTokenizedDomains,
 } from "@bonfida/spl-name-service";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
@@ -74,12 +75,24 @@ app.get("/domains/:owner", async (c) => {
     const { owner } = c.req.param();
     const res = await getAllDomains(getConnection(c), new PublicKey(owner));
     const revs = await reverseLookupBatch(getConnection(c), res);
+
+    const tokenized = await getTokenizedDomains(
+      getConnection(c),
+      new PublicKey(owner)
+    );
+
     return c.json(
       response(
         true,
-        res.map((e, idx) => {
-          return { key: e.toBase58(), domain: revs[idx] };
-        })
+        res
+          .map((e, idx) => {
+            return { key: e.toBase58(), domain: revs[idx] };
+          })
+          .concat(
+            tokenized.map((e) => {
+              return { key: e.key.toBase58(), domain: e.reverse };
+            })
+          )
       )
     );
   } catch (err) {
