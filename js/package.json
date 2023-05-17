@@ -1,6 +1,6 @@
 {
   "name": "@bonfida/spl-name-service",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "license": "MIT",
   "files": [
     "dist"
