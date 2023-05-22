@@ -1,6 +1,6 @@
 {
   "name": "@bonfida/spl-name-service",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "license": "MIT",
   "files": [
     "dist"
@@ -58,7 +58,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@bonfida/name-tokenizer": "0.0.5",
+    "@bonfida/name-tokenizer": "0.0.9",
     "@ethersproject/sha2": "^5.7.0",
     "@pythnetwork/client": "2.17.0",
     "@solana/buffer-layout": "^4.0.1",
