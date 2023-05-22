@@ -38,6 +38,24 @@ export const getRecord = async (
   return registry;
 };
 
+export const getRecords = async (
+  connection: Connection,
+  domain: string,
+  records: Record[]
+) => {
+  const pubkeys = records.map((record) => getRecordKeySync(domain, record));
+  let registries = await NameRegistryState.retrieveBatch(connection, pubkeys);
+
+  return registries.map((e, i) => {
+    // Remove trailling 0s
+    if (!e) return undefined;
+    const idx =
+      records[i] === Record.SOL ? SOL_RECORD_SIG_LEN : e?.data?.indexOf(0x00);
+    e.data = e?.data?.slice(0, idx);
+    return e;
+  });
+};
+
 /**
  * This function can be used to retrieve the IPFS record of a domain name
  * @param connection The Solana RPC connection object

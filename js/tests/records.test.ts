@@ -1,6 +1,7 @@
 import { test, jest, expect } from "@jest/globals";
 import * as record from "../src/record";
 import { Connection, clusterApiUrl } from "@solana/web3.js";
+import { Record } from "../src/types/record";
 
 jest.setTimeout(20_000);
 
@@ -79,4 +80,15 @@ test("Sub records", async () => {
   record
     .getEmailRecord(connection, sub)
     .then((e) => expect(e.data?.toString()).toBe("test@test.com"));
+});
+
+test("Get multiple records", async () => {
+  const records = await record.getRecords(connection, "🍍", [
+    Record.Telegram,
+    Record.Github,
+    Record.Backpack,
+  ]);
+  expect(records[0]?.data?.toString()).toBe("@🍍-tg");
+  expect(records[1]?.data?.toString()).toBe("@🍍_dev");
+  expect(records[2]?.data?.toString()).toBe(undefined);
 });
