@@ -25,7 +25,7 @@ export interface Env {
 }
 
 const getConnection = (c: Context<any>) => {
-  return new Connection(c.env?.RPC_URL as string);
+  return new Connection(c.env?.RPC_URL as string, "processed");
 };
 
 function response<T>(success: boolean, result: T) {
