@@ -5,7 +5,7 @@ import { Record } from "../src/types/record";
 
 jest.setTimeout(20_000);
 
-const connection = new Connection(clusterApiUrl("mainnet-beta"));
+const connection = new Connection("https://rpc-public.hellomoon.io");
 const domain = "🍍";
 
 test("Records", async () => {
@@ -91,4 +91,11 @@ test("Get multiple records", async () => {
   expect(records[0]?.data?.toString()).toBe("@🍍-tg");
   expect(records[1]?.data?.toString()).toBe("@🍍_dev");
   expect(records[2]?.data?.toString()).toBe(undefined);
+});
+
+test("BSC", async () => {
+  const res = await record.getBscRecord(connection, "aanda.sol");
+  expect(res.data?.toString("hex")).toBe(
+    "4170ad697176fe6d660763f6e4dfcf25018e8b63"
+  );
 });

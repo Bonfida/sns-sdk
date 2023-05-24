@@ -4,6 +4,14 @@ import { getDomainKeySync } from "./utils";
 import { NameRegistryState } from "./state";
 import { SOL_RECORD_SIG_LEN } from "./constants";
 
+const trimNullPaddingIdx = (buffer: Buffer | undefined): number | undefined => {
+  if (!buffer) return undefined;
+  const arr = Array.from(buffer);
+  const lastNonNull =
+    arr.length - 1 - arr.reverse().findIndex((byte) => byte !== 0);
+  return lastNonNull + 1;
+};
+
 /**
  * This function can be used to derive a record key
  * @param domain The .sol domain name
@@ -32,7 +40,9 @@ export const getRecord = async (
 
   // Remove trailling 0s
   const idx =
-    record === Record.SOL ? SOL_RECORD_SIG_LEN : registry.data?.indexOf(0x00);
+    record === Record.SOL
+      ? SOL_RECORD_SIG_LEN
+      : trimNullPaddingIdx(registry.data);
   registry.data = registry.data?.slice(0, idx);
 
   return registry;
@@ -50,7 +60,9 @@ export const getRecords = async (
     // Remove trailling 0s
     if (!e) return undefined;
     const idx =
-      records[i] === Record.SOL ? SOL_RECORD_SIG_LEN : e?.data?.indexOf(0x00);
+      records[i] === Record.SOL
+        ? SOL_RECORD_SIG_LEN
+        : trimNullPaddingIdx(e.data);
     e.data = e?.data?.slice(0, idx);
     return e;
   });
