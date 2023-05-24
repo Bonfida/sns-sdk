@@ -30,6 +30,18 @@
     borsh "^0.6.0"
     bs58 "4.0.1"
 
+"@bonfida/name-tokenizer@0.0.9":
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/@bonfida/name-tokenizer/-/name-tokenizer-0.0.9.tgz#23ecdf61178b3a7fb216fbccfa44e3a1c20c4600"
+  integrity sha512-Ze3VRskgwPou23qLbawYzBmQ7pnTwZfjxcFsRPs9gO355zPuH5BjNVflWSgQjvNRzaoFpuTZ0oSGydTzx8SYZg==
+  dependencies:
+    "@bonfida/spl-name-service" "^0.2.7"
+    "@solana/spl-token" "^0.3.7"
+    bn.js "^5.2.0"
+    borsh "^0.6.0"
+    bs58 "4.0.1"
+    buffer "^6.0.3"
+
 "@bonfida/spl-name-service@^0.1.37":
   version "0.1.67"
   resolved "https://registry.yarnpkg.com/@bonfida/spl-name-service/-/spl-name-service-0.1.67.tgz#f78ef31150b0f1843be8d1a22c4c6c3b01182918"
@@ -37,6 +49,21 @@
   dependencies:
     "@bonfida/name-offers" "^0.0.4"
     "@ethersproject/sha2" "^5.5.0"
+
+"@bonfida/spl-name-service@^0.2.10":
+  version "0.2.10"
+  resolved "https://registry.yarnpkg.com/@bonfida/spl-name-service/-/spl-name-service-0.2.10.tgz#4c1e990785190af80b67ed645c664ea0b8f21ec1"
+  integrity sha512-/AP9/SkvpbNDQ/vbgdLrc/v5jJEZL9E+SBgv86gspTrJKKinCbvN6UszIsg1rbi5xI272Bcor//eYIb7g1x4fw==
+  dependencies:
+    "@bonfida/name-tokenizer" "0.0.9"
+    "@ethersproject/sha2" "^5.7.0"
+    "@pythnetwork/client" "2.17.0"
+    "@solana/buffer-layout" "^4.0.1"
+    "@solana/spl-token" "0.3.7 "
+    bn.js "^5.2.1"
+    borsh "^0.7.0"
+    buffer "^6.0.3"
+    tweetnacl "^1.0.3"
 
 "@bonfida/spl-name-service@^0.2.7":
   version "0.2.7"
