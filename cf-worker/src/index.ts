@@ -13,6 +13,7 @@ import {
   getFavoriteDomain,
   reverseLookupBatch,
   getTokenizedDomains,
+  getRecords,
 } from "@bonfida/spl-name-service";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
@@ -197,6 +198,35 @@ app.get("/subdomains/:parent", async (c) => {
       getDomainKeySync(parent).pubkey
     );
     return c.json(response(true, subs));
+  } catch (err) {
+    console.log(err);
+    return c.json(response(false, "Invalid input"));
+  }
+});
+
+/**
+ * Returns a list of deserialized records. The list of records passed by URL query param must be comma separated.
+ * In the case where a record does not exist, the data will be undefined
+ */
+app.get("/records/:domain", async (c) => {
+  try {
+    const { domain } = c.req.param();
+    const parsedRecords = c.req.query("records")?.split(",");
+    if (!parsedRecords || parsedRecords.length === 0) {
+      return c.json(response(false, "Missing records in URL query params"));
+    }
+
+    const res = await getRecords(
+      getConnection(c),
+      domain,
+      // TODO: Check that the records are valid
+      parsedRecords as Record[]
+    );
+
+    const result = res.map((e, idx) => {
+      return { record: parsedRecords[idx], data: e?.data?.toString("utf-8") };
+    });
+    return c.json(response(true, result));
   } catch (err) {
     console.log(err);
     return c.json(response(false, "Invalid input"));
