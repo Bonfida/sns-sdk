@@ -1,6 +1,6 @@
 {
   "name": "@bonfida/sns-react",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A set of React hooks to interact with the Solana Name Service",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -12,6 +12,12 @@
   "files": [
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Bonfida/sns-sdk.git",
+    "directory": "react"
+  },
+  "homepage": "https://github.com/Bonfida/sns-sdk/blob/main/react/README.md",
   "scripts": {
     "prebuild": "rm -rf dist",
     "build": "rollup -c"
