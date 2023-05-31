@@ -77,6 +77,7 @@ export const USDC_MINT = new PublicKey(
 export const REFERRERS: PublicKey[] = [
   new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1"), // Test wallet,
   new PublicKey("DM1jJCkZZEwY5tmWbgvKRxsDFzXCdbfrYCCH1CtwguEs"), // 4Everland
+  new PublicKey("ADCp4QXFajHrhy4f43pD6GJFtQLkdBY2mjS9DfCk7tNW"), // Bandit network
 ];
 
 export const TOKENS_SYM_MINT = new Map<string, string>([
