@@ -13,6 +13,7 @@ pub enum SnsError {
     SolanaProgramError(ProgramError),
     InvalidReverse,
     ED25519(ed25519::Error),
+    BorshError(std::io::Error),
 }
 
 impl From<ClientError> for SnsError {
@@ -30,5 +31,11 @@ impl From<ProgramError> for SnsError {
 impl From<ed25519::Error> for SnsError {
     fn from(e: ed25519::Error) -> Self {
         Self::ED25519(e)
+    }
+}
+
+impl From<std::io::Error> for SnsError {
+    fn from(value: std::io::Error) -> Self {
+        Self::BorshError(value)
     }
 }
