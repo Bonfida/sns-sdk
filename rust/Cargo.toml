@@ -21,6 +21,7 @@ solana-account-decoder = "1.14.2"
 ed25519-dalek = "1.0.1"
 hex = "0.4.3"
 spl-token = "3.5.0"
+borsh = "0.9"
 
 
 [dev-dependencies]
