@@ -50,10 +50,10 @@
     "@bonfida/name-offers" "^0.0.4"
     "@ethersproject/sha2" "^5.5.0"
 
-"@bonfida/spl-name-service@^0.2.10":
-  version "0.2.10"
-  resolved "https://registry.yarnpkg.com/@bonfida/spl-name-service/-/spl-name-service-0.2.10.tgz#4c1e990785190af80b67ed645c664ea0b8f21ec1"
-  integrity sha512-/AP9/SkvpbNDQ/vbgdLrc/v5jJEZL9E+SBgv86gspTrJKKinCbvN6UszIsg1rbi5xI272Bcor//eYIb7g1x4fw==
+"@bonfida/spl-name-service@^0.2.11":
+  version "0.2.11"
+  resolved "https://registry.yarnpkg.com/@bonfida/spl-name-service/-/spl-name-service-0.2.11.tgz#2104a2e7ef38dd3377ac332c6227cdc83d8029d5"
+  integrity sha512-ik6qsV8Y6WxChkWDof7U0rtHJW4tsUjabUxUA7TtTukfwvkg7UVFkTxtdspIyE1nNwc99RU3n1rcX/F9PckS3A==
   dependencies:
     "@bonfida/name-tokenizer" "0.0.9"
     "@ethersproject/sha2" "^5.7.0"
