@@ -14,6 +14,8 @@ pub enum SnsError {
     InvalidReverse,
     ED25519(ed25519::Error),
     BorshError(std::io::Error),
+    UnsupportedMint,
+    SerializationError,
 }
 
 impl From<ClientError> for SnsError {
