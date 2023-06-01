@@ -3,6 +3,7 @@ use solana_program::{pubkey, pubkey::Pubkey};
 pub mod derivation;
 pub mod error;
 pub mod favourite_domain;
+pub mod register;
 
 pub mod record;
 

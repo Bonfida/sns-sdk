@@ -37,7 +37,7 @@ pub async fn resolve_owner(rpc_client: &RpcClient, domain: &str) -> Result<Pubke
             let data = &data[..96];
             let record = [&data[..32], &sol_record_key.to_bytes()].concat();
             let sig = &data[32..];
-            let encoded = hex::encode(&record);
+            let encoded = hex::encode(record);
             if check_sol_record(encoded.as_bytes(), sig, header.owner)? {
                 return Ok(Pubkey::new_from_array(data[0..32].try_into().unwrap()));
             }
@@ -84,7 +84,7 @@ pub async fn resolve_name_registry(
     rpc_client: &RpcClient,
     key: &Pubkey,
 ) -> Result<(NameRecordHeader, Vec<u8>), SnsError> {
-    let acc = rpc_client.get_account(&key).await?;
+    let acc = rpc_client.get_account(key).await?;
     deserialize_name_registry(&acc.data)
 }
 
@@ -116,7 +116,7 @@ pub async fn resolve_reverse(rpc_client: &RpcClient, key: &Pubkey) -> Result<Str
         None,
     );
     let (_, data) = resolve_name_registry(rpc_client, &key).await?;
-    Ok(deserialize_reverse(&data)?)
+    deserialize_reverse(&data)
 }
 
 pub async fn resolve_reverse_batch(
@@ -126,7 +126,7 @@ pub async fn resolve_reverse_batch(
     let mut res = vec![];
 
     let reverse_keys = keys
-        .into_iter()
+        .iter()
         .map(|k| {
             let hashed = get_hashed_name(&k.to_string());
             let (key, _) = get_seeds_and_key(
@@ -205,9 +205,8 @@ pub async fn get_subdomains(
             let mut offset = NameRecordHeader::LEN;
             let len = u32::from_le_bytes(acc.data[offset..offset + 4].try_into().unwrap());
             offset += 4;
-            let reverse =
-                String::from_utf8(acc.data[offset..offset + len as usize].to_vec()).unwrap();
-            reverse
+
+            String::from_utf8(acc.data[offset..offset + len as usize].to_vec()).unwrap()
         })
         .map(|x| x.strip_prefix('\0').unwrap().to_owned())
         .collect::<Vec<_>>();
@@ -322,7 +321,7 @@ mod tests {
         let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
         let reverses = resolve_reverse_batch(
             &client,
-            &vec![
+            &[
                 pubkey!("Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb"),
                 pubkey!("Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb"),
             ],
