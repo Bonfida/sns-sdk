@@ -14,16 +14,13 @@ pub const USDC_MINT: Pubkey = pubkey!("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTD
 pub const USDT_MINT: Pubkey = pubkey!("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB");
 pub const SOL_MINT: Pubkey = pubkey!("So11111111111111111111111111111111111111112");
 pub const FIDA_MINT: Pubkey = pubkey!("EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp");
-// pub const ETH_MINT: Pubkey = pubkey!("2FPyTwcZLUg1MDrwsyoP4D6s1tM7hAkHYRjkNb5w6Pxk");
-// pub const GMT_MINT: Pubkey = pubkey!("7i5KKsX2weiTkry7jA4ZwSuXGhs5eJBEjY8vVxR4pfRx");
-// pub const GST_MINT: Pubkey = pubkey!("AFbX8oGjGpmVFywbVouvhQSRmiW2aR1mohfahi4Y2AdB");
-// pub const MSOL_MINT: Pubkey = pubkey!("EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp");
-// pub const BONK_MINT: Pubkey = pubkey!("6dhTynDkYsVM7cbF7TKfC9DWB636TcEM935fq7JzL2ES");
-// pub const BAT_MINT: Pubkey = pubkey!("EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp");
+pub const MSOL_MINT: Pubkey = pubkey!("EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp");
+pub const BONK_MINT: Pubkey = pubkey!("6dhTynDkYsVM7cbF7TKfC9DWB636TcEM935fq7JzL2ES");
+pub const BAT_MINT: Pubkey = pubkey!("EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp");
 pub const PYTH_PROGRAM_ID: Pubkey = pubkey!("FsJ3A3u2vn5cTVofAjvy6y5kwABJAqYWpe4975bi2epH");
 pub const PYTH_MAPPING_ACC: Pubkey = pubkey!("AHtgzX45WTKfkPG53L6WYhGEXwQkN1BVknET3sVsLL8J");
 
-pub const PYTH_PRICE_PRODUCT_ACCOUNTS: [(Pubkey, Pubkey, Pubkey); 4] = [
+pub const PYTH_PRICE_PRODUCT_ACCOUNTS: [(Pubkey, Pubkey, Pubkey); 7] = [
     (
         USDC_MINT,
         pubkey!("Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD"),
@@ -43,6 +40,21 @@ pub const PYTH_PRICE_PRODUCT_ACCOUNTS: [(Pubkey, Pubkey, Pubkey); 4] = [
         FIDA_MINT,
         pubkey!("ETp9eKXVv1dWwHSpsXRUuXHmw24PwRkttCGVgpZEY9zF"),
         pubkey!("HyEB4Goiv7QyfFStaBn49JqQzSTV1ybtVikwsMLH1f2M"),
+    ),
+    (
+        MSOL_MINT,
+        pubkey!("E4v1BBgoso9s64TQvmyownAVJbhbEPGyzA3qn4n46qj9"),
+        pubkey!("BS2iAqT67j8hA9Jji4B8UpL3Nfw9kwPfU5s4qeaf1e7r"),
+    ),
+    (
+        BONK_MINT,
+        pubkey!("8ihFLu5FimgTQ1Unh4dVyEHUGodJ5gJQCrQf4KUVB9bN"),
+        pubkey!("FerFD54J6RgmQVCR5oNgpzXmz8BW2eBNhhirb1d5oifo"),
+    ),
+    (
+        BONK_MINT,
+        pubkey!("AbMTYZ82Xfv9PtTQ5e1fJXemXjzqEEFHP3oDLRTae6yz"),
+        pubkey!("8xTEctXKo6Xo3EzNhSNp4TUe8mgfwWFbDUXJhuubvrKx"),
     ),
 ];
 

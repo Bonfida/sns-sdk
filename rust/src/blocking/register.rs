@@ -14,7 +14,7 @@ use crate::{
 };
 
 pub fn register_domain_name(
-    rpc_client: RpcClient,
+    rpc_client: &RpcClient,
     name: &str,
     space: u32,
     buyer: &Pubkey,
@@ -72,7 +72,7 @@ pub fn register_domain_name(
     let instruction = get_register_instruction(
         REGISTER_PROGRAM_ID,
         Accounts {
-            naming_service_program: &REGISTER_PROGRAM_ID,
+            naming_service_program: &spl_name_service::ID,
             root_domain: &ROOT_DOMAIN_ACCOUNT,
             name: &name_account,
             reverse_lookup: &reverse_lookup_account,
@@ -99,4 +99,60 @@ pub fn register_domain_name(
     let message = Message::new(&instructions, Some(buyer));
     let transaction = Transaction::new_unsigned(message);
     Ok(transaction)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::register::FIDA_MINT;
+    use dotenv::dotenv;
+    use rand::Rng;
+
+    fn generate_random_string(len: usize) -> String {
+        let mut rng = rand::thread_rng();
+        (0..len)
+            .map(|_| (rng.gen::<u8>() % 26) as char)
+            .map(|c| (c as u8 + 'a' as u8) as char)
+            .collect()
+    }
+
+    #[test]
+    fn test_registration() {
+        dotenv().ok();
+        let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
+        let mut tx = register_domain_name(
+            &client,
+            &generate_random_string(10),
+            1_000,
+            &VAULT_OWNER,
+            &get_associated_token_address(&VAULT_OWNER, &FIDA_MINT),
+            Some(&FIDA_MINT),
+            None,
+        )
+        .unwrap();
+        let blockhash = client.get_latest_blockhash().unwrap();
+        tx.message.recent_blockhash = blockhash;
+        let res = client.simulate_transaction(&tx).unwrap();
+        assert!(res.value.err.is_none())
+    }
+
+    #[test]
+    fn test_registration_ref() {
+        dotenv().ok();
+        let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
+        let mut tx = register_domain_name(
+            &client,
+            &generate_random_string(10),
+            1_000,
+            &VAULT_OWNER,
+            &get_associated_token_address(&VAULT_OWNER, &FIDA_MINT),
+            Some(&FIDA_MINT),
+            Some(&REFERRERS[2]),
+        )
+        .unwrap();
+        let blockhash = client.get_latest_blockhash().unwrap();
+        tx.message.recent_blockhash = blockhash;
+        let res = client.simulate_transaction(&tx).unwrap();
+        assert!(res.value.err.is_none())
+    }
 }
