@@ -2783,6 +2783,7 @@ dependencies = [
  "dotenv",
  "ed25519-dalek",
  "hex",
+ "rand 0.8.5",
  "solana-account-decoder",
  "solana-client",
  "solana-program",
