@@ -105,16 +105,8 @@ pub fn register_domain_name(
 mod test {
     use super::*;
     use crate::register::FIDA_MINT;
+    use crate::utils::test::generate_random_string;
     use dotenv::dotenv;
-    use rand::Rng;
-
-    fn generate_random_string(len: usize) -> String {
-        let mut rng = rand::thread_rng();
-        (0..len)
-            .map(|_| (rng.gen::<u8>() % 26) as char)
-            .map(|c| (c as u8 + 'a' as u8) as char)
-            .collect()
-    }
 
     #[test]
     fn test_registration() {

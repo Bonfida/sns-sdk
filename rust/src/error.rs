@@ -16,6 +16,7 @@ pub enum SnsError {
     BorshError(std::io::Error),
     UnsupportedMint,
     SerializationError,
+    InvalidPubkey,
 }
 
 impl From<ClientError> for SnsError {

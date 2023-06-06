@@ -14,7 +14,7 @@ use crate::{
 };
 
 pub async fn register_domain_name(
-    rpc_client: RpcClient,
+    rpc_client: &RpcClient,
     name: &str,
     space: u32,
     buyer: &Pubkey,
@@ -106,16 +106,8 @@ pub async fn register_domain_name(
 mod test {
     use super::*;
     use crate::register::FIDA_MINT;
+    use crate::utils::test::generate_random_string;
     use dotenv::dotenv;
-    use rand::Rng;
-
-    fn generate_random_string(len: usize) -> String {
-        let mut rng = rand::thread_rng();
-        (0..len)
-            .map(|_| (rng.gen::<u8>() % 26) as char)
-            .map(|c| (c as u8 + 'a' as u8) as char)
-            .collect()
-    }
 
     #[tokio::test]
     async fn test_registration() {
@@ -132,9 +124,9 @@ mod test {
         )
         .await
         .unwrap();
-        let blockhash = client.get_latest_blockhash().unwrap();
+        let blockhash = client.get_latest_blockhash().await.unwrap();
         tx.message.recent_blockhash = blockhash;
-        let res = client.simulate_transaction(&tx).unwrap();
+        let res = client.simulate_transaction(&tx).await.unwrap();
         assert!(res.value.err.is_none())
     }
 
@@ -153,9 +145,9 @@ mod test {
         )
         .await
         .unwrap();
-        let blockhash = client.get_latest_blockhash().unwrap();
+        let blockhash = client.get_latest_blockhash().await.unwrap();
         tx.message.recent_blockhash = blockhash;
-        let res = client.simulate_transaction(&tx).unwrap();
+        let res = client.simulate_transaction(&tx).await.unwrap();
         assert!(res.value.err.is_none())
     }
 }
