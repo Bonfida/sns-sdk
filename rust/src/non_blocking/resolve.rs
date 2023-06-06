@@ -307,6 +307,8 @@ mod tests {
     use crate::utils::test::generate_random_string;
     use dotenv::dotenv;
     use solana_program::pubkey;
+    use solana_sdk::signature::Keypair;
+    use solana_sdk::signer::Signer;
 
     #[tokio::test]
     async fn reverse() {
@@ -315,6 +317,9 @@ mod tests {
         let key: Pubkey = pubkey!("Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb");
         let reverse = resolve_reverse(&client, &key).await.unwrap();
         assert_eq!(reverse.unwrap(), "bonfida");
+
+        let reverse = resolve_reverse(&client, &Keypair::new().pubkey()).await;
+        assert!(reverse.unwrap().is_none());
     }
 
     #[tokio::test]
@@ -377,5 +382,39 @@ mod tests {
             reverses,
             vec![Some("bonfida".to_string()), Some("bonfida".to_string())]
         )
+    }
+
+    #[tokio::test]
+    async fn test_resolve_record() {
+        dotenv().ok();
+        let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
+
+        let res = resolve_record(&client, "bonfida", Record::Url)
+            .await
+            .unwrap();
+        assert_eq!(
+            String::from_utf8(res.unwrap().1)
+                .unwrap()
+                .trim_end_matches('\0'),
+            "https://sns.id"
+        );
+
+        let res = resolve_record(&client, "bonfida", Record::Backpack)
+            .await
+            .unwrap();
+        assert!(res.is_none())
+    }
+
+    #[tokio::test]
+    async fn test_resolve_registry() {
+        dotenv().ok();
+        let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
+        let key = get_domain_key(&generate_random_string(20), false).unwrap();
+        let res = resolve_name_registry(&client, &key).await;
+        assert!(res.unwrap().is_none());
+
+        let key = get_domain_key("bonfida", false).unwrap();
+        let res = resolve_name_registry(&client, &key).await;
+        assert!(res.unwrap().is_some())
     }
 }

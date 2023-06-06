@@ -228,7 +228,7 @@ mod tests {
     use solana_program::pubkey;
 
     #[test]
-    fn reverse() {
+    fn test_reverse() {
         dotenv().ok();
         let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
         let key: Pubkey = pubkey!("Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb");
@@ -237,7 +237,7 @@ mod tests {
     }
 
     #[test]
-    fn subs() {
+    fn test_subs() {
         dotenv().ok();
         let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
         let parent: Pubkey = get_domain_key("bonfida.sol", false).unwrap();
@@ -247,7 +247,7 @@ mod tests {
     }
 
     #[test]
-    fn resolve() {
+    fn test_resolve_owner() {
         dotenv().ok();
         let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
 
@@ -275,5 +275,26 @@ mod tests {
         // Domain does not exist
         let res = resolve_owner(&client, &generate_random_string(20)).unwrap();
         assert_eq!(res, None);
+
+        // Error
+        let res = resolve_owner(&RpcClient::new(""), "bonfida");
+        assert!(res.is_err())
+    }
+
+    #[test]
+    fn test_resolve_record() {
+        dotenv().ok();
+        let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
+
+        let res = resolve_record(&client, "bonfida", Record::Url).unwrap();
+        assert_eq!(
+            String::from_utf8(res.unwrap().1)
+                .unwrap()
+                .trim_end_matches('\0'),
+            "https://sns.id"
+        );
+
+        let res = resolve_record(&client, "bonfida", Record::Backpack).unwrap();
+        assert!(res.is_none())
     }
 }
