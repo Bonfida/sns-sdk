@@ -21,25 +21,37 @@ use crate::{
     record::{check_sol_record, Record},
 };
 
-pub async fn resolve_owner(rpc_client: &RpcClient, domain: &str) -> Result<Pubkey, SnsError> {
+pub async fn resolve_owner(
+    rpc_client: &RpcClient,
+    domain: &str,
+) -> Result<Option<Pubkey>, SnsError> {
     let key = get_domain_key(domain, false)?;
-    let (header, _) = resolve_name_registry(rpc_client, &key).await?;
+
+    let header = match resolve_name_registry(rpc_client, &key).await? {
+        Some((h, _)) => h,
+        _ => return Ok(None),
+    };
 
     let nft_owner = resolve_nft_owner(rpc_client, &key).await?;
 
     if let Some(nft_owner) = nft_owner {
-        return Ok(nft_owner);
+        return Ok(Some(nft_owner));
     }
 
     let sol_record_key = get_domain_key(&format!("SOL.{domain}"), true)?;
     match resolve_name_registry(rpc_client, &sol_record_key).await {
-        Ok((_, data)) => {
+        Ok(Some((_, data))) => {
             let data = &data[..96];
             let record = [&data[..32], &sol_record_key.to_bytes()].concat();
             let sig = &data[32..];
             let encoded = hex::encode(record);
             if check_sol_record(encoded.as_bytes(), sig, header.owner)? {
-                return Ok(Pubkey::new_from_array(data[0..32].try_into().unwrap()));
+                let owner = Pubkey::new_from_array(
+                    data[0..32]
+                        .try_into()
+                        .map_err(|_| SnsError::InvalidPubkey)?,
+                );
+                return Ok(Some(owner));
             }
         }
         Err(SnsError::SolanaClient(ClientError {
@@ -54,17 +66,21 @@ pub async fn resolve_owner(rpc_client: &RpcClient, domain: &str) -> Result<Pubke
         _ => {}
     }
 
-    Ok(header.owner)
+    Ok(Some(header.owner))
 }
 
 pub async fn resolve_record(
     rpc_client: &RpcClient,
     domain: &str,
     record: Record,
-) -> Result<(NameRecordHeader, Vec<u8>), SnsError> {
+) -> Result<Option<(NameRecordHeader, Vec<u8>)>, SnsError> {
     let key = get_domain_key(&format!("{}.{domain}", record.as_str()), true)?;
     let res = resolve_name_registry(rpc_client, &key).await?;
-    Ok(res)
+    if let Some(res) = res {
+        Ok(Some(res))
+    } else {
+        Ok(None)
+    }
 }
 
 pub fn deserialize_name_registry(data: &[u8]) -> Result<(NameRecordHeader, Vec<u8>), SnsError> {
@@ -83,9 +99,16 @@ pub fn deserialize_reverse(data: &[u8]) -> Result<String, SnsError> {
 pub async fn resolve_name_registry(
     rpc_client: &RpcClient,
     key: &Pubkey,
-) -> Result<(NameRecordHeader, Vec<u8>), SnsError> {
-    let acc = rpc_client.get_account(key).await?;
-    deserialize_name_registry(&acc.data)
+) -> Result<Option<(NameRecordHeader, Vec<u8>)>, SnsError> {
+    let acc = rpc_client
+        .get_account_with_commitment(key, rpc_client.commitment())
+        .await?
+        .value;
+    if let Some(acc) = acc {
+        Ok(Some(deserialize_name_registry(&acc.data)?))
+    } else {
+        Ok(None)
+    }
 }
 
 pub async fn resolve_name_registry_batch(
@@ -107,7 +130,10 @@ pub async fn resolve_name_registry_batch(
     Ok(res)
 }
 
-pub async fn resolve_reverse(rpc_client: &RpcClient, key: &Pubkey) -> Result<String, SnsError> {
+pub async fn resolve_reverse(
+    rpc_client: &RpcClient,
+    key: &Pubkey,
+) -> Result<Option<String>, SnsError> {
     let hashed = get_hashed_name(&key.to_string());
     let (key, _) = get_seeds_and_key(
         &spl_name_service::ID,
@@ -115,8 +141,11 @@ pub async fn resolve_reverse(rpc_client: &RpcClient, key: &Pubkey) -> Result<Str
         Some(&REVERSE_LOOKUP_CLASS),
         None,
     );
-    let (_, data) = resolve_name_registry(rpc_client, &key).await?;
-    deserialize_reverse(&data)
+    if let Some((_, data)) = resolve_name_registry(rpc_client, &key).await? {
+        Ok(Some(deserialize_reverse(&data)?))
+    } else {
+        Ok(None)
+    }
 }
 
 pub async fn resolve_reverse_batch(
@@ -275,8 +304,11 @@ pub async fn get_favourite_domain(
 mod tests {
     use super::*;
     use crate::derivation::get_domain_key;
+    use crate::utils::test::generate_random_string;
     use dotenv::dotenv;
     use solana_program::pubkey;
+    use solana_sdk::signature::Keypair;
+    use solana_sdk::signer::Signer;
 
     #[tokio::test]
     async fn reverse() {
@@ -284,7 +316,10 @@ mod tests {
         let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
         let key: Pubkey = pubkey!("Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb");
         let reverse = resolve_reverse(&client, &key).await.unwrap();
-        assert_eq!(reverse, "bonfida");
+        assert_eq!(reverse.unwrap(), "bonfida");
+
+        let reverse = resolve_reverse(&client, &Keypair::new().pubkey()).await;
+        assert!(reverse.unwrap().is_none());
     }
 
     #[tokio::test]
@@ -304,15 +339,30 @@ mod tests {
 
         // SOL record
         let res = resolve_owner(&client, "🇺🇸").await.unwrap();
-        assert_eq!(res, pubkey!("CnNHzcp7L4jKiA2Rsca3hZyVwSmoqXaT8wGwzS8WvvB2"));
+        assert_eq!(
+            res.unwrap(),
+            pubkey!("CnNHzcp7L4jKiA2Rsca3hZyVwSmoqXaT8wGwzS8WvvB2")
+        );
 
         // Tokenized
         let res = resolve_owner(&client, "0xluna").await.unwrap();
-        assert_eq!(res, pubkey!("CnNHzcp7L4jKiA2Rsca3hZyVwSmoqXaT8wGwzS8WvvB2"));
+        assert_eq!(
+            res.unwrap(),
+            pubkey!("CnNHzcp7L4jKiA2Rsca3hZyVwSmoqXaT8wGwzS8WvvB2")
+        );
 
         // Normal case
         let res = resolve_owner(&client, "bonfida").await.unwrap();
-        assert_eq!(res, pubkey!("HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA"));
+        assert_eq!(
+            res.unwrap(),
+            pubkey!("HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA")
+        );
+
+        // Domain does not exist
+        let res = resolve_owner(&client, &generate_random_string(20))
+            .await
+            .unwrap();
+        assert_eq!(res, None);
     }
 
     #[tokio::test]
@@ -332,5 +382,39 @@ mod tests {
             reverses,
             vec![Some("bonfida".to_string()), Some("bonfida".to_string())]
         )
+    }
+
+    #[tokio::test]
+    async fn test_resolve_record() {
+        dotenv().ok();
+        let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
+
+        let res = resolve_record(&client, "bonfida", Record::Url)
+            .await
+            .unwrap();
+        assert_eq!(
+            String::from_utf8(res.unwrap().1)
+                .unwrap()
+                .trim_end_matches('\0'),
+            "https://sns.id"
+        );
+
+        let res = resolve_record(&client, "bonfida", Record::Backpack)
+            .await
+            .unwrap();
+        assert!(res.is_none())
+    }
+
+    #[tokio::test]
+    async fn test_resolve_registry() {
+        dotenv().ok();
+        let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
+        let key = get_domain_key(&generate_random_string(20), false).unwrap();
+        let res = resolve_name_registry(&client, &key).await;
+        assert!(res.unwrap().is_none());
+
+        let key = get_domain_key("bonfida", false).unwrap();
+        let res = resolve_name_registry(&client, &key).await;
+        assert!(res.unwrap().is_some())
     }
 }
