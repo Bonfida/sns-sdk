@@ -1,11 +1,13 @@
-import { Record } from "./types/record";
-import { Connection } from "@solana/web3.js";
+import { RECORD_V1_SIZE, Record } from "./types/record";
+import { Connection, PublicKey } from "@solana/web3.js";
 import { getDomainKeySync } from "./utils";
 import { NameRegistryState } from "./state";
-import { SOL_RECORD_SIG_LEN } from "./constants";
+import { Buffer } from "buffer";
+import { decode, encode } from "bech32-buffer";
+import { checkSolRecord } from "./resolve";
+import base58 from "bs58";
 
-const trimNullPaddingIdx = (buffer: Buffer | undefined): number | undefined => {
-  if (!buffer) return undefined;
+const trimNullPaddingIdx = (buffer: Buffer): number => {
   const arr = Array.from(buffer);
   const lastNonNull =
     arr.length - 1 - arr.reverse().findIndex((byte) => byte !== 0);
@@ -38,11 +40,14 @@ export const getRecord = async (
   const pubkey = getRecordKeySync(domain, record);
   let { registry } = await NameRegistryState.retrieve(connection, pubkey);
 
+  if (!registry.data) {
+    throw new Error("No record data");
+  }
+
+  const recordSize = RECORD_V1_SIZE.get(record);
+
   // Remove trailling 0s
-  const idx =
-    record === Record.SOL
-      ? SOL_RECORD_SIG_LEN
-      : trimNullPaddingIdx(registry.data);
+  const idx = !!recordSize ? recordSize : trimNullPaddingIdx(registry.data);
   registry.data = registry.data?.slice(0, idx);
 
   return registry;
@@ -58,11 +63,9 @@ export const getRecords = async (
 
   return registries.map((e, i) => {
     // Remove trailling 0s
-    if (!e) return undefined;
-    const idx =
-      records[i] === Record.SOL
-        ? SOL_RECORD_SIG_LEN
-        : trimNullPaddingIdx(e.data);
+    if (!e || !e.data) return undefined;
+    const recordSize = RECORD_V1_SIZE.get(records[i]);
+    const idx = !!recordSize ? recordSize : trimNullPaddingIdx(e.data);
     e.data = e?.data?.slice(0, idx);
     return e;
   });
@@ -296,4 +299,57 @@ export const getBackpackRecord = async (
   domain: string
 ) => {
   return await getRecord(connection, domain, Record.Backpack);
+};
+
+export const deserializeRecord = (
+  registry: NameRegistryState,
+  record: Record,
+  recordKey: PublicKey
+): string | undefined => {
+  const buffer = registry.data;
+  if (!buffer) return undefined;
+
+  const size = RECORD_V1_SIZE.get(record);
+  const idx = trimNullPaddingIdx(buffer);
+
+  if (!size) {
+    return buffer.slice(0, idx).toString("utf-8");
+  }
+
+  // Old record UTF-8 encoded
+  if (size && idx !== size) {
+    const address = buffer.slice(0, idx).toString("utf-8");
+    if (record === Record.Injective) {
+      const decoded = decode(address);
+      if (decoded.prefix === "inj" && decoded.data.length === 20) {
+        return address;
+      }
+    } else if (record === Record.BSC || record === Record.ETH) {
+      const prefix = address.slice(0, 2);
+      const hex = address.slice(2);
+      if (prefix === "0x" && Buffer.from(hex, "hex").length === 20) {
+        return address;
+      }
+    }
+    throw new Error("Invalid record content");
+  }
+
+  if (record === Record.SOL) {
+    const encoder = new TextEncoder();
+    const expectedBuffer = Buffer.concat([
+      buffer.slice(0, 32),
+      recordKey.toBuffer(),
+    ]);
+    const expected = encoder.encode(expectedBuffer.toString("hex"));
+    const valid = checkSolRecord(expected, buffer.slice(32), registry.owner);
+    if (valid) {
+      return base58.encode(buffer.slice(0, 32));
+    }
+  } else if (record === Record.ETH || record === Record.BSC) {
+    return "0x" + buffer.toString("hex");
+  } else if (record === Record.Injective) {
+    return encode("inj", buffer);
+  }
+
+  throw new Error("Invalid record content");
 };

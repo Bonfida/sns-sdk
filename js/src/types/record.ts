@@ -23,3 +23,10 @@ export enum Record {
   Injective = "INJ",
   Backpack = "backpack",
 }
+
+export const RECORD_V1_SIZE: Map<Record, number> = new Map([
+  [Record.SOL, 96],
+  [Record.ETH, 20],
+  [Record.BSC, 20],
+  [Record.Injective, 20],
+]);
