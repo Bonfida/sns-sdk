@@ -45,6 +45,7 @@ import {
   getAssociatedTokenAddressSync,
   createAssociatedTokenAccountInstruction,
 } from "@solana/spl-token";
+import { ErrorType, SNSError } from "./error";
 
 /**
  * Creates a name account with the given rent budget, allocated space, owner and class.
@@ -312,7 +313,10 @@ export const registerDomainName = async (
   const symbol = TOKENS_SYM_MINT.get(mint.toBase58());
 
   if (!symbol) {
-    throw new Error("Symbol not found");
+    throw new SNSError(
+      ErrorType.SymbolNotFound,
+      `No symbol found for mint ${mint.toBase58()}`
+    );
   }
 
   const priceData = data.productPrice.get("Crypto." + symbol + "/USD")!;
@@ -411,7 +415,7 @@ export const createSubdomain = async (
   const ixs: TransactionInstruction[] = [];
   const sub = subdomain.split(".")[0];
   if (!sub) {
-    throw new Error("Invalid subdomain input");
+    throw new SNSError(ErrorType.InvalidSubdomain);
   }
 
   const { parent, pubkey } = getDomainKeySync(subdomain);

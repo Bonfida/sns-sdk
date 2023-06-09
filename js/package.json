@@ -67,6 +67,8 @@
     "bn.js": "^5.2.1",
     "borsh": "^0.7.0",
     "buffer": "^6.0.3",
+    "ipaddr.js": "^2.1.0",
+    "punycode": "^2.3.0",
     "tweetnacl": "^1.0.3"
   },
   "peerDependencies": {

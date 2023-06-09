@@ -1,5 +1,6 @@
 import { Buffer } from "buffer";
 import BN from "bn.js";
+import { ErrorType, SNSError } from "./error";
 
 export class Numberu32 extends BN {
   /**
@@ -12,7 +13,7 @@ export class Numberu32 extends BN {
       return b;
     }
     if (b.length > 4) {
-      throw new Error("Numberu32 too large");
+      throw new SNSError(ErrorType.U32Overflow);
     }
 
     const zeroPad = Buffer.alloc(4);
@@ -25,7 +26,10 @@ export class Numberu32 extends BN {
    */
   static fromBuffer(buffer): BN {
     if (buffer.length !== 4) {
-      throw new Error(`Invalid buffer length: ${buffer.length}`);
+      throw new SNSError(
+        ErrorType.InvalidBufferLength,
+        `Invalid buffer length: ${buffer.length}`
+      );
     }
 
     return new BN(
@@ -50,7 +54,7 @@ export class Numberu64 extends BN {
     }
 
     if (b.length > 8) {
-      throw new Error("Numberu64 too large");
+      throw new SNSError(ErrorType.U64Overflow);
     }
 
     const zeroPad = Buffer.alloc(8);
@@ -63,7 +67,10 @@ export class Numberu64 extends BN {
    */
   static fromBuffer(buffer): BN {
     if (buffer.length !== 8) {
-      throw new Error(`Invalid buffer length: ${buffer.length}`);
+      throw new SNSError(
+        ErrorType.U64Overflow,
+        `Invalid buffer length: ${buffer.length}`
+      );
     }
     return new BN(
       [...buffer]

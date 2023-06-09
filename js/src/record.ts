@@ -6,6 +6,10 @@ import { Buffer } from "buffer";
 import { decode, encode } from "bech32-buffer";
 import { checkSolRecord } from "./resolve";
 import base58 from "bs58";
+import ipaddr from "ipaddr.js";
+import { encode as encodePunycode } from "punycode";
+import { check } from "./utils";
+import { ErrorType, SNSError } from "./error";
 
 const trimNullPaddingIdx = (buffer: Buffer): number => {
   const arr = Array.from(buffer);
@@ -41,7 +45,7 @@ export const getRecord = async (
   let { registry } = await NameRegistryState.retrieve(connection, pubkey);
 
   if (!registry.data) {
-    throw new Error("No record data");
+    throw new SNSError(ErrorType.NoRecordData);
   }
 
   const recordSize = RECORD_V1_SIZE.get(record);
@@ -301,6 +305,13 @@ export const getBackpackRecord = async (
   return await getRecord(connection, domain, Record.Backpack);
 };
 
+/**
+ * This function can be used to deserialize the content of a record. If the content is invalid it will throw an error
+ * @param registry The name registry state object of the record being deserialized
+ * @param record The record enum being deserialized
+ * @param recordKey The public key of the record being deserialized
+ * @returns
+ */
 export const deserializeRecord = (
   registry: NameRegistryState,
   record: Record,
@@ -330,8 +341,12 @@ export const deserializeRecord = (
       if (prefix === "0x" && Buffer.from(hex, "hex").length === 20) {
         return address;
       }
+    } else if (record === Record.A || record === Record.AAAA) {
+      if (ipaddr.isValid(address)) {
+        return address;
+      }
     }
-    throw new Error("Invalid record content");
+    throw new SNSError(ErrorType.InvalidRecordData);
   }
 
   if (record === Record.SOL) {
@@ -349,7 +364,72 @@ export const deserializeRecord = (
     return "0x" + buffer.toString("hex");
   } else if (record === Record.Injective) {
     return encode("inj", buffer);
+  } else if (record === Record.A || record === Record.AAAA) {
+    return ipaddr.fromByteArray([...buffer.slice(0, size)]).toString();
+  }
+  throw new SNSError(ErrorType.InvalidRecordData);
+};
+
+/**
+ * This function can be used to serialize a user input string into a buffer that will be stored into a record account data
+ * For serializing SOL records use `serializeSolRecord`
+ * @param str The string being serialized into the record account data
+ * @param record The record enum being serialized
+ * @returns
+ */
+export const serializeRecord = (str: string, record: Record): Buffer => {
+  const size = RECORD_V1_SIZE.get(record);
+
+  if (!size) {
+    if (record === Record.CNAME || record === Record.TXT) {
+      str = encodePunycode(str);
+    }
+    return Buffer.from(str, "utf-8");
   }
 
-  throw new Error("Invalid record content");
+  if (record === Record.SOL) {
+    throw new SNSError(
+      ErrorType.UnsupportedRecord,
+      "Use `serializeSolRecord` for SOL record"
+    );
+  } else if (record === Record.ETH || record === Record.BSC) {
+    check(str.slice(0, 2) === "0x", ErrorType.InvalidEvmAddress);
+    return Buffer.from(str.slice(2), "hex");
+  } else if (record === Record.Injective) {
+    const decoded = decode(str);
+    check(decoded.prefix === "inj", ErrorType.InvalidInjectiveAddress);
+    check(decoded.data.length === 20, ErrorType.InvalidInjectiveAddress);
+    return Buffer.from(decoded.data);
+  } else if (record === Record.A) {
+    const array = ipaddr.parse(str).toByteArray();
+    check(array.length === 4, ErrorType.InvalidARecord);
+    return Buffer.from(array);
+  } else if (record === Record.AAAA) {
+    const array = ipaddr.parse(str).toByteArray();
+    check(array.length === 16, ErrorType.InvalidAAAARecord);
+    return Buffer.from(array);
+  }
+
+  throw new SNSError(ErrorType.InvalidRecordInput);
+};
+
+/**
+ * This function can be used to build the content of a SOL record
+ * @param content The public key being stored in the SOL record
+ * @param recordKey The record public key
+ * @param signer The signer of the record i.e the domain owner
+ * @param signature The signature of the record's content
+ * @returns
+ */
+export const serializeSolRecord = (
+  content: PublicKey,
+  recordKey: PublicKey,
+  signer: PublicKey,
+  signature: Uint8Array
+): Buffer => {
+  const expected = Buffer.concat([content.toBuffer(), recordKey.toBuffer()]);
+  const valid = checkSolRecord(expected, signature, signer);
+  check(valid, ErrorType.InvalidSignature);
+
+  return Buffer.concat([content.toBuffer(), signature]);
 };

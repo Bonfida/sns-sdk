@@ -12,3 +12,4 @@ export * from "./record";
 export * from "./types/record";
 export * from "./resolve";
 export * from "./deprecated/utils";
+export * from "./error";
