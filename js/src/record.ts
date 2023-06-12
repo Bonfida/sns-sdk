@@ -363,7 +363,7 @@ export const deserializeRecord = (
   } else if (record === Record.ETH || record === Record.BSC) {
     return "0x" + buffer.toString("hex");
   } else if (record === Record.Injective) {
-    return encode("inj", buffer);
+    return encode("inj", buffer, "bech32");
   } else if (record === Record.A || record === Record.AAAA) {
     return ipaddr.fromByteArray([...buffer.slice(0, size)]).toString();
   }
@@ -432,4 +432,26 @@ export const serializeSolRecord = (
   check(valid, ErrorType.InvalidSignature);
 
   return Buffer.concat([content.toBuffer(), signature]);
+};
+
+/**
+ * This function can be used to fetch and deserialize the data of a record.
+ * The deserialization is opionated, if you prefer to have the raw data use `getRecord`
+ * @param connection The Solana RPC connection object
+ * @param domain The .sol domain name
+ * @param record The record to fetch
+ * @returns
+ */
+export const getDeserializedRecord = async (
+  connection: Connection,
+  domain: string,
+  record: Record
+) => {
+  const raw = await getRecord(connection, domain, record);
+  const des = deserializeRecord(
+    raw,
+    record,
+    getDomainKeySync(`${record}.${domain}`, true).pubkey
+  );
+  return des;
 };
