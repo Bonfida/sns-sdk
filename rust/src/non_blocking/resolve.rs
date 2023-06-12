@@ -417,4 +417,20 @@ mod tests {
         let res = resolve_name_registry(&client, &key).await;
         assert!(res.unwrap().is_some())
     }
+
+    #[tokio::test]
+    async fn test_get_favourite_domain() {
+        dotenv().ok();
+        let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
+        let domain = get_favourite_domain(
+            &client,
+            &pubkey!("HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA"),
+        )
+        .await
+        .unwrap();
+        assert_eq!(
+            &domain.unwrap().to_string(),
+            "Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb"
+        );
+    }
 }

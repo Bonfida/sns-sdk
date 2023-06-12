@@ -1,3 +1,5 @@
+use std::io::ErrorKind;
+
 use borsh::BorshDeserialize;
 use solana_program::pubkey::Pubkey;
 
@@ -13,6 +15,10 @@ pub(crate) fn derive_favorite_domain_key(owner: &Pubkey) -> Pubkey {
 
 #[derive(BorshDeserialize)]
 pub enum Tag {
+    _A,
+    _B,
+    _C,
+    _D,
     FavouriteDomain = 4,
 }
 
@@ -24,6 +30,11 @@ pub struct FavouriteDomain {
 
 impl FavouriteDomain {
     pub fn parse(mut buffer: &[u8]) -> Result<FavouriteDomain, std::io::Error> {
-        Self::deserialize(&mut buffer)
+        let s = Self::deserialize(&mut buffer)?;
+        if !matches!(s.tag, Tag::FavouriteDomain) {
+            Err(std::io::Error::new(ErrorKind::InvalidData, ""))
+        } else {
+            Ok(s)
+        }
     }
 }
