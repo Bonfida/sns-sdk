@@ -1,14 +1,15 @@
 import { test, jest, expect } from "@jest/globals";
 import * as record from "../src/record";
-import { Connection, clusterApiUrl } from "@solana/web3.js";
+import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Record } from "../src/types/record";
+import { createRecordInstruction } from "../src/bindings";
 
 jest.setTimeout(20_000);
 
 const connection = new Connection("https://rpc-public.hellomoon.io");
-const domain = "🍍";
 
 test("Records", async () => {
+  const domain = "🍍";
   record.getIpfsRecord(connection, domain).then((e) => {
     expect(e.data?.toString()).toBe(
       "QmbWqxBEKC3P8tqsKc98xmWNzrzDtRLMiMPL8wBuTGsMnR"
@@ -98,4 +99,23 @@ test("BSC", async () => {
   expect(res.data?.toString("hex")).toBe(
     "4170ad697176fe6d660763f6e4dfcf25018e8b63"
   );
+});
+
+test("Create", async () => {
+  const domain = "wallet-guide-3.sol";
+  const owner = new PublicKey("Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8");
+  let ix = await createRecordInstruction(
+    connection,
+    domain,
+    Record.A,
+    "192.168.0.1",
+    owner,
+    owner
+  );
+  const tx = new Transaction().add(ix);
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+  tx.feePayer = owner;
+
+  let res = await connection.simulateTransaction(tx);
+  expect(res.value.err).toBe(null);
 });
