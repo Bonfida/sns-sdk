@@ -103,6 +103,8 @@ The SDK proxy is a Cloudflare worker that proxies the JS SDK via REST calls. It'
 - `GET /subdomains/:parent`: Returns all the subdomains of `parent`
 - `GET /register?buyer={buyer}&domain={domain}&space={space}&serialize={serialize}`: This endpoint can be used to register `domain` for `buyer`. Additionaly, the `buyer` dans specify the `space` it wants to allocate for the `domain` account. In the case where `serialize` is `true` the endpoint will return the transaction serialized in the wire format base64 encoded. Otherwise it will return the instruction in the following format: `{ programId: string, keys: {isWritable: boolean, isSigner: boolean, pubkey: string}[], data: string }` where data is base64 encoded. This endpoint also supports the optional `mint` parameter to change the mint of the token used for registration (currently supports USDC, USDT, FIDA and wSOL), if `mint` is omitted it defaults to USDC.
 
+The SDK proxy is deployed at: https://sns-sdk-proxy.bonfida.workers.dev/
+
 <br />
 <a name="cli"></a>
 <h2 align="center">CLI</h2>
