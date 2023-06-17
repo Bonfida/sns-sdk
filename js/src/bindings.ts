@@ -159,7 +159,6 @@ export async function updateNameRegistryData(
  * @param connection The solana connection object to the RPC node
  * @param name The name of the name account
  * @param newOwner The new owner to be set
- * @param curentNameOwner the current name Owner
  * @param nameClass The class of this name, if it exsists
  * @param nameParent The parent name of this name, if it exists
  * @param parentOwner Parent name owner
