@@ -1,5 +1,5 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { getSolRecord } from "./record";
+import { getRecordKeySync, getSolRecord } from "./record";
 import { getDomainKeySync } from "./utils";
 import { NameRegistryState } from "./state";
 import * as tweetnacl from "tweetnacl";
@@ -41,17 +41,17 @@ export const resolve = async (connection: Connection, domain: string) => {
   }
 
   try {
-    const recordKey = getDomainKeySync(Record.SOL + "." + domain, true);
+    const recordKey = getRecordKeySync(domain, Record.SOL);
     const solRecord = await getSolRecord(connection, domain);
 
-    if (!solRecord.data) {
+    if (!solRecord?.data) {
       throw new SNSError(ErrorType.NoRecordData);
     }
 
     const encoder = new TextEncoder();
     const expectedBuffer = Buffer.concat([
       solRecord.data.slice(0, 32),
-      recordKey.pubkey.toBuffer(),
+      recordKey.toBuffer(),
     ]);
     const expected = encoder.encode(expectedBuffer.toString("hex"));
 

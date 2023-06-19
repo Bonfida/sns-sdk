@@ -29,6 +29,22 @@ export const getRecordKeySync = (domain: string, record: Record) => {
   return pubkey;
 };
 
+// Overload signature for the case where deserialize is true.
+export async function getRecord(
+  connection: Connection,
+  domain: string,
+  record: Record,
+  deserialize: true
+): Promise<string | undefined>;
+
+// Overload signature for the case where deserialize is false or undefined.
+export async function getRecord(
+  connection: Connection,
+  domain: string,
+  record: Record,
+  deserialize?: false
+): Promise<NameRegistryState | undefined>;
+
 /**
  * This function can be used to retrieve a specified record for the given domain name
  * @param connection The Solana RPC connection object
@@ -36,11 +52,12 @@ export const getRecordKeySync = (domain: string, record: Record) => {
  * @param record The record to search for
  * @returns
  */
-export const getRecord = async (
+export async function getRecord(
   connection: Connection,
   domain: string,
-  record: Record
-) => {
+  record: Record,
+  deserialize?: boolean
+) {
   const pubkey = getRecordKeySync(domain, record);
   let { registry } = await NameRegistryState.retrieve(connection, pubkey);
 
@@ -48,32 +65,52 @@ export const getRecord = async (
     throw new SNSError(ErrorType.NoRecordData);
   }
 
+  if (deserialize) {
+    return deserializeRecord(registry, record, pubkey);
+  }
   const recordSize = RECORD_V1_SIZE.get(record);
-
-  // Remove trailling 0s
-  const idx = !!recordSize ? recordSize : trimNullPaddingIdx(registry.data);
-  registry.data = registry.data?.slice(0, idx);
+  registry.data = registry.data.slice(0, recordSize);
 
   return registry;
-};
+}
 
-export const getRecords = async (
+// Overload signature for the case where deserialize is true.
+export async function getRecords(
   connection: Connection,
   domain: string,
-  records: Record[]
-) => {
-  const pubkeys = records.map((record) => getRecordKeySync(domain, record));
-  let registries = await NameRegistryState.retrieveBatch(connection, pubkeys);
+  records: Record[],
+  deserialize: true
+): Promise<string[]>;
 
-  return registries.map((e, i) => {
-    // Remove trailling 0s
-    if (!e || !e.data) return undefined;
-    const recordSize = RECORD_V1_SIZE.get(records[i]);
-    const idx = !!recordSize ? recordSize : trimNullPaddingIdx(e.data);
-    e.data = e?.data?.slice(0, idx);
-    return e;
-  });
-};
+// Overload signature for the case where deserialize is false or undefined.
+export async function getRecords(
+  connection: Connection,
+  domain: string,
+  records: Record[],
+  deserialize?: false
+): Promise<NameRegistryState[]>;
+
+export async function getRecords(
+  connection: Connection,
+  domain: string,
+  records: Record[],
+  deserialize?: boolean
+) {
+  const pubkeys = records.map((record) => getRecordKeySync(domain, record));
+  const registries = await NameRegistryState.retrieveBatch(connection, pubkeys);
+
+  if (deserialize) {
+    return registries.map((e, idx) => {
+      if (!e) return undefined;
+      return deserializeRecord(
+        e,
+        records[idx],
+        getRecordKeySync(domain, records[idx])
+      );
+    });
+  }
+  return registries;
+}
 
 /**
  * This function can be used to retrieve the IPFS record of a domain name
@@ -82,7 +119,7 @@ export const getRecords = async (
  * @returns
  */
 export const getIpfsRecord = async (connection: Connection, domain: string) => {
-  return await getRecord(connection, domain, Record.IPFS);
+  return await getRecord(connection, domain, Record.IPFS, true);
 };
 
 /**
@@ -95,7 +132,7 @@ export const getArweaveRecord = async (
   connection: Connection,
   domain: string
 ) => {
-  return await getRecord(connection, domain, Record.ARWV);
+  return await getRecord(connection, domain, Record.ARWV, true);
 };
 
 /**
@@ -105,7 +142,7 @@ export const getArweaveRecord = async (
  * @returns
  */
 export const getEthRecord = async (connection: Connection, domain: string) => {
-  return await getRecord(connection, domain, Record.ETH);
+  return await getRecord(connection, domain, Record.ETH, true);
 };
 
 /**
@@ -115,7 +152,7 @@ export const getEthRecord = async (connection: Connection, domain: string) => {
  * @returns
  */
 export const getBtcRecord = async (connection: Connection, domain: string) => {
-  return await getRecord(connection, domain, Record.BTC);
+  return await getRecord(connection, domain, Record.BTC, true);
 };
 
 /**
@@ -125,7 +162,7 @@ export const getBtcRecord = async (connection: Connection, domain: string) => {
  * @returns
  */
 export const getLtcRecord = async (connection: Connection, domain: string) => {
-  return await getRecord(connection, domain, Record.LTC);
+  return await getRecord(connection, domain, Record.LTC, true);
 };
 
 /**
@@ -135,7 +172,7 @@ export const getLtcRecord = async (connection: Connection, domain: string) => {
  * @returns
  */
 export const getDogeRecord = async (connection: Connection, domain: string) => {
-  return await getRecord(connection, domain, Record.DOGE);
+  return await getRecord(connection, domain, Record.DOGE, true);
 };
 
 /**
@@ -148,7 +185,7 @@ export const getEmailRecord = async (
   connection: Connection,
   domain: string
 ) => {
-  return await getRecord(connection, domain, Record.Email);
+  return await getRecord(connection, domain, Record.Email, true);
 };
 
 /**
@@ -158,7 +195,7 @@ export const getEmailRecord = async (
  * @returns
  */
 export const getUrlRecord = async (connection: Connection, domain: string) => {
-  return await getRecord(connection, domain, Record.Url);
+  return await getRecord(connection, domain, Record.Url, true);
 };
 
 /**
@@ -171,7 +208,7 @@ export const getDiscordRecord = async (
   connection: Connection,
   domain: string
 ) => {
-  return await getRecord(connection, domain, Record.Discord);
+  return await getRecord(connection, domain, Record.Discord, true);
 };
 
 /**
@@ -184,7 +221,7 @@ export const getGithubRecord = async (
   connection: Connection,
   domain: string
 ) => {
-  return await getRecord(connection, domain, Record.Github);
+  return await getRecord(connection, domain, Record.Github, true);
 };
 
 /**
@@ -197,7 +234,7 @@ export const getRedditRecord = async (
   connection: Connection,
   domain: string
 ) => {
-  return await getRecord(connection, domain, Record.Reddit);
+  return await getRecord(connection, domain, Record.Reddit, true);
 };
 
 /**
@@ -210,7 +247,7 @@ export const getTwitterRecord = async (
   connection: Connection,
   domain: string
 ) => {
-  return await getRecord(connection, domain, Record.Twitter);
+  return await getRecord(connection, domain, Record.Twitter, true);
 };
 
 /**
@@ -223,7 +260,7 @@ export const getTelegramRecord = async (
   connection: Connection,
   domain: string
 ) => {
-  return await getRecord(connection, domain, Record.Telegram);
+  return await getRecord(connection, domain, Record.Telegram, true);
 };
 
 /**
@@ -233,7 +270,7 @@ export const getTelegramRecord = async (
  * @returns
  */
 export const getPicRecord = async (connection: Connection, domain: string) => {
-  return await getRecord(connection, domain, Record.Pic);
+  return await getRecord(connection, domain, Record.Pic, true);
 };
 
 /**
@@ -243,7 +280,7 @@ export const getPicRecord = async (connection: Connection, domain: string) => {
  * @returns
  */
 export const getShdwRecord = async (connection: Connection, domain: string) => {
-  return await getRecord(connection, domain, Record.SHDW);
+  return await getRecord(connection, domain, Record.SHDW, true);
 };
 
 /**
@@ -266,7 +303,7 @@ export const getPointRecord = async (
   connection: Connection,
   domain: string
 ) => {
-  return await getRecord(connection, domain, Record.POINT);
+  return await getRecord(connection, domain, Record.POINT, true);
 };
 
 /**
@@ -276,7 +313,7 @@ export const getPointRecord = async (
  * @returns
  */
 export const getBscRecord = async (connection: Connection, domain: string) => {
-  return await getRecord(connection, domain, Record.BSC);
+  return await getRecord(connection, domain, Record.BSC, true);
 };
 
 /**
@@ -289,7 +326,7 @@ export const getInjectiveRecord = async (
   connection: Connection,
   domain: string
 ) => {
-  return await getRecord(connection, domain, Record.Injective);
+  return await getRecord(connection, domain, Record.Injective, true);
 };
 
 /**
@@ -302,7 +339,7 @@ export const getBackpackRecord = async (
   connection: Connection,
   domain: string
 ) => {
-  return await getRecord(connection, domain, Record.Backpack);
+  return await getRecord(connection, domain, Record.Backpack, true);
 };
 
 /**
@@ -313,11 +350,11 @@ export const getBackpackRecord = async (
  * @returns
  */
 export const deserializeRecord = (
-  registry: NameRegistryState,
+  registry: NameRegistryState | undefined,
   record: Record,
   recordKey: PublicKey
 ): string | undefined => {
-  const buffer = registry.data;
+  const buffer = registry?.data;
   if (!buffer) return undefined;
 
   const size = RECORD_V1_SIZE.get(record);
@@ -432,26 +469,4 @@ export const serializeSolRecord = (
   check(valid, ErrorType.InvalidSignature);
 
   return Buffer.concat([content.toBuffer(), signature]);
-};
-
-/**
- * This function can be used to fetch and deserialize the data of a record.
- * The deserialization is opionated, if you prefer to have the raw data use `getRecord`
- * @param connection The Solana RPC connection object
- * @param domain The .sol domain name
- * @param record The record to fetch
- * @returns
- */
-export const getDeserializedRecord = async (
-  connection: Connection,
-  domain: string,
-  record: Record
-) => {
-  const raw = await getRecord(connection, domain, record);
-  const des = deserializeRecord(
-    raw,
-    record,
-    getDomainKeySync(`${record}.${domain}`, true).pubkey
-  );
-  return des;
 };
