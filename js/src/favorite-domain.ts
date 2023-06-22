@@ -2,6 +2,7 @@ import { Buffer } from "buffer";
 import { deserialize, Schema } from "borsh";
 import { reverseLookup } from "./utils";
 import { PublicKey, Connection } from "@solana/web3.js";
+import { ErrorType, SNSError } from "./error";
 
 export const NAME_OFFERS_ID = new PublicKey(
   "85iDfUvr3HJyLM2zcq5BXSiDvUWfw6cSE1FfNBo8Ap29"
@@ -47,7 +48,7 @@ export class FavouriteDomain {
   static async retrieve(connection: Connection, key: PublicKey) {
     const accountInfo = await connection.getAccountInfo(key);
     if (!accountInfo || !accountInfo.data) {
-      throw new Error("Favourite domain not found");
+      throw new SNSError(ErrorType.FavouriteDomainNotFound);
     }
     return this.deserialize(accountInfo.data);
   }

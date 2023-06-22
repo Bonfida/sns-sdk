@@ -7,6 +7,7 @@ import {
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Numberu32, Numberu64 } from "./int";
 import { Schema, serialize } from "borsh";
+import { ErrorType, SNSError } from "./error";
 
 export interface AccountKey {
   pubkey: PublicKey;
@@ -420,7 +421,7 @@ export class createReverseInstruction {
 
     if (parentName) {
       if (!parentNameOwner) {
-        throw new Error("Missing parent name owner");
+        throw new SNSError(ErrorType.MissingParentOwner);
       }
       keys.push({
         pubkey: parentName,

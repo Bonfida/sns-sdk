@@ -1,10 +1,11 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { getSolRecord } from "./record";
+import { getRecordKeySync, getSolRecord } from "./record";
 import { getDomainKeySync } from "./utils";
 import { NameRegistryState } from "./state";
 import * as tweetnacl from "tweetnacl";
 import { Record } from "./types/record";
 import { Buffer } from "buffer";
+import { ErrorType, SNSError } from "./error";
 
 /**
  * This function can be used to verify the validity of a SOL record
@@ -40,17 +41,17 @@ export const resolve = async (connection: Connection, domain: string) => {
   }
 
   try {
-    const recordKey = getDomainKeySync(Record.SOL + "." + domain, true);
+    const recordKey = getRecordKeySync(domain, Record.SOL);
     const solRecord = await getSolRecord(connection, domain);
 
-    if (!solRecord.data) {
-      throw new Error("Invalid SOL record data");
+    if (!solRecord?.data) {
+      throw new SNSError(ErrorType.NoRecordData);
     }
 
     const encoder = new TextEncoder();
     const expectedBuffer = Buffer.concat([
       solRecord.data.slice(0, 32),
-      recordKey.pubkey.toBuffer(),
+      recordKey.toBuffer(),
     ]);
     const expected = encoder.encode(expectedBuffer.toString("hex"));
 
@@ -61,7 +62,7 @@ export const resolve = async (connection: Connection, domain: string) => {
     );
 
     if (!valid) {
-      throw new Error("Signature invalid");
+      throw new SNSError(ErrorType.InvalidSignature);
     }
 
     return new PublicKey(solRecord.data.slice(0, 32));
@@ -71,7 +72,6 @@ export const resolve = async (connection: Connection, domain: string) => {
         throw err;
       }
     }
-    console.log(err);
   }
 
   return registry.owner;

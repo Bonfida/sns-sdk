@@ -304,6 +304,7 @@ pub async fn get_favourite_domain(
 mod tests {
     use super::*;
     use crate::derivation::get_domain_key;
+    use crate::record::deserialize_record;
     use crate::utils::test::generate_random_string;
     use dotenv::dotenv;
     use solana_program::pubkey;
@@ -393,16 +394,20 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(
-            String::from_utf8(res.unwrap().1)
-                .unwrap()
-                .trim_end_matches('\0'),
+            deserialize_record(&res.unwrap().1, Record::Url, &Pubkey::default()).unwrap(),
             "https://sns.id"
         );
 
         let res = resolve_record(&client, "bonfida", Record::Backpack)
             .await
             .unwrap();
-        assert!(res.is_none())
+        assert!(res.is_none());
+
+        let res = resolve_record(&client, "🍍", Record::Eth).await.unwrap();
+        assert_eq!(
+            deserialize_record(&res.unwrap().1, Record::Eth, &Pubkey::default()).unwrap(),
+            "0x570eDC13f9D406a2b4E6477Ddf75D5E9cCF51cd6"
+        );
     }
 
     #[tokio::test]

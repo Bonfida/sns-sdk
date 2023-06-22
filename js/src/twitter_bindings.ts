@@ -21,6 +21,7 @@ import { getHashedName, getNameAccountKey } from "./deprecated/utils";
 import { Numberu32, Numberu64 } from "./int";
 import { deserializeUnchecked, Schema, serialize } from "borsh";
 import { Buffer } from "buffer";
+import { ErrorType, SNSError } from "./error";
 
 ////////////////////////////////////////////////////
 // Bindings
@@ -299,7 +300,7 @@ export async function getTwitterHandleandRegistryKeyViaFilters(
       return [state.twitterHandle, new PublicKey(state.twitterRegistryKey)];
     }
   }
-  throw new Error("Registry not found.");
+  throw new SNSError(ErrorType.AccountDoesNotExist);
 }
 
 // Uses the RPC node filtering feature, execution speed may vary
@@ -335,7 +336,7 @@ export async function getTwitterRegistryData(
   );
 
   if (filteredAccounts.length > 1) {
-    throw new Error("Found more than one registry.");
+    throw new SNSError(ErrorType.MultipleRegistries);
   }
 
   return filteredAccounts[0].account.data.slice(NameRegistryState.HEADER_LEN);
@@ -374,7 +375,7 @@ export class ReverseTwitterRegistryState {
       "processed"
     );
     if (!reverseTwitterAccount) {
-      throw new Error("Invalid reverse Twitter account provided");
+      throw new SNSError(ErrorType.InvalidReverseTwitter);
     }
 
     let res: ReverseTwitterRegistryState = deserializeUnchecked(

@@ -2,6 +2,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { deserializeUnchecked, Schema, serialize } from "borsh";
 import { retrieveNftOwner } from "./nft";
 import { Buffer } from "buffer";
+import { ErrorType, SNSError } from "./error";
 
 export class NameRegistryState {
   static HEADER_LEN = 96;
@@ -39,7 +40,7 @@ export class NameRegistryState {
   ) {
     const nameAccount = await connection.getAccountInfo(nameAccountKey);
     if (!nameAccount) {
-      throw new Error("Invalid name account provided");
+      throw new SNSError(ErrorType.AccountDoesNotExist);
     }
 
     let res: NameRegistryState = deserializeUnchecked(

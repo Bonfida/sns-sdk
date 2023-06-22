@@ -5,6 +5,7 @@ import { HASH_PREFIX, NAME_PROGRAM_ID, ROOT_DOMAIN_ACCOUNT } from "./constants";
 import { NameRegistryState } from "./state";
 import { REVERSE_LOOKUP_CLASS } from "./constants";
 import { Buffer } from "buffer";
+import { ErrorType, SNSError } from "./error";
 
 export const getHashedNameSync = (name: string): Buffer => {
   const input = HASH_PREFIX + name;
@@ -56,7 +57,7 @@ export async function reverseLookup(
     reverseLookupAccount
   );
   if (!registry.data) {
-    throw new Error("Could not retrieve name data");
+    throw new SNSError(ErrorType.NoAccountData);
   }
   const nameLength = new BN(registry.data.slice(0, 4), "le").toNumber();
   return registry.data.slice(4, 4 + nameLength).toString();
@@ -169,7 +170,7 @@ export const getDomainKeySync = (domain: string, record = false) => {
     const result = _deriveSync(recordPrefix.concat(splitted[0]), subKey);
     return { ...result, isSub: true, parent: parentKey, isSubRecord: true };
   } else if (splitted.length >= 3) {
-    throw new Error("Invalid derivation input");
+    throw new SNSError(ErrorType.InvalidInput);
   }
   const result = _deriveSync(domain, ROOT_DOMAIN_ACCOUNT);
   return { ...result, isSub: false, parent: undefined };
@@ -244,4 +245,10 @@ export const getReverseKeySync = (domain: string, isSub?: boolean) => {
     isSub ? parent : undefined
   );
   return reverseLookupAccount;
+};
+
+export const check = (bool: boolean, errorType: ErrorType) => {
+  if (!bool) {
+    throw new SNSError(errorType);
+  }
 };

@@ -1,6 +1,7 @@
 import { PublicKey, Connection } from "@solana/web3.js";
 import { getHashedName, getNameAccountKey } from "./utils";
 import { NameRegistryState, TokenData, Mint } from "../state";
+import { SNSError, ErrorType } from "../error";
 
 /**
  * @deprecated
@@ -23,7 +24,7 @@ export const getTokenInfoFromMint = async (
   );
   const { registry } = await NameRegistryState.retrieve(connection, nameKey);
   if (!registry.data) {
-    throw new Error("Invalid account data");
+    throw new SNSError(ErrorType.NoAccountData);
   }
   return TokenData.deserialize(registry.data);
 };
@@ -45,7 +46,7 @@ export const getTokenInfoFromName = async (
     reverseNameKey
   );
   if (!reverseRegistry.data) {
-    throw new Error("Invalid account data");
+    throw new SNSError(ErrorType.NoAccountData);
   }
   const mint = new PublicKey(Mint.deserialize(reverseRegistry.data).mint);
   return await getTokenInfoFromMint(connection, mint);

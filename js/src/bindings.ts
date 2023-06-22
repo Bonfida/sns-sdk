@@ -30,12 +30,14 @@ import {
   TOKENS_SYM_MINT,
   PYTH_MAPPING_ACC,
   VAULT_OWNER,
+  SOL_RECORD_SIG_LEN,
 } from "./constants";
 import {
   getPythProgramKeyForCluster,
   PythHttpClient,
 } from "@pythnetwork/client";
 import {
+  check,
   getDomainKeySync,
   getHashedNameSync,
   getNameAccountKeySync,
@@ -45,6 +47,9 @@ import {
   getAssociatedTokenAddressSync,
   createAssociatedTokenAccountInstruction,
 } from "@solana/spl-token";
+import { ErrorType, SNSError } from "./error";
+import { serializeRecord, serializeSolRecord } from "./record";
+import { Record } from "./types/record";
 
 /**
  * Creates a name account with the given rent budget, allocated space, owner and class.
@@ -311,7 +316,10 @@ export const registerDomainName = async (
   const symbol = TOKENS_SYM_MINT.get(mint.toBase58());
 
   if (!symbol) {
-    throw new Error("Symbol not found");
+    throw new SNSError(
+      ErrorType.SymbolNotFound,
+      `No symbol found for mint ${mint.toBase58()}`
+    );
   }
 
   const priceData = data.productPrice.get("Crypto." + symbol + "/USD")!;
@@ -410,7 +418,7 @@ export const createSubdomain = async (
   const ixs: TransactionInstruction[] = [];
   const sub = subdomain.split(".")[0];
   if (!sub) {
-    throw new Error("Invalid subdomain input");
+    throw new SNSError(ErrorType.InvalidSubdomain);
   }
 
   const { parent, pubkey } = getDomainKeySync(subdomain);
@@ -442,4 +450,177 @@ export const createSubdomain = async (
   );
   ixs.push(...ix_reverse);
   return [[], ixs];
+};
+
+/**
+ * This function can be used be create a record, it handles the serialization of the record data
+ * To create a SOL record use `createSolRecordInstruction`
+ * @param connection The Solana RPC connection object
+ * @param domain The .sol domain name
+ * @param record The record enum object
+ * @param data The data (as a UTF-8 string) to store in the record account
+ * @param owner The owner of the domain
+ * @param payer The fee payer of the transaction
+ * @returns
+ */
+export const createRecordInstruction = async (
+  connection: Connection,
+  domain: string,
+  record: Record,
+  data: string,
+  owner: PublicKey,
+  payer: PublicKey
+) => {
+  check(record !== Record.SOL, ErrorType.UnsupportedRecord);
+  const { pubkey, hashed, parent } = getDomainKeySync(
+    `${record}.${domain}`,
+    true
+  );
+
+  const serialized = serializeRecord(data, record);
+  const space = serialized.length;
+  const lamports = await connection.getMinimumBalanceForRentExemption(
+    space + NameRegistryState.HEADER_LEN
+  );
+
+  const ix = createInstruction(
+    NAME_PROGRAM_ID,
+    SystemProgram.programId,
+    pubkey,
+    owner,
+    payer,
+    hashed,
+    new Numberu64(lamports),
+    new Numberu32(space),
+    undefined,
+    parent,
+    owner
+  );
+
+  return ix;
+};
+
+export const updateRecordInstruction = async (
+  connection: Connection,
+  domain: string,
+  record: Record,
+  data: string,
+  owner: PublicKey,
+  payer: PublicKey
+) => {
+  check(record !== Record.SOL, ErrorType.UnsupportedRecord);
+  const { pubkey } = getDomainKeySync(`${record}.${domain}`, true);
+
+  const info = await connection.getAccountInfo(pubkey);
+  check(!!info?.data, ErrorType.AccountDoesNotExist);
+
+  const serialized = serializeRecord(data, record);
+  if (info?.data.slice(96).length !== serialized.length) {
+    // Delete + create until we can realloc accounts
+    return [
+      deleteInstruction(NAME_PROGRAM_ID, pubkey, payer, owner),
+      await createRecordInstruction(
+        connection,
+        domain,
+        record,
+        data,
+        owner,
+        payer
+      ),
+    ];
+  }
+
+  const ix = updateInstruction(
+    NAME_PROGRAM_ID,
+    pubkey,
+    new Numberu32(0),
+    serialized,
+    owner
+  );
+
+  return [ix];
+};
+
+/**
+ * This function can be used to create a SOL record
+ * @param connection The Solana RPC connection object
+ * @param domain The .sol domain name
+ * @param content The content of the SOL record i.e the public key to store as destination of the domain
+ * @param signer The signer of the SOL record i.e the owner of the domain
+ * @param signature The signature of the record
+ * @param payer The fee payer of the transaction
+ * @returns
+ */
+export const createSolRecordInstruction = async (
+  connection: Connection,
+  domain: string,
+  content: PublicKey,
+  signer: PublicKey,
+  signature: Uint8Array,
+  payer: PublicKey
+) => {
+  const { pubkey, hashed, parent } = getDomainKeySync(
+    `${Record.SOL}.${domain}`,
+    true
+  );
+  const serialized = serializeSolRecord(content, pubkey, signer, signature);
+  const space = serialized.length;
+  const lamports = await connection.getMinimumBalanceForRentExemption(
+    space + NameRegistryState.HEADER_LEN
+  );
+
+  const ix = createInstruction(
+    NAME_PROGRAM_ID,
+    SystemProgram.programId,
+    pubkey,
+    signer,
+    payer,
+    hashed,
+    new Numberu64(lamports),
+    new Numberu32(space),
+    undefined,
+    parent,
+    signer
+  );
+
+  return [ix];
+};
+
+export const updateSolRecordInstruction = async (
+  connection: Connection,
+  domain: string,
+  content: PublicKey,
+  signer: PublicKey,
+  signature: Uint8Array,
+  payer: PublicKey
+) => {
+  const { pubkey } = getDomainKeySync(`${Record.SOL}.${domain}`, true);
+
+  const info = await connection.getAccountInfo(pubkey);
+  check(!!info?.data, ErrorType.AccountDoesNotExist);
+
+  if (info?.data.length !== 96) {
+    return [
+      deleteInstruction(NAME_PROGRAM_ID, pubkey, payer, signer),
+      await createSolRecordInstruction(
+        connection,
+        domain,
+        content,
+        signer,
+        signature,
+        payer
+      ),
+    ];
+  }
+
+  const serialized = serializeSolRecord(content, pubkey, signer, signature);
+  const ix = updateInstruction(
+    NAME_PROGRAM_ID,
+    pubkey,
+    new Numberu32(0),
+    serialized,
+    signer
+  );
+
+  return [ix];
 };

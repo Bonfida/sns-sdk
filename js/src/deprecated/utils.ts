@@ -9,6 +9,7 @@ import {
 import { NameRegistryState } from "../state";
 import { REVERSE_LOOKUP_CLASS } from "../constants";
 import { Buffer } from "buffer";
+import { SNSError, ErrorType } from "../error";
 
 /**
  * @deprecated Use {@link resolve} instead
@@ -19,7 +20,7 @@ export async function getNameOwner(
 ) {
   const nameAccount = await connection.getAccountInfo(nameAccountKey);
   if (!nameAccount) {
-    throw new Error("Unable to find the given account.");
+    throw new SNSError(ErrorType.AccountDoesNotExist);
   }
   return NameRegistryState.retrieve(connection, nameAccountKey);
 }
@@ -81,7 +82,7 @@ export async function performReverseLookup(
     reverseLookupAccount
   );
   if (!registry.data) {
-    throw new Error("Could not retrieve name data");
+    throw new SNSError(ErrorType.NoAccountData);
   }
   const nameLength = new BN(registry.data.slice(0, 4), "le").toNumber();
   return registry.data.slice(4, 4 + nameLength).toString();
@@ -162,7 +163,7 @@ export const getDomainKey = async (domain: string, record = false) => {
     const result = await _derive(recordPrefix.concat(splitted[0]), subKey);
     return { ...result, isSub: true, parent: parentKey, isSubRecord: true };
   } else if (splitted.length >= 3) {
-    throw new Error("Invalid derivation input");
+    throw new SNSError(ErrorType.InvalidInput);
   }
   const result = await _derive(domain, ROOT_DOMAIN_ACCOUNT);
   return { ...result, isSub: false, parent: undefined };

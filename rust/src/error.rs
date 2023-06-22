@@ -3,6 +3,7 @@ use {
     ed25519_dalek::ed25519,
     solana_client::client_error::ClientError,
     solana_program::program_error::ProgramError,
+    std::string::FromUtf8Error,
 };
 
 #[derive(Debug, Display, Error)]
@@ -17,6 +18,10 @@ pub enum SnsError {
     UnsupportedMint,
     SerializationError,
     InvalidPubkey,
+    Utf8(FromUtf8Error),
+    Bech32(bech32::Error),
+    InvalidRecordData,
+    Hex(hex::FromHexError),
 }
 
 impl From<ClientError> for SnsError {
@@ -40,5 +45,23 @@ impl From<ed25519::Error> for SnsError {
 impl From<std::io::Error> for SnsError {
     fn from(value: std::io::Error) -> Self {
         Self::BorshError(value)
+    }
+}
+
+impl From<FromUtf8Error> for SnsError {
+    fn from(e: FromUtf8Error) -> Self {
+        Self::Utf8(e)
+    }
+}
+
+impl From<bech32::Error> for SnsError {
+    fn from(e: bech32::Error) -> Self {
+        Self::Bech32(e)
+    }
+}
+
+impl From<hex::FromHexError> for SnsError {
+    fn from(e: hex::FromHexError) -> Self {
+        Self::Hex(e)
     }
 }
