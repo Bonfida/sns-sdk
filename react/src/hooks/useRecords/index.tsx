@@ -15,7 +15,25 @@ export const useRecords = (
   records: Record[]
 ) => {
   return useAsync(async () => {
-    const res = await getRecords(connection, domain, records);
+    const res = await getRecords(connection, domain, records, false);
+    return res;
+  }, [domain, ...records]);
+};
+
+/**
+ * Returns the deserialized records of the given domain names
+ * @param connection The Solana RPC connection object
+ * @param domain The domain name
+ * @param records The list of records to fetch
+ * @returns Returns a list of records' content
+ */
+export const useDeserializedRecords = (
+  connection: Connection,
+  domain: string,
+  records: Record[]
+) => {
+  return useAsync(async () => {
+    const res = await getRecords(connection, domain, records, true);
     return res;
   }, [domain, ...records]);
 };
