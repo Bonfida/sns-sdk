@@ -465,7 +465,8 @@ export const serializeSolRecord = (
   signature: Uint8Array
 ): Buffer => {
   const expected = Buffer.concat([content.toBuffer(), recordKey.toBuffer()]);
-  const valid = checkSolRecord(expected, signature, signer);
+  const encodedMessage = new TextEncoder().encode(expected.toString("hex"));
+  const valid = checkSolRecord(encodedMessage, signature, signer);
   check(valid, ErrorType.InvalidSignature);
 
   return Buffer.concat([content.toBuffer(), signature]);
