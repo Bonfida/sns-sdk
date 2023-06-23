@@ -15,9 +15,8 @@ import {
   MINT_PREFIX,
   NftRecord,
   getRecordFromMint,
-} from "@bonfida/name-tokenizer";
-import { reverseLookupBatch } from "./utils";
-import { Buffer } from "buffer";
+} from "./name-tokenizer";
+import { reverseLookupBatch } from "../utils";
 
 /**
  * This function can be used to retrieve the owner of a tokenized domain name
