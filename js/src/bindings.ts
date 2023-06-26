@@ -30,7 +30,6 @@ import {
   TOKENS_SYM_MINT,
   PYTH_MAPPING_ACC,
   VAULT_OWNER,
-  SOL_RECORD_SIG_LEN,
 } from "./constants";
 import {
   getPythProgramKeyForCluster,
@@ -41,6 +40,7 @@ import {
   getDomainKeySync,
   getHashedNameSync,
   getNameAccountKeySync,
+  getReverseKeySync,
 } from "./utils";
 import {
   TOKEN_PROGRAM_ID,
@@ -441,14 +441,19 @@ export const createSubdomain = async (
   ixs.push(ix_create);
 
   // Create the reverse name
-  const [, ix_reverse] = await createReverseName(
-    pubkey,
-    "\0".concat(sub),
-    owner,
-    parent,
-    owner
-  );
-  ixs.push(...ix_reverse);
+  const reverseKey = getReverseKeySync(subdomain, true);
+  const info = await connection.getAccountInfo(reverseKey);
+  if (!info?.data) {
+    const [, ix_reverse] = await createReverseName(
+      pubkey,
+      "\0".concat(sub),
+      owner,
+      parent,
+      owner
+    );
+    ixs.push(...ix_reverse);
+  }
+
   return [[], ixs];
 };
 
