@@ -2,6 +2,7 @@ use crate::error::SnsError;
 
 use {
     bech32,
+    bech32::u5,
     bech32::ToBase32,
     ed25519_dalek,
     solana_program::pubkey::Pubkey,
@@ -207,4 +208,108 @@ pub fn deserialize_record(
     }
 
     Err(SnsError::InvalidRecordData)
+}
+
+pub fn serialize_record(content: &str, record: Record) -> Result<Vec<u8>, SnsError> {
+    let size = get_record_size(record);
+
+    if size.is_none() {
+        match record {
+            Record::CNAME | Record::TXT => {
+                let encoded = punycode::encode(content).map_err(|_| SnsError::Punycode)?;
+                return Ok(encoded.as_bytes().to_vec());
+            }
+            _ => return Ok(content.as_bytes().to_vec()),
+        };
+    }
+
+    match record {
+        Record::Eth | Record::Bsc => {
+            if !content.starts_with("0x") {
+                return Err(SnsError::InvalidEvmAddress);
+            }
+            let decoded = hex::decode(content.get(2..).ok_or(SnsError::InvalidEvmAddress)?)?;
+            if decoded.len() != 20 {
+                return Err(SnsError::InvalidEvmAddress);
+            }
+            Ok(decoded)
+        }
+        Record::Injective => {
+            if !content.starts_with("inj") {
+                return Err(SnsError::InvalidInjectiveAddress);
+            }
+            let (_, data, _) = bech32::decode(content)?;
+            let data = convert_u5_array(&data);
+            if data.len() != 20 {
+                return Err(SnsError::InvalidInjectiveAddress);
+            }
+            Ok(data)
+        }
+        Record::A => {
+            let ip = content
+                .parse::<Ipv4Addr>()
+                .map_err(|_| SnsError::InvalidIpv4)?;
+            Ok(ip.octets().to_vec())
+        }
+        Record::AAAA => {
+            let ip = content
+                .parse::<Ipv6Addr>()
+                .map_err(|_| SnsError::InvalidIpv6)?;
+            Ok(ip.octets().to_vec())
+        }
+        Record::Sol => Err(SnsError::SolRecordNotSupported),
+        _ => unreachable!(),
+    }
+}
+
+pub fn convert_u5_array(u5_data: &[u5]) -> Vec<u8> {
+    let mut u8_data: Vec<u8> = Vec::new();
+    let mut buffer: u16 = 0;
+    let mut buffer_length: u8 = 0;
+    for u5 in u5_data {
+        buffer = (buffer << 5) | (u5.to_u8() as u16);
+        buffer_length += 5;
+        while buffer_length >= 8 {
+            u8_data.push((buffer >> (buffer_length - 8)) as u8);
+            buffer_length -= 8;
+        }
+    }
+    // Make sure there's no remaining data in the buffer
+    if buffer_length > 0 {
+        u8_data.push((buffer << (8 - buffer_length)) as u8);
+    }
+    u8_data
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn test_serialize_record() {
+        let data = serialize_record(
+            "inj1l3vt52kqzlvpaw2wfug45qkyncflq8hgr5nem7",
+            Record::Injective,
+        )
+        .unwrap();
+        assert_eq!(
+            data,
+            [
+                252, 88, 186, 42, 192, 23, 216, 30, 185, 78, 79, 17, 90, 2, 196, 158, 19, 240, 30,
+                232,
+            ]
+            .to_vec()
+        );
+        let data = serialize_record("192.168.0.1", Record::A).unwrap();
+        assert_eq!(data, [192, 168, 0, 1].to_vec());
+    }
+
+    #[test]
+    fn test_convert_u5_array() {
+        let expected = [
+            252, 88, 186, 42, 192, 23, 216, 30, 185, 78, 79, 17, 90, 2, 196, 158, 19, 240, 30, 232,
+        ]
+        .to_vec();
+        let (_, data, _) = bech32::decode("inj1l3vt52kqzlvpaw2wfug45qkyncflq8hgr5nem7").unwrap();
+        assert_eq!(expected, convert_u5_array(&data))
+    }
 }

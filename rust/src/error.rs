@@ -23,6 +23,13 @@ pub enum SnsError {
     InvalidRecordData,
     Hex(hex::FromHexError),
     UnrecognizedRecord,
+    Punycode,
+    InvalidEvmAddress,
+    InvalidInjectiveAddress,
+    InvalidIpv4,
+    InvalidIpv6,
+    SolRecordNotSupported,
+    
 }
 
 impl From<ClientError> for SnsError {
