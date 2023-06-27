@@ -1,4 +1,12 @@
 use anyhow::anyhow;
+use clap::Args;
+use sns_sdk::{
+    derivation::{get_domain_key, get_hashed_name},
+    record::{deserialize_record, Record},
+};
+use solana_program::program_pack::Pack;
+use solana_sdk::commitment_config::{CommitmentConfig, CommitmentLevel};
+use spl_name_service::state::NameRecordHeader;
 
 use {
     base64::Engine,
@@ -140,6 +148,36 @@ enum Commands {
         #[arg(required = true, help = "The list of wallets")]
         owners: Vec<String>,
     },
+    Record(RecordCommand),
+    // Deploy,
+}
+
+#[derive(Debug, Args)]
+pub struct RecordCommand {
+    #[command(subcommand)]
+    pub cmd: RecordSubCommand,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum RecordSubCommand {
+    #[command(about = "Gets a record content")]
+    Get {
+        #[clap(long, help = "The domain of the record to fetch")]
+        domain: String,
+        #[clap(long, help = "The record to fetch")]
+        record: String,
+    },
+    #[command(about = "Sets a record content")]
+    Set {
+        #[clap(long, help = "The domain of the record to set")]
+        domain: String,
+        #[clap(long, help = "The record to set")]
+        record: String,
+        #[clap(long, help = "The content of the record")]
+        content: String,
+        #[clap(long, help = "The path of keypair ownning the domain")]
+        keypair: String,
+    },
 }
 
 const RPC_URL: &str = "https://api.mainnet-beta.solana.com";
@@ -155,7 +193,11 @@ fn format_domain(domain: &str) -> String {
     if domain.ends_with(".sol") {
         return domain.to_owned();
     }
-    return format!("{domain}.sol");
+    format!("{domain}.sol")
+}
+
+fn make_tx_url(sig: &str) -> String {
+    format!("https://explorer.solana.com/tx/{sig}")
 }
 
 pub fn progress_bar(len: usize) -> ProgressBar {
@@ -210,12 +252,15 @@ async fn process_resolve(rpc_client: &RpcClient, domains: Vec<String>) -> CliRes
 
     let pb = progress_bar(domains.len());
     for (idx, domain) in domains.into_iter().enumerate() {
-        let owner = resolve::resolve_owner(rpc_client, &domain).await?;
-        table.add_row(row![
-            format_domain(&domain),
-            owner,
-            format!("https://explorer.solana.com/address/{owner}")
-        ]);
+        let row = match resolve::resolve_owner(rpc_client, &domain).await? {
+            Some(owner) => row![
+                format_domain(&domain),
+                owner,
+                format!("https://explorer.solana.com/address/{owner}")
+            ],
+            _ => row![format_domain(&domain), "Domain not found"],
+        };
+        table.add_row(row);
         pb.set_position(idx as u64);
     }
     pb.finish();
@@ -246,10 +291,11 @@ async fn process_burn(
         let blockhash = rpc_client.get_latest_blockhash().await?;
         tx.partial_sign(&[&keypair], blockhash);
         let sig = rpc_client.send_and_confirm_transaction(&tx).await?;
+
         table.add_row(row![
             format_domain(&domain),
             sig,
-            format!("https://explorer.solana.com/tx/{sig}")
+            make_tx_url(&sig.to_string())
         ]);
         pb.set_position(idx as u64);
     }
@@ -286,7 +332,7 @@ async fn process_transfer(
         table.add_row(row![
             format_domain(&domain),
             sig,
-            format!("https://explorer.solana.com/tx/{sig}")
+            make_tx_url(&sig.to_string())
         ]);
         pb.set_position(idx as u64);
     }
@@ -303,15 +349,20 @@ async fn process_lookup(rpc_client: &RpcClient, domains: Vec<String>) -> CliResu
     let pb = progress_bar(domains.len());
     for (idx, domain) in domains.into_iter().enumerate() {
         let domain_key = sns_sdk::derivation::get_domain_key(&domain, false)?;
-        let (header, data) = resolve::resolve_name_registry(rpc_client, &domain_key).await?;
-        let data = String::from_utf8(data)?;
-        table.add_row(row![
-            format_domain(&domain),
-            domain_key,
-            header.parent_name,
-            header.owner,
-            data
-        ]);
+        let row = match resolve::resolve_name_registry(rpc_client, &domain_key).await? {
+            Some((header, data)) => {
+                let data = String::from_utf8(data)?;
+                row![
+                    format_domain(&domain),
+                    domain_key,
+                    header.parent_name,
+                    header.owner,
+                    data
+                ]
+            }
+            _ => row![format_domain(&domain), domain_key],
+        };
+        table.add_row(row);
         pb.set_position(idx as u64);
     }
     pb.finish();
@@ -322,12 +373,18 @@ async fn process_lookup(rpc_client: &RpcClient, domains: Vec<String>) -> CliResu
 
 async fn process_reverse_lookup(rpc_client: &RpcClient, key: &str) -> CliResult {
     println!("Fetching information about {key}\n");
-    let mut table = Table::new();
-    table.add_row(row!["Public key", "Reverse"]);
-    let reverse = resolve::resolve_reverse(rpc_client, &Pubkey::from_str(key)?).await?;
-    table.add_row(row![key, format_domain(&reverse)]);
-    Term::stdout().clear_line()?;
-    table.printstd();
+
+    if let Some(reverse) = resolve::resolve_reverse(rpc_client, &Pubkey::from_str(key)?).await? {
+        let mut table = Table::new();
+        table.add_row(row!["Public key", "Reverse"]);
+        table.add_row(row![key, format_domain(&reverse)]);
+        Term::stdout().clear_line()?;
+        table.printstd();
+    } else {
+        Term::stdout().clear_line()?;
+        println!("Domain not found - Are you sure it exists?")
+    }
+
     Ok(())
 }
 
@@ -407,11 +464,139 @@ async fn process_register(
         table.add_row(row![
             format_domain(&domain),
             sig,
-            format!("https://explorer.solana.com/tx/{sig}")
+            make_tx_url(&sig.to_string())
         ]);
         pb.set_position(idx as u64);
     }
     pb.finish();
+    Term::stdout().clear_to_end_of_screen()?;
+    table.printstd();
+    Ok(())
+}
+
+async fn process_record_set(
+    rpc_client: &RpcClient,
+    domain: &str,
+    record_str: &str,
+    content: &str,
+    keypair_path: &str,
+) -> CliResult {
+    let mut ixs = vec![];
+    let mut table = Table::new();
+    table.add_row(row!["Transaction", "Signature"]);
+
+    let record = Record::try_from_str(record_str)?;
+    let keypair = read_keypair_file(keypair_path)?;
+    let data = sns_sdk::record::serialize_record(content, record)?;
+    let key = get_domain_key(&format!("{record_str}.{domain}"), true)?;
+    let hashed_name = get_hashed_name(&format!("\x01{record_str}"));
+    let parent = get_domain_key(domain, false)?;
+
+    let lamports = rpc_client
+        .get_minimum_balance_for_rent_exemption(data.len() + NameRecordHeader::LEN)
+        .await?;
+
+    let acc = rpc_client
+        .get_account_with_commitment(&key, CommitmentConfig::default())
+        .await?;
+
+    if let Some(value) = acc.value {
+        if value.data.len() - NameRecordHeader::LEN != data.len() {
+            // Delete existing record
+            // This is the only way to handle the account resizing
+            let ix = spl_name_service::instruction::delete(
+                spl_name_service::ID,
+                key,
+                keypair.pubkey(),
+                keypair.pubkey(),
+            )?;
+
+            // Clean up transaction
+            let mut tx = Transaction::new_with_payer(&[ix], Some(&keypair.pubkey()));
+            let blockhash = rpc_client.get_latest_blockhash().await?;
+            tx.sign(&[&keypair], blockhash);
+
+            let sig = rpc_client
+                .send_and_confirm_transaction_with_spinner(&tx)
+                .await?;
+            table.add_row(row!["Clean up", make_tx_url(&sig.to_string())]);
+
+            // Create the record
+            let ix = spl_name_service::instruction::create(
+                spl_name_service::ID,
+                spl_name_service::instruction::NameRegistryInstruction::Create {
+                    hashed_name,
+                    lamports,
+                    space: data.len() as u32,
+                },
+                key,
+                keypair.pubkey(),
+                keypair.pubkey(),
+                None,
+                Some(parent),
+                Some(keypair.pubkey()),
+            )?;
+            ixs.push(ix);
+        }
+    } else {
+        let ix: Instruction = spl_name_service::instruction::create(
+            spl_name_service::ID,
+            spl_name_service::instruction::NameRegistryInstruction::Create {
+                hashed_name,
+                lamports,
+                space: data.len() as u32,
+            },
+            key,
+            keypair.pubkey(),
+            keypair.pubkey(),
+            None,
+            Some(parent),
+            Some(keypair.pubkey()),
+        )?;
+        ixs.push(ix);
+    }
+
+    // Update
+    let ix = spl_name_service::instruction::update(
+        spl_name_service::ID,
+        0,
+        data,
+        key,
+        keypair.pubkey(),
+        Some(parent),
+    )?;
+    ixs.push(ix);
+
+    let mut tx = Transaction::new_with_payer(&ixs, Some(&keypair.pubkey()));
+    let blockhash = rpc_client.get_latest_blockhash().await?;
+    tx.sign(&[&keypair], blockhash);
+
+    let sig = rpc_client
+        .send_and_confirm_transaction_with_spinner_and_commitment(
+            &tx,
+            CommitmentConfig {
+                commitment: CommitmentLevel::Processed,
+            },
+        )
+        .await?;
+    table.add_row(row!["Update record", make_tx_url(&sig.to_string())]);
+
+    Term::stdout().clear_to_end_of_screen()?;
+    table.printstd();
+
+    Ok(())
+}
+
+async fn process_record_get(rpc_client: &RpcClient, domain: &str, record_str: &str) -> CliResult {
+    let record = Record::try_from_str(record_str)?;
+    let key = get_domain_key(&format!("{record_str}.{domain}"), true)?;
+    let mut table = Table::new();
+    if let Some((_, data)) = resolve::resolve_name_registry(rpc_client, &key).await? {
+        let des = deserialize_record(&data, record, &key)?;
+
+        table.add_row(row!["Domain", "Record", "Content"]);
+        table.add_row(row![format_domain(domain), record_str, des]);
+    }
     Term::stdout().clear_to_end_of_screen()?;
     table.printstd();
     Ok(())
@@ -450,6 +635,20 @@ async fn main() {
             space,
             url,
         } => process_register(&get_rpc_client(url), &keypair_path, domains, space).await,
+        Commands::Record(RecordCommand { cmd }) => match cmd {
+            RecordSubCommand::Get { domain, record } => {
+                process_record_get(&get_rpc_client(None), &domain, &record).await
+            }
+            RecordSubCommand::Set {
+                domain,
+                record,
+                content,
+                keypair,
+            } => {
+                process_record_set(&get_rpc_client(None), &domain, &record, &content, &keypair)
+                    .await
+            }
+        },
     };
 
     if let Err(err) = res {

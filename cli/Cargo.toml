@@ -7,11 +7,10 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.1.8", features = ["derive"] }
-sns-sdk = { path = "../rust"  }
-tokio = { version = "1.26.0", features = ["macros", "rt-multi-thread"] }
-solana-sdk = "1.15.2"
-solana-client = "1.15.2"
-spl-name-service = {git = "https://github.com/solana-labs/solana-program-library", features = ["no-entrypoint"]}
+tokio = { version = "1.14.1", features = ["macros", "rt-multi-thread"] }
+solana-sdk = "~1.14.18"
+solana-client = "~1.14.18"
+spl-name-service = {git = "https://github.com/solana-labs/solana-program-library", features = ["no-entrypoint"], version = "0.2.0"}
 solana-program = "1.9.2"
 prettytable-rs = "0.10.0"
 reqwest = { version = "0.11.14", features = ["json"] }
@@ -22,3 +21,4 @@ indicatif = "0.17.3"
 regex = "1.7.1"
 anyhow = "1.0.69"
 console = "0.15.5"
+sns-sdk = { path = "../rust" }
