@@ -22,6 +22,7 @@ pub enum SnsError {
     Bech32(bech32::Error),
     InvalidRecordData,
     Hex(hex::FromHexError),
+    UnrecognizedRecord,
 }
 
 impl From<ClientError> for SnsError {

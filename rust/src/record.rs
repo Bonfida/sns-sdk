@@ -65,6 +65,36 @@ impl Record {
             Record::TXT => "TXT",
         }
     }
+
+    pub fn try_from_str(input: &str) -> Result<Record, SnsError> {
+        match input {
+            "IPFS" => Ok(Record::Ipfs),
+            "ARWV" => Ok(Record::Arwv),
+            "SOL" => Ok(Record::Sol),
+            "ETH" => Ok(Record::Eth),
+            "BTC" => Ok(Record::Btc),
+            "LTC" => Ok(Record::Ltc),
+            "DOGE" => Ok(Record::Doge),
+            "email" => Ok(Record::Email),
+            "url" => Ok(Record::Url),
+            "discord" => Ok(Record::Discord),
+            "github" => Ok(Record::Github),
+            "reddit" => Ok(Record::Reddit),
+            "twitter" => Ok(Record::Twitter),
+            "telegram" => Ok(Record::Telegram),
+            "pic" => Ok(Record::Pic),
+            "SHDW" => Ok(Record::Shdw),
+            "POINT" => Ok(Record::Point),
+            "BSC" => Ok(Record::Bsc),
+            "INJ" => Ok(Record::Injective),
+            "backpack" => Ok(Record::Backpack),
+            "A" => Ok(Record::A),
+            "AAAA" => Ok(Record::AAAA),
+            "CNAME" => Ok(Record::CNAME),
+            "TXT" => Ok(Record::TXT),
+            _ => Err(SnsError::UnrecognizedRecord),
+        }
+    }
 }
 
 pub fn check_sol_record(
