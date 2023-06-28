@@ -13,12 +13,13 @@ solana-client = "~1.14.18"
 spl-name-service = {git = "https://github.com/solana-labs/solana-program-library", features = ["no-entrypoint"], version = "0.2.0"}
 solana-program = "1.9.2"
 prettytable-rs = "0.10.0"
-reqwest = { version = "0.11.14", features = ["json"] }
+reqwest = { version = "0.11.14", features = ["json", "multipart"] }
 serde_json = "1.0.94"
 base64 = "0.21.0"
-serde = "1.0.153"
+serde = {version = "1.0.153", features = ["derive"] }
 indicatif = "0.17.3"
 regex = "1.7.1"
 anyhow = "1.0.69"
 console = "0.15.5"
 sns-sdk = { path = "../rust" }
+walkdir = "2.3.3"

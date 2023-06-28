@@ -1,28 +1,33 @@
-use anyhow::anyhow;
-use clap::Args;
-use sns_sdk::{
-    derivation::{get_domain_key, get_hashed_name},
-    record::{deserialize_record, Record},
-};
-use solana_program::program_pack::Pack;
-use solana_sdk::commitment_config::{CommitmentConfig, CommitmentLevel};
-use spl_name_service::state::NameRecordHeader;
+use std::{fs::File, time::Duration};
 
 use {
+    anyhow::anyhow,
     base64::Engine,
+    clap::Args,
     clap::{Parser, Subcommand},
     console::Term,
     indicatif::{ProgressBar, ProgressState, ProgressStyle},
     prettytable::{row, Table},
+    reqwest::multipart,
+    reqwest::Client,
     serde::Deserialize,
     sns_sdk::non_blocking::resolve,
+    sns_sdk::{
+        derivation::{get_domain_key, get_hashed_name},
+        record::{deserialize_record, Record},
+    },
     solana_client::nonblocking::rpc_client::RpcClient,
     solana_program::instruction::{AccountMeta, Instruction},
+    solana_program::program_pack::Pack,
     solana_program::pubkey::Pubkey,
+    solana_sdk::commitment_config::{CommitmentConfig, CommitmentLevel},
     solana_sdk::signer::keypair::read_keypair_file,
     solana_sdk::{signer::Signer, transaction::Transaction},
+    spl_name_service::state::NameRecordHeader,
     std::fmt::Write,
+    std::io::Read,
     std::str::FromStr,
+    walkdir::WalkDir,
 };
 
 #[derive(Debug, Parser)]
@@ -149,7 +154,35 @@ enum Commands {
         owners: Vec<String>,
     },
     Record(RecordCommand),
-    // Deploy,
+    #[command(
+        arg_required_else_help = true,
+        about = "Upload a website to IPFS and automatically set your IPFS record"
+    )]
+    Deploy {
+        #[arg(long, short, help = "Optional custom RPC URL")]
+        url: Option<String>,
+        #[arg(
+            long,
+            short,
+            required = true,
+            help = "The domain to upload the content to"
+        )]
+        domain: String,
+        #[arg(
+            long,
+            short,
+            required = true,
+            help = "The path to the keypair ownning the domain"
+        )]
+        keypair: String,
+        #[arg(
+            long,
+            short,
+            required = true,
+            help = "The path of the folder to upload"
+        )]
+        folder: String,
+    },
 }
 
 #[derive(Debug, Args)]
@@ -602,6 +635,81 @@ async fn process_record_get(rpc_client: &RpcClient, domain: &str, record_str: &s
     Ok(())
 }
 
+async fn process_deploy(
+    rpc_client: &RpcClient,
+    domain: &str,
+    keypair_path: &str,
+    folder_path: &str,
+) -> CliResult {
+    let client = Client::new();
+    let mut form = multipart::Form::new();
+    let pb = ProgressBar::new_spinner();
+    pb.enable_steady_tick(Duration::from_millis(100));
+    pb.set_message("🚚 Uploading to IPFS");
+    for entry in WalkDir::new(folder_path) {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_file() {
+            let mut buffer = Vec::new();
+            File::open(path)?.read_to_end(&mut buffer)?;
+
+            // Constructing the path to append to the form
+            let form_path = path
+                .strip_prefix(folder_path)?
+                .to_str()
+                .ok_or("Failed to convert path to string")?;
+
+            // Ensure we keep the directory structure
+            let part_path = if form_path.is_empty() {
+                path.file_name()
+                    .ok_or("Failed to get file name")?
+                    .to_str()
+                    .ok_or("Failed to convert file name to string")?
+                    .to_string()
+            } else {
+                form_path.to_string()
+            };
+
+            let part = multipart::Part::bytes(buffer)
+                .file_name(part_path.clone())
+                .mime_str("application/octet-stream")?;
+
+            form = form.part(part_path, part);
+        }
+    }
+
+    let res = client
+        .post("https://ipfs.bonfida.com/api/v0/add?wrap-with-directory=true")
+        .multipart(form)
+        .send()
+        .await
+        .unwrap();
+
+    #[derive(Deserialize, Clone)]
+    pub struct Response {
+        pub name: String,
+        pub hash: String,
+        pub size: String,
+    }
+
+    pb.finish_with_message("✅ Content uploaded to IPFS");
+
+    let json = res.json::<Vec<Response>>().await?;
+
+    let dir_cid = json.iter().find(|x| x.name.is_empty()).unwrap();
+
+    process_record_set(
+        rpc_client,
+        domain,
+        Record::Ipfs.as_str(),
+        &dir_cid.hash,
+        keypair_path,
+    )
+    .await?;
+
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() {
     let args = Cli::parse();
@@ -649,6 +757,12 @@ async fn main() {
                     .await
             }
         },
+        Commands::Deploy {
+            url,
+            domain,
+            keypair,
+            folder,
+        } => process_deploy(&get_rpc_client(url), &domain, &keypair, &folder).await,
     };
 
     if let Err(err) = res {
