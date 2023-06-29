@@ -398,9 +398,9 @@ export const deserializeRecord = (
       return base58.encode(buffer.slice(0, 32));
     }
   } else if (record === Record.ETH || record === Record.BSC) {
-    return "0x" + buffer.toString("hex");
+    return "0x" + buffer.slice(0, size).toString("hex");
   } else if (record === Record.Injective) {
-    return encode("inj", buffer, "bech32");
+    return encode("inj", buffer.slice(0, size), "bech32");
   } else if (record === Record.A || record === Record.AAAA) {
     return ipaddr.fromByteArray([...buffer.slice(0, size)]).toString();
   }
