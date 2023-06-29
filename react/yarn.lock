@@ -30,41 +30,13 @@
   dependencies:
     regenerator-runtime "^0.13.11"
 
-"@bonfida/name-tokenizer@0.0.9":
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/@bonfida/name-tokenizer/-/name-tokenizer-0.0.9.tgz#23ecdf61178b3a7fb216fbccfa44e3a1c20c4600"
-  integrity sha512-Ze3VRskgwPou23qLbawYzBmQ7pnTwZfjxcFsRPs9gO355zPuH5BjNVflWSgQjvNRzaoFpuTZ0oSGydTzx8SYZg==
+"@bonfida/spl-name-service@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@bonfida/spl-name-service/-/spl-name-service-1.0.4.tgz#ad0b14ce4de353c116ca1678d5408fdc6bc28b89"
+  integrity sha512-+JQ/aTVEaWLc+0WT5Q9FQP42kAMgJoTymh9o2FCPMB1Z1D9NxY7/ZlVezMf6G6hX3PpPbTVg/97tksNsry2hVw==
   dependencies:
-    "@bonfida/spl-name-service" "^0.2.7"
-    "@solana/spl-token" "^0.3.7"
-    bn.js "^5.2.0"
-    borsh "^0.6.0"
-    bs58 "4.0.1"
-    buffer "^6.0.3"
-
-"@bonfida/spl-name-service@^0.2.7":
-  version "0.2.9"
-  resolved "https://registry.yarnpkg.com/@bonfida/spl-name-service/-/spl-name-service-0.2.9.tgz#b6630068c08e409e9562dbbefcc077605e747f67"
-  integrity sha512-dwCFW8lwAcdxs/iQp6wMLqivaBKDADBNT7y3SokrGgWp/uikTqkp/3WhDRBt6d7NpZPBvmRXH8+U/IU2tPK/gg==
-  dependencies:
-    "@bonfida/name-tokenizer" "0.0.9"
     "@ethersproject/sha2" "^5.7.0"
-    "@pythnetwork/client" "2.17.0"
-    "@solana/buffer-layout" "^4.0.1"
-    "@solana/spl-token" "0.3.7 "
-    bn.js "^5.2.1"
-    borsh "^0.7.0"
-    buffer "^6.0.3"
-    tweetnacl "^1.0.3"
-
-"@bonfida/spl-name-service@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@bonfida/spl-name-service/-/spl-name-service-1.0.1.tgz#0b4fa75c207b8b8b1ae1e6ade31daaa54c77f889"
-  integrity sha512-097egg7ErQadywGY5Mhvhg0haihz8EBhXgnMPesFRU+p7H2HVwgu+Kq8YSLbcNPbLIL1oaHAgL4FdOmNGxOnmQ==
-  dependencies:
-    "@bonfida/name-tokenizer" "0.0.9"
-    "@ethersproject/sha2" "^5.7.0"
-    "@pythnetwork/client" "2.17.0"
+    "@pythnetwork/client" "^2.19.0"
     "@solana/buffer-layout" "^4.0.1"
     "@solana/spl-token" "0.3.7 "
     bech32-buffer "^0.2.1"
@@ -75,12 +47,12 @@
     punycode "^2.3.0"
     tweetnacl "^1.0.3"
 
-"@coral-xyz/anchor@^0.26.0":
-  version "0.26.0"
-  resolved "https://registry.yarnpkg.com/@coral-xyz/anchor/-/anchor-0.26.0.tgz#c8e4f7177e93441afd030f22d777d54d0194d7d1"
-  integrity sha512-PxRl+wu5YyptWiR9F2MBHOLLibm87Z4IMUBPreX+DYBtPM+xggvcPi0KAN7+kIL4IrIhXI8ma5V0MCXxSN1pHg==
+"@coral-xyz/anchor@^0.28.1-beta.1":
+  version "0.28.1-beta.1"
+  resolved "https://registry.yarnpkg.com/@coral-xyz/anchor/-/anchor-0.28.1-beta.1.tgz#0f71a3b62e38527f50d4a80e1fb4d20ba95926e2"
+  integrity sha512-JdKr4IQqY719wts0wzhHIffpAo4fdJ25gPLfFN75d6LMfCKvwPupyDUigaT+ac6UWTw/bDdBbJFY6QSRvlTnrA==
   dependencies:
-    "@coral-xyz/borsh" "^0.26.0"
+    "@coral-xyz/borsh" "^0.28.0"
     "@solana/web3.js" "^1.68.0"
     base64-js "^1.5.1"
     bn.js "^5.1.2"
@@ -96,10 +68,10 @@
     superstruct "^0.15.4"
     toml "^3.0.0"
 
-"@coral-xyz/borsh@^0.26.0":
-  version "0.26.0"
-  resolved "https://registry.yarnpkg.com/@coral-xyz/borsh/-/borsh-0.26.0.tgz#d054f64536d824634969e74138f9f7c52bbbc0d5"
-  integrity sha512-uCZ0xus0CszQPHYfWAqKS5swS1UxvePu83oOF+TWpUkedsNlg6p2p4azxZNSSqwXb9uXMFgxhuMBX9r3Xoi0vQ==
+"@coral-xyz/borsh@^0.28.0":
+  version "0.28.0"
+  resolved "https://registry.yarnpkg.com/@coral-xyz/borsh/-/borsh-0.28.0.tgz#fa368a2f2475bbf6f828f4657f40a52102e02b6d"
+  integrity sha512-/u1VTzw7XooK7rqeD7JLUSwOyRSesPUk0U37BV9zK0axJc1q0nRbKFGFLYCQ16OtdOJTTwGfGp11Lx9B45bRCQ==
   dependencies:
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
@@ -192,13 +164,13 @@
   resolved "https://registry.yarnpkg.com/@noble/secp256k1/-/secp256k1-1.7.1.tgz#b251c70f824ce3ca7f8dc3df08d58f005cc0507c"
   integrity sha512-hOUk6AyBFmqVrv7k5WAw/LpszxVbj9gGN4JRkIX52fdFAj1UA61KXmZDvqVEm+pOyec3+fIeZB02LYa/pWOArw==
 
-"@pythnetwork/client@2.17.0":
-  version "2.17.0"
-  resolved "https://registry.yarnpkg.com/@pythnetwork/client/-/client-2.17.0.tgz#b155af06958f4b729bfee1c07130c556598cf168"
-  integrity sha512-hv285vehmLH6N762Z4jqvPTM+hCYnXQaUp6DMgLUpDHvE0mTbwW9PvlxYoUJZGtyeCDkgn9HrTWXPtnaXTRr+Q==
+"@pythnetwork/client@^2.19.0":
+  version "2.19.0"
+  resolved "https://registry.yarnpkg.com/@pythnetwork/client/-/client-2.19.0.tgz#4b3b4fccb402d93ff00c01beec633e6f2bac94fe"
+  integrity sha512-0VSQ0NqBOa5EtloXbOVYZ6Wpu8CLP3oaOKVTaUMSX/HXbB00S6G+xdwF7stxo6emgrAMopotx3icEVug5Lpomg==
   dependencies:
-    "@coral-xyz/anchor" "^0.26.0"
-    "@coral-xyz/borsh" "^0.26.0"
+    "@coral-xyz/anchor" "^0.28.1-beta.1"
+    "@coral-xyz/borsh" "^0.28.0"
     buffer "^6.0.1"
 
 "@rollup/plugin-typescript@^11.0.0":
@@ -235,7 +207,7 @@
   dependencies:
     buffer "~6.0.3"
 
-"@solana/spl-token@0.3.7 ", "@solana/spl-token@^0.3.7":
+"@solana/spl-token@0.3.7 ":
   version "0.3.7"
   resolved "https://registry.yarnpkg.com/@solana/spl-token/-/spl-token-0.3.7.tgz#6f027f9ad8e841f792c32e50920d9d2e714fc8da"
   integrity sha512-bKGxWTtIw6VDdCBngjtsGlKGLSmiu/8ghSt/IOYJV24BsymRbgq7r12GToeetpxmPaZYLddKwAz7+EwprLfkfg==
@@ -412,15 +384,6 @@ bn.js@^5.0.0, bn.js@^5.1.2, bn.js@^5.2.0, bn.js@^5.2.1:
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-5.2.1.tgz#0bc527a6a0d18d0aa8d5b0538ce4a77dccfa7b70"
   integrity sha512-eXRvHzWyYPBuB4NBy0cmYQjGitUrtqwbvlzP3G6VFnNRbsZQIxQ10PbKKHt8gZ/HW/D/747aDl+QkDqg3KQLMQ==
 
-borsh@^0.6.0:
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/borsh/-/borsh-0.6.0.tgz#a7c9eeca6a31ca9e0607cb49f329cb659eb791e1"
-  integrity sha512-sl5k89ViqsThXQpYa9XDtz1sBl3l1lI313cFUY1HKr+wvMILnb+58xpkqTNrYbelh99dY7K8usxoCusQmqix9Q==
-  dependencies:
-    bn.js "^5.2.0"
-    bs58 "^4.0.0"
-    text-encoding-utf-8 "^1.0.2"
-
 borsh@^0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/borsh/-/borsh-0.7.0.tgz#6e9560d719d86d90dc589bca60ffc8a6c51fec2a"
@@ -430,7 +393,7 @@ borsh@^0.7.0:
     bs58 "^4.0.0"
     text-encoding-utf-8 "^1.0.2"
 
-bs58@4.0.1, bs58@^4.0.0, bs58@^4.0.1:
+bs58@^4.0.0, bs58@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/bs58/-/bs58-4.0.1.tgz#be161e76c354f6f788ae4071f63f34e8c4f0a42a"
   integrity sha512-Ok3Wdf5vOIlBrgCvTq96gBkJw+JUEzdBgyaza5HLtPm7yTHkjRy8+JzNyHF7BHa0bNWOQIp3m5YF0nnFcOIKLw==
