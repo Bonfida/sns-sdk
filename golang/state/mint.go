@@ -7,12 +7,12 @@ import (
 )
 
 type Mint struct {
-	mint []byte
+	Mint []byte
 }
 
 func NewMint(mint []byte) *Mint {
 	return &Mint{
-		mint: mint,
+		Mint: mint,
 	}
 }
 

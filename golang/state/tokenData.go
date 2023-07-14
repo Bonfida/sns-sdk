@@ -8,12 +8,12 @@ import (
 )
 
 type TokenData struct {
-	name     string
-	ticker   string
-	mint     []byte
-	decimals int
-	website  string `bin:"optional"`
-	logoUri  string `bin:"optional"`
+	Name     string
+	Ticker   string
+	Mint     []byte
+	Decimals int
+	Website  string `bin:"optional"`
+	LogoUri  string `bin:"optional"`
 }
 
 type NewTokenDataOpts struct {
@@ -23,16 +23,16 @@ type NewTokenDataOpts struct {
 
 func NewTokenData(name string, ticker string, mint []byte, decimals int, opts *NewTokenDataOpts) *TokenData {
 	tokenData := &TokenData{
-		name:     name,
-		ticker:   ticker,
-		mint:     mint,
-		decimals: decimals,
+		Name:     name,
+		Ticker:   ticker,
+		Mint:     mint,
+		Decimals: decimals,
 	}
 	if opts != nil && opts.LogoUri != "" {
-		tokenData.logoUri = opts.LogoUri
+		tokenData.LogoUri = opts.LogoUri
 	}
 	if opts != nil && opts.Website != "" {
-		tokenData.website = opts.Website
+		tokenData.Website = opts.Website
 	}
 	return tokenData
 }

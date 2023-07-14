@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/Bonfida/sns-sdk/golang/errors"
+	"github.com/davecgh/go-spew/spew"
+	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/programs/token"
 	"github.com/gagliardetto/solana-go/rpc"
@@ -114,3 +116,38 @@ func Closure(client rpc.Client, acc token.Account) (*NftRecord, error) {
 	}
 	return nil, errors.ErrNftNotFound
 }
+
+func RetrieveRecords(client rpc.Client, owner solana.PublicKey) ([]*NftRecord, error) {
+	res, err := client.GetProgramAccountsWithOpts(context.Background(), token.ProgramID, &rpc.GetProgramAccountsOpts{
+		Filters: append(*GetFilter(owner.String()), rpc.RPCFilter{
+			DataSize: 165,
+		}),
+	})
+	if err != nil {
+		return nil, err
+	}
+	var records []*NftRecord
+	for _, acc := range res {
+		var tokenAcc *token.Account
+		spew.Dump(acc)
+		err := bin.NewBinDecoder(acc.Account.Data.GetBinary()).Decode(&tokenAcc)
+		if err != nil {
+			return nil, err
+		}
+		spew.Dump(tokenAcc)
+		nftRecord, err := Closure(client, *tokenAcc)
+		if err != nil {
+			return nil, err
+		}
+		records = append(records, nftRecord)
+	}
+	return records, nil
+}
+
+// func GetTokenizedDomains(client rpc.Client, owner solana.PublicKey)(error){
+// 	nftRecords, err := RetrieveRecords(client, owner)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// }

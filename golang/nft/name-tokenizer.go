@@ -23,11 +23,11 @@ const (
 )
 
 type NftRecord struct {
-	tag          Tag
-	nonce        uint32
-	nameAccounnt *solana.PublicKey
-	owner        *solana.PublicKey
-	nftMint      *solana.PublicKey
+	Tag          Tag
+	Nonce        uint32
+	NameAccounnt *solana.PublicKey
+	Owner        *solana.PublicKey
+	NftMint      *solana.PublicKey
 }
 
 func NewNftRecord(tag uint8, nonce uint32, nameAccount []byte, owner []byte, nftMint []byte) *NftRecord {
@@ -35,11 +35,11 @@ func NewNftRecord(tag uint8, nonce uint32, nameAccount []byte, owner []byte, nft
 	ownerPubKey := solana.PublicKeyFromBytes(owner)
 	nftMintPubKey := solana.PublicKeyFromBytes(nftMint)
 	return &NftRecord{
-		tag:          Tag(tag),
-		nonce:        nonce,
-		nameAccounnt: &nameAccountPubKey,
-		owner:        &ownerPubKey,
-		nftMint:      &nftMintPubKey,
+		Tag:          Tag(tag),
+		Nonce:        nonce,
+		NameAccounnt: &nameAccountPubKey,
+		Owner:        &ownerPubKey,
+		NftMint:      &nftMintPubKey,
 	}
 }
 

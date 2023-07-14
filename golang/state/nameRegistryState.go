@@ -11,10 +11,10 @@ import (
 )
 
 type NameRegistryState struct {
-	parentName *solana.PublicKey
-	owner      *solana.PublicKey
-	class      *solana.PublicKey
-	data       []uint8 `bin:"optional"`
+	ParentName *solana.PublicKey
+	Owner      *solana.PublicKey
+	Class      *solana.PublicKey
+	Data       []uint8 `bin:"optional"`
 }
 
 func NewNameRegistry(parentName []uint8, owner []uint8, class []uint8) NameRegistryState {
@@ -22,9 +22,9 @@ func NewNameRegistry(parentName []uint8, owner []uint8, class []uint8) NameRegis
 	ownerPubkey := solana.PublicKeyFromBytes(owner)
 	classPubkey := solana.PublicKeyFromBytes(class)
 	return NameRegistryState{
-		parentName: &parentNamePubkey,
-		owner:      &ownerPubkey,
-		class:      &classPubkey,
+		ParentName: &parentNamePubkey,
+		Owner:      &ownerPubkey,
+		Class:      &classPubkey,
 	}
 }
 
@@ -40,7 +40,7 @@ func RetrieveNameRegistry(client rpc.Client, nameAccountKey solana.PublicKey) (*
 		return nil, nil, err
 	}
 	spew.Dump(registry)
-	registry.data = nameAccount.Bytes()[96:]
+	registry.Data = nameAccount.Bytes()[96:]
 	nftOwner, err := nft.RetrieveNftOwner(client, nameAccountKey)
 	if err != nil {
 		return nil, nil, err
@@ -62,7 +62,7 @@ func RetrieveNameRegistryBatch(client rpc.Client, nameAccountKeys []solana.Publi
 			return nil, err
 		}
 		spew.Dump(registry)
-		registry.data = nameAccount.Data.GetBinary()[96:]
+		registry.Data = nameAccount.Data.GetBinary()[96:]
 		registries = append(registries, &registry)
 	}
 	return registries, nil
