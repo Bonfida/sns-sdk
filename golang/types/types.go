@@ -17,3 +17,7 @@ type GetReverseKeySyncOpts struct {
 	Domain string
 	IsSub  bool
 }
+
+type GetRecordOpts struct {
+	Deserialize bool
+}
