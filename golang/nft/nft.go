@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Bonfida/sns-sdk/golang/errors"
+	"github.com/Bonfida/sns-sdk/golang/utils"
 	"github.com/davecgh/go-spew/spew"
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
@@ -76,7 +77,7 @@ func RetrieveNfts(client rpc.Client) (*solana.PublicKey, error) {
 	if len(res) == 0 {
 		return nil, errors.ErrNftNotFound
 	}
-	pubkeyBytes, err := res[0].Account.Data.MarshalJSON()
+	pubkeyBytes := res[0].Account.Data.GetBinary()
 	if err != nil {
 		return nil, err
 	}
@@ -144,10 +145,32 @@ func RetrieveRecords(client rpc.Client, owner solana.PublicKey) ([]*NftRecord, e
 	return records, nil
 }
 
-// func GetTokenizedDomains(client rpc.Client, owner solana.PublicKey)(error){
-// 	nftRecords, err := RetrieveRecords(client, owner)
-// 	if err != nil {
-// 		return err
-// 	}
+type TokenizedDomain struct {
+	Key     solana.PublicKey
+	Mint    solana.PublicKey
+	Reverse string
+}
 
-// }
+func GetTokenizedDomains(client rpc.Client, owner solana.PublicKey) ([]TokenizedDomain, error) {
+	nftRecords, err := RetrieveRecords(client, owner)
+	if err != nil {
+		return nil, err
+	}
+	var nameAccounts []solana.PublicKey
+	for _, record := range nftRecords {
+		nameAccounts = append(nameAccounts, *record.NameAccounnt)
+	}
+	names, err := utils.ReverseLookupBatch(client, nameAccounts)
+	if err != nil {
+		return nil, err
+	}
+	var tokenizedDomains []TokenizedDomain
+	for i, record := range names {
+		tokenizedDomains = append(tokenizedDomains, TokenizedDomain{
+			Key:     *nftRecords[i].NameAccounnt,
+			Mint:    *nftRecords[i].NftMint,
+			Reverse: record,
+		})
+	}
+	return tokenizedDomains, nil
+}

@@ -87,7 +87,7 @@ func GetRecordFromMint(client rpc.Client, mint solana.PublicKey) (rpc.GetProgram
 		rpc.RPCFilter{
 			Memcmp: &rpc.RPCFilterMemcmp{
 				Offset: 1 + 1 + 32 + 32,
-				Bytes:  mint.Bytes(),
+				Bytes:  solana.Base58(mint.String()),
 			},
 		},
 	}

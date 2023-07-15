@@ -3,7 +3,6 @@ package state
 import (
 	"context"
 
-	"github.com/Bonfida/sns-sdk/golang/nft"
 	"github.com/davecgh/go-spew/spew"
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
@@ -41,7 +40,7 @@ func RetrieveNameRegistry(client rpc.Client, nameAccountKey solana.PublicKey) (*
 	}
 	spew.Dump(registry)
 	registry.Data = nameAccount.Bytes()[96:]
-	nftOwner, err := nft.RetrieveNftOwner(client, nameAccountKey)
+	nftOwner, err := retrieveNftOwner(client, nameAccountKey)
 	if err != nil {
 		return nil, nil, err
 	}
