@@ -138,7 +138,7 @@ app.get("/record/:domain/:record", async (c) => {
   try {
     const { domain, record } = c.req.param();
     const res = await getRecord(getConnection(c), domain, record as Record);
-    return c.json(response(true, res.data?.toString("base64")));
+    return c.json(response(true, res?.data?.toString("base64")));
   } catch (err) {
     console.log(err);
     return c.json(response(false, "Invalid input"));
@@ -179,7 +179,7 @@ app.get("/types/record", (c) => {
 app.get("/reverse-lookup/:pubkey", async (c) => {
   try {
     const { pubkey } = c.req.param();
-    const res = reverseLookup(getConnection(c), new PublicKey(pubkey));
+    const res = await reverseLookup(getConnection(c), new PublicKey(pubkey));
     return c.json(response(true, res));
   } catch (err) {
     console.log(err);
