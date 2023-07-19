@@ -12,12 +12,12 @@ authors = ["Bonfida <contact@bonfida.com>"]
 blocking = []
 
 [dependencies]
-spl-name-service = {git = "https://github.com/solana-labs/solana-program-library", features = ["no-entrypoint"], version = "0.2.0"}
-solana-program = "1.9.2"
+spl-name-service = "0.2.0"
+solana-program = "<1.16.0"
 derive_more = "0.99.17"
-solana-sdk = "1.14.18"
-solana-client = "1.14.18"
-solana-account-decoder = "1.14.2"
+solana-sdk = "<1.16.0"
+solana-client = "<1.16.0"
+solana-account-decoder = "<1.16.0"
 ed25519-dalek = "1.0.1"
 hex = "0.4.3"
 spl-token = "3.5.0"
