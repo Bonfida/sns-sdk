@@ -12,7 +12,7 @@ authors = ["Bonfida <contact@bonfida.com>"]
 blocking = []
 
 [dependencies]
-spl-name-service = "0.2.0"
+spl-name-service = {version = "0.2.0", features = ["no-entrypoint"]}
 solana-program = "<1.16.0"
 derive_more = "0.99.17"
 solana-sdk = "<1.16.0"
