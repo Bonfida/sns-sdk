@@ -1,4 +1,6 @@
 use {
+    borsh::BorshDeserialize,
+    name_tokenizer::state::NftRecord,
     solana_account_decoder::UiAccountEncoding,
     solana_client::{
         client_error::{ClientError, ClientErrorKind},
@@ -9,12 +11,14 @@ use {
     },
     solana_program::{program_pack::Pack, pubkey::Pubkey},
     spl_name_service::state::{get_seeds_and_key, NameRecordHeader},
+    spl_token::state::Account,
     spl_token::state::Mint,
 };
 
 use crate::{
     derivation::{
-        get_domain_key, get_domain_mint, get_hashed_name, REVERSE_LOOKUP_CLASS, ROOT_DOMAIN_ACCOUNT,
+        get_domain_key, get_domain_mint, get_hashed_name, NAME_TOKENIZER_ID, REVERSE_LOOKUP_CLASS,
+        ROOT_DOMAIN_ACCOUNT,
     },
     error::SnsError,
     favourite_domain::{derive_favorite_domain_key, FavouriteDomain},
@@ -204,6 +208,101 @@ pub async fn get_domains_owner(
         .await?;
     let keys = res.into_iter().map(|x| x.0).collect::<Vec<_>>();
     Ok(keys)
+}
+
+pub async fn get_record_from_mint(
+    rpc_client: &RpcClient,
+    mint: &Pubkey,
+) -> Result<Vec<(Pubkey, solana_sdk::account::Account)>, SnsError> {
+    let config = RpcProgramAccountsConfig {
+        filters: Some(vec![
+            RpcFilterType::Memcmp(Memcmp::new_raw_bytes(
+                0,
+                vec![name_tokenizer::state::Tag::ActiveRecord as u8],
+            )),
+            RpcFilterType::Memcmp(Memcmp::new_raw_bytes(66, mint.to_bytes().to_vec())),
+        ]),
+        with_context: None,
+        account_config: RpcAccountInfoConfig {
+            encoding: Some(UiAccountEncoding::Base64),
+            ..Default::default()
+        },
+    };
+
+    let res = rpc_client
+        .get_program_accounts_with_config(&NAME_TOKENIZER_ID, config.clone())
+        .await?;
+
+    Ok(res)
+}
+
+pub async fn get_nft_records(
+    rpc_client: &RpcClient,
+    owner: &Pubkey,
+) -> Result<Vec<NftRecord>, SnsError> {
+    let config = RpcProgramAccountsConfig {
+        filters: Some(vec![
+            RpcFilterType::Memcmp(Memcmp::new_raw_bytes(32, owner.to_bytes().to_vec())),
+            RpcFilterType::Memcmp(Memcmp::new_raw_bytes(64, 1u64.to_le_bytes().to_vec())),
+            RpcFilterType::DataSize(165),
+        ]),
+        with_context: None,
+        account_config: RpcAccountInfoConfig {
+            encoding: Some(UiAccountEncoding::Base64),
+            ..Default::default()
+        },
+    };
+    let res = rpc_client
+        .get_program_accounts_with_config(&spl_token::ID, config.clone())
+        .await?
+        .into_iter()
+        .map(|(_, acc)| Account::unpack(&acc.data))
+        .filter(Result::is_ok)
+        .map(Result::unwrap)
+        .collect::<Vec<_>>();
+
+    async fn closure(rpc_client: &RpcClient, acc: &Account) -> Result<NftRecord, SnsError> {
+        let record = get_record_from_mint(rpc_client, &acc.mint).await?;
+        if let Some((_, acc)) = record.first() {
+            let des = NftRecord::deserialize(&mut acc.data.as_slice())?;
+            return Ok(des);
+        }
+        Err(SnsError::NftRecordDoesNotExist)
+    }
+
+    let futures = res.iter().map(|acc| closure(rpc_client, acc));
+
+    let records = futures::future::join_all(futures)
+        .await
+        .into_iter()
+        .filter(Result::is_ok)
+        .map(Result::unwrap)
+        .collect::<Vec<_>>();
+
+    Ok(records)
+}
+
+pub async fn get_tokenized_domains(
+    rpc_client: &RpcClient,
+    owner: &Pubkey,
+) -> Result<Vec<(String, Pubkey)>, SnsError> {
+    let pubkeys = get_nft_records(rpc_client, owner)
+        .await?
+        .into_iter()
+        .map(|r| r.name_account)
+        .collect::<Vec<_>>();
+
+    let reverses = resolve_reverse_batch(rpc_client, &pubkeys).await?;
+
+    let mut results = vec![];
+
+    for (rev, key) in reverses.into_iter().zip(pubkeys) {
+        if let Some(rev) = rev {
+            results.push((rev, key))
+        }
+    }
+
+    Ok(results)
 }
 
 pub async fn get_subdomains(
@@ -437,5 +536,14 @@ mod tests {
             &domain.unwrap().to_string(),
             "Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb"
         );
+    }
+
+    #[tokio::test]
+    async fn test_get_tokenized_domains() {
+        dotenv().ok();
+        let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
+        let owner = pubkey!("J6QDztZCegYTWnGUYtjqVS9d7AZoS43UbEQmMcdGeP5s");
+        let domains = get_tokenized_domains(&client, &owner).await.unwrap();
+        println!("{domains:?}");
     }
 }

@@ -29,7 +29,7 @@ pub enum SnsError {
     InvalidIpv4,
     InvalidIpv6,
     SolRecordNotSupported,
-    
+    NftRecordDoesNotExist,
 }
 
 impl From<ClientError> for SnsError {
