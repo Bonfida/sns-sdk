@@ -72,11 +72,15 @@ export const getSignatureByteLength = (
   }
 };
 
-export const hexToBytes = (str: string) => {
-  if (str.startsWith("0x")) {
-    str = str.slice(2);
+export const getGuardianPublickey = (record: Record, owner: Buffer): Buffer => {
+  switch (record) {
+    case Record.ETH:
+      return owner;
+    case Record.Injective:
+      return owner;
   }
-  return Buffer.from(str, "hex");
+
+  throw new SNSError(ErrorType.RecordDoestNotSupportGuardianSig);
 };
 
 export const verifySolanaSignature = (
@@ -210,7 +214,10 @@ export class RecordV2 {
 
     const { header, buffer } = this.deserializeUnchecked(registry.data);
 
-    const content = buffer.slice(-header.contentLength);
+    const offset =
+      getSignatureByteLength(header.guardianSignature) +
+      getSignatureByteLength(header.userSignature);
+    const content = buffer.slice(offset, offset + header.contentLength);
     const msgToSign = Buffer.concat([recordKey.toBuffer(), content]);
 
     if (!config?.skipGuardianSig) {
@@ -227,23 +234,28 @@ export class RecordV2 {
       verifySolanaSignature(msgToSign, signature, registry.owner.toBuffer());
     }
 
-    // Deserialize content buffer to human readable string?
+    // Deserialize content buffer to human readable string
     if (config?.deserialize) {
+      return deserializeRecordV2(content, record);
     }
 
     return;
   }
 }
 
-export const deserializeRecordV2 = (
-  content: Buffer,
-  record: Record,
-  recordKey: PublicKey
-) => {
+export const deserializeRecordV2 = (content: Buffer, record: Record) => {
   const utf8Encoded = UTF8_ENCODED.has(record);
 
   if (utf8Encoded) {
     return content.toString("utf-8");
+  } else if (record === Record.SOL) {
+    return new PublicKey(content).toBase58();
+  } else if (record === Record.ETH || record === Record.BSC) {
+    return "0x" + content.toString("hex");
+  } else if (record === Record.Injective) {
+    return encode("inj", content, "bech32");
+  } else if (record === Record.A || record === Record.AAAA) {
+    return ipaddr.fromByteArray([...content]).toString();
   }
 };
 
@@ -263,6 +275,8 @@ export const serializeRecordV2 = (
       content = encodePunycode(content);
     }
     buffer = Buffer.from(content, "utf-8");
+  } else if (record === Record.SOL) {
+    buffer = new PublicKey(content).toBuffer();
   } else if (record === Record.ETH || record === Record.BSC) {
     check(content.slice(0, 2) === "0x", ErrorType.InvalidEvmAddress);
     buffer = Buffer.from(content.slice(2), "hex");

@@ -23,6 +23,7 @@ export enum ErrorType {
   InvalidDomain = "InvalidDomain",
   InvalidCustomBg = "InvalidCustomBackground",
   UnsupportedSignature = "UnsupportedSignature",
+  RecordDoestNotSupportGuardianSig = "RecordDoestNotSupportGuardianSig",
 }
 
 export class SNSError extends Error {
