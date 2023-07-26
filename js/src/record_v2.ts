@@ -1,5 +1,5 @@
 import { Schema, deserialize, deserializeUnchecked, serialize } from "borsh";
-import { Record } from "record";
+import { Record, RecordVersion } from "record";
 import { ErrorType, SNSError } from "./error";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { NameRegistryState } from "./state";
@@ -8,11 +8,11 @@ import { hashMessage } from "@ethersproject/hash";
 import { recoverAddress } from "@ethersproject/transactions";
 import { getAddress } from "@ethersproject/address";
 import { encode as encodePunycode } from "punycode";
-import { check } from "./utils";
+import { check, getDomainKeySync } from "./utils";
 import { decode, encode } from "bech32-buffer";
 import ipaddr from "ipaddr.js";
 
-// Derivation TODO
+const EMPTY_BUFFER = Buffer.alloc(0);
 
 export enum GuardianSig {
   None = 0,
@@ -259,7 +259,48 @@ export const deserializeRecordV2 = (content: Buffer, record: Record) => {
   }
 };
 
-const EMPTY_BUFFER = Buffer.alloc(0);
+export const serializeRecordV2Content = (
+  content: string,
+  record: Record
+): Buffer => {
+  const utf8Encoded = UTF8_ENCODED.has(record);
+  if (utf8Encoded) {
+    if (record === Record.CNAME || record === Record.TXT) {
+      content = encodePunycode(content);
+    }
+    return Buffer.from(content, "utf-8");
+  } else if (record === Record.SOL) {
+    return new PublicKey(content).toBuffer();
+  } else if (record === Record.ETH || record === Record.BSC) {
+    check(content.slice(0, 2) === "0x", ErrorType.InvalidEvmAddress);
+    return Buffer.from(content.slice(2), "hex");
+  } else if (record === Record.Injective) {
+    const decoded = decode(content);
+    check(decoded.prefix === "inj", ErrorType.InvalidInjectiveAddress);
+    check(decoded.data.length === 20, ErrorType.InvalidInjectiveAddress);
+    return Buffer.from(decoded.data);
+  } else if (record === Record.A) {
+    const array = ipaddr.parse(content).toByteArray();
+    check(array.length === 4, ErrorType.InvalidARecord);
+    return Buffer.from(array);
+  } else if (record === Record.AAAA) {
+    const array = ipaddr.parse(content).toByteArray();
+    check(array.length === 16, ErrorType.InvalidAAAARecord);
+    return Buffer.from(array);
+  } else {
+    throw new SNSError(ErrorType.InvalidARecord);
+  }
+};
+
+export const getMessageToSign = (
+  content: string,
+  domain: string,
+  record: Record
+): Buffer => {
+  const buffer = serializeRecordV2Content(content, record);
+  const recordKey = getRecordKeyV2(domain, record);
+  return Buffer.concat([recordKey.toBuffer(), buffer]);
+};
 
 export const serializeRecordV2 = (
   content: string,
@@ -267,35 +308,7 @@ export const serializeRecordV2 = (
   userSignature = EMPTY_BUFFER,
   guardianSignature = EMPTY_BUFFER
 ): Uint8Array => {
-  let buffer: Buffer;
-
-  const utf8Encoded = UTF8_ENCODED.has(record);
-  if (utf8Encoded) {
-    if (record === Record.CNAME || record === Record.TXT) {
-      content = encodePunycode(content);
-    }
-    buffer = Buffer.from(content, "utf-8");
-  } else if (record === Record.SOL) {
-    buffer = new PublicKey(content).toBuffer();
-  } else if (record === Record.ETH || record === Record.BSC) {
-    check(content.slice(0, 2) === "0x", ErrorType.InvalidEvmAddress);
-    buffer = Buffer.from(content.slice(2), "hex");
-  } else if (record === Record.Injective) {
-    const decoded = decode(content);
-    check(decoded.prefix === "inj", ErrorType.InvalidInjectiveAddress);
-    check(decoded.data.length === 20, ErrorType.InvalidInjectiveAddress);
-    buffer = Buffer.from(decoded.data);
-  } else if (record === Record.A) {
-    const array = ipaddr.parse(content).toByteArray();
-    check(array.length === 4, ErrorType.InvalidARecord);
-    buffer = Buffer.from(array);
-  } else if (record === Record.AAAA) {
-    const array = ipaddr.parse(content).toByteArray();
-    check(array.length === 16, ErrorType.InvalidAAAARecord);
-    buffer = Buffer.from(array);
-  } else {
-    throw new SNSError(ErrorType.InvalidARecord);
-  }
+  const buffer = serializeRecordV2Content(content, record);
 
   const header = new RecordV2Header({
     userSignature: userSignature.length,
@@ -308,4 +321,9 @@ export const serializeRecordV2 = (
   });
 
   return recordV2.serialize();
+};
+
+export const getRecordKeyV2 = (domain: string, record: Record): PublicKey => {
+  const { pubkey } = getDomainKeySync(record + "." + domain, RecordVersion.V2);
+  return pubkey;
 };

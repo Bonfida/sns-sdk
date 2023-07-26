@@ -1,4 +1,4 @@
-import { RECORD_V1_SIZE, Record } from "./types/record";
+import { RECORD_V1_SIZE, Record, RecordVersion } from "./types/record";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { getDomainKeySync } from "./utils";
 import { NameRegistryState } from "./state";
@@ -25,7 +25,7 @@ const trimNullPaddingIdx = (buffer: Buffer): number => {
  * @returns
  */
 export const getRecordKeySync = (domain: string, record: Record) => {
-  const { pubkey } = getDomainKeySync(record + "." + domain, true);
+  const { pubkey } = getDomainKeySync(record + "." + domain, RecordVersion.V1);
   return pubkey;
 };
 

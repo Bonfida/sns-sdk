@@ -6,6 +6,7 @@ import { NameRegistryState } from "./state";
 import { REVERSE_LOOKUP_CLASS } from "./constants";
 import { Buffer } from "buffer";
 import { ErrorType, SNSError } from "./error";
+import { RecordVersion } from "record";
 
 export const getHashedNameSync = (name: string): Buffer => {
   const input = HASH_PREFIX + name;
@@ -149,18 +150,18 @@ const _deriveSync = (name: string, parent: PublicKey = ROOT_DOMAIN_ACCOUNT) => {
  * @param record Optional parameter: If the domain being resolved is a record
  * @returns
  */
-export const getDomainKeySync = (domain: string, record = false) => {
+export const getDomainKeySync = (domain: string, record?: RecordVersion) => {
   if (domain.endsWith(".sol")) {
     domain = domain.slice(0, -4);
   }
   const splitted = domain.split(".");
   if (splitted.length === 2) {
-    const prefix = Buffer.from([record ? 1 : 0]).toString();
+    const prefix = Buffer.from([record ? record : 0]).toString();
     const sub = prefix.concat(splitted[0]);
     const { pubkey: parentKey } = _deriveSync(splitted[1]);
     const result = _deriveSync(sub, parentKey);
     return { ...result, isSub: true, parent: parentKey };
-  } else if (splitted.length === 3 && record) {
+  } else if (splitted.length === 3 && !!record) {
     // Parent key
     const { pubkey: parentKey } = _deriveSync(splitted[2]);
     // Sub domain
