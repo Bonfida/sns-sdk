@@ -22,6 +22,7 @@ export enum ErrorType {
   InvalidInput = "InvalidInput",
   InvalidDomain = "InvalidDomain",
   InvalidCustomBg = "InvalidCustomBackground",
+  UnsupportedSignature = "UnsupportedSignature",
 }
 
 export class SNSError extends Error {

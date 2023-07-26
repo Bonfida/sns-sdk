@@ -59,7 +59,10 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@ethersproject/address": "^5.7.0",
+    "@ethersproject/hash": "^5.7.0",
     "@ethersproject/sha2": "^5.7.0",
+    "@ethersproject/transactions": "^5.7.0",
     "@pythnetwork/client": "^2.19.0",
     "@solana/buffer-layout": "^4.0.1",
     "@solana/spl-token": "0.3.7 ",
