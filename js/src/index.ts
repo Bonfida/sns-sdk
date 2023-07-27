@@ -1,7 +1,6 @@
 export * from "./bindings";
 export * from "./state";
 export * from "./twitter_bindings";
-export * from "./deprecated/tokens";
 export * from "./utils";
 export * from "./instructions";
 export * from "./nft";
