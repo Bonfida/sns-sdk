@@ -346,7 +346,6 @@ export class createV2Instruction {
 export class createReverseInstruction {
   tag: number;
   name: string;
-
   static schema: Schema = new Map([
     [
       createReverseInstruction,
@@ -359,82 +358,76 @@ export class createReverseInstruction {
       },
     ],
   ]);
-
   constructor(obj: { name: string }) {
-    this.tag = 5;
+    this.tag = 12;
     this.name = obj.name;
   }
-
   serialize(): Uint8Array {
     return serialize(createReverseInstruction.schema, this);
   }
-
   getInstruction(
     programId: PublicKey,
-    rentSysvarAccount: PublicKey,
     namingServiceProgram: PublicKey,
     rootDomain: PublicKey,
-    reverseLookupAccount: PublicKey,
-    centralStateAccount: PublicKey,
+    reverseLookup: PublicKey,
+    systemProgram: PublicKey,
+    centralState: PublicKey,
     feePayer: PublicKey,
+    rentSysvar: PublicKey,
     parentName?: PublicKey,
     parentNameOwner?: PublicKey
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
-    let keys = [
-      {
-        pubkey: rentSysvarAccount,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: namingServiceProgram,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: rootDomain,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: reverseLookupAccount,
-        isSigner: false,
-        isWritable: true,
-      },
-      {
-        pubkey: PublicKey.default,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: centralStateAccount,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: feePayer,
-        isSigner: true,
-        isWritable: true,
-      },
-    ];
-
-    if (parentName) {
-      if (!parentNameOwner) {
-        throw new SNSError(ErrorType.MissingParentOwner);
-      }
+    let keys: AccountKey[] = [];
+    keys.push({
+      pubkey: namingServiceProgram,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: rootDomain,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: reverseLookup,
+      isSigner: false,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: systemProgram,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: centralState,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: feePayer,
+      isSigner: true,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: rentSysvar,
+      isSigner: false,
+      isWritable: false,
+    });
+    if (!!parentName) {
       keys.push({
         pubkey: parentName,
         isSigner: false,
         isWritable: true,
       });
+    }
+    if (!!parentNameOwner) {
       keys.push({
         pubkey: parentNameOwner,
         isSigner: true,
-        isWritable: false,
+        isWritable: true,
       });
     }
-
     return new TransactionInstruction({
       keys,
       programId,
@@ -442,7 +435,6 @@ export class createReverseInstruction {
     });
   }
 }
-
 export class createInstructionV3 {
   tag: number;
   name: string;

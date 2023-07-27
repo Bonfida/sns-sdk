@@ -387,12 +387,13 @@ export const createReverseName = async (
     name,
   }).getInstruction(
     REGISTER_PROGRAM_ID,
-    SYSVAR_RENT_PUBKEY,
     NAME_PROGRAM_ID,
     ROOT_DOMAIN_ACCOUNT,
     reverseLookupAccount,
+    SystemProgram.programId,
     centralState,
     feePayer,
+    SYSVAR_RENT_PUBKEY,
     parentName,
     parentNameOwner
   );
