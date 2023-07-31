@@ -356,6 +356,7 @@ export const deserializeRecord = (
 ): string | undefined => {
   const buffer = registry?.data;
   if (!buffer) return undefined;
+  if (buffer.compare(Buffer.alloc(buffer.length)) === 0) return undefined;
 
   const size = RECORD_V1_SIZE.get(record);
   const idx = trimNullPaddingIdx(buffer);
