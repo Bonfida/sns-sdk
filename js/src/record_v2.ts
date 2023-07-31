@@ -1,5 +1,5 @@
 import { Schema, deserialize, deserializeUnchecked, serialize } from "borsh";
-import { Record, RecordVersion } from "record";
+import { Record, RecordVersion } from "./types/record";
 import { ErrorType, SNSError } from "./error";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { NameRegistryState } from "./state";
