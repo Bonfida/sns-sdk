@@ -123,16 +123,8 @@ export const verifyInjectiveSignature = (): boolean => {
 export const verifyGuardianSignature = (
   content: Buffer,
   signature: Buffer,
-  publicKey: Buffer,
-  record: Record
+  publicKey: Buffer
 ): boolean => {
-  switch (record) {
-    case Record.ETH:
-    // Verify Guardian ETH sig
-    case Record.Injective:
-    //
-  }
-
   throw new Error("TODO");
 };
 
@@ -212,6 +204,20 @@ export class RecordV2 {
     return serialize(RecordV2.schema, this);
   }
 
+  deserializeContent(record: Record): string {
+    return deserializeRecordV2(this.getContent(), record);
+  }
+
+  getContent(): Buffer {
+    const offset =
+      getSignatureByteLength(this.header.guardianSignature) +
+      getSignatureByteLength(this.header.userSignature);
+    const content = Buffer.from(
+      this.buffer.slice(offset, offset + this.header.contentLength)
+    );
+    return content;
+  }
+
   static new(
     content: string,
     record: Record,
@@ -233,12 +239,24 @@ export class RecordV2 {
     return new RecordV2({ header, buffer });
   }
 
+  checkGuardianSignature(msg: Buffer, signer: Buffer): boolean {
+    const sigLen = getSignatureByteLength(this.header.guardianSignature);
+    const offset = getSignatureByteLength(this.header.userSignature);
+    const signature = Buffer.from(this.buffer.slice(offset, offset + sigLen));
+    return verifyGuardianSignature(msg, signature, signer);
+  }
+
+  checkUserSignature(msg: Buffer, signer: Buffer): boolean {
+    const sigLen = getSignatureByteLength(this.header.userSignature);
+    const signature = Buffer.from(this.buffer.slice(0, sigLen));
+    return verifySolanaSignature(msg, signature, signer);
+  }
+
   static async retrieve(
     connection: Connection,
     recordKey: PublicKey,
-    record: Record,
     config?: RetrieveConfig
-  ) {
+  ): Promise<RecordV2> {
     const { registry } = await NameRegistryState.retrieve(
       connection,
       recordKey
@@ -248,36 +266,19 @@ export class RecordV2 {
       throw new SNSError(ErrorType.InvalidRecordData);
     }
 
-    const { header, buffer } = this.deserializeUnchecked(registry.data);
-
-    const offset =
-      getSignatureByteLength(header.guardianSignature) +
-      getSignatureByteLength(header.userSignature);
-    const content = Buffer.from(
-      buffer.slice(offset, offset + header.contentLength)
-    );
+    const recordV2 = this.deserializeUnchecked(registry.data);
+    const content = recordV2.getContent();
     const msgToSign = Buffer.concat([recordKey.toBuffer(), content]);
 
     if (!config?.skipGuardianSig) {
-      const sigLen = getSignatureByteLength(header.guardianSignature);
-      const offset = getSignatureByteLength(header.userSignature);
-      const signature = Buffer.from(buffer.slice(offset, offset + sigLen));
-      const guardianPublickey = Buffer.alloc(0); // TODO change
-      verifyGuardianSignature(msgToSign, signature, guardianPublickey, record);
+      recordV2.checkGuardianSignature(msgToSign, Buffer.alloc(0));
     }
 
     if (!config?.skipUserSig) {
-      const sigLen = getSignatureByteLength(header.userSignature);
-      const signature = Buffer.from(registry.data.slice(0, sigLen));
-      verifySolanaSignature(msgToSign, signature, registry.owner.toBuffer());
+      recordV2.checkUserSignature(msgToSign, registry.owner.toBuffer());
     }
 
-    // Deserialize content buffer to human readable string
-    if (config?.deserialize) {
-      return deserializeRecordV2(content, record);
-    }
-
-    return content;
+    return recordV2;
   }
 }
 
@@ -298,6 +299,8 @@ export const deserializeRecordV2 = (content: Buffer, record: Record) => {
     return encode("inj", content, "bech32");
   } else if (record === Record.A || record === Record.AAAA) {
     return ipaddr.fromByteArray([...content]).toString();
+  } else {
+    throw new SNSError(ErrorType.InvalidARecord);
   }
 };
 
