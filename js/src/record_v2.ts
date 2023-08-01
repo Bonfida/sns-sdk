@@ -343,7 +343,7 @@ export const getMessageToSign = (
   record: Record
 ): Buffer => {
   const buffer = serializeRecordV2Content(content, record);
-  const recordKey = getRecordKeyV2(domain, record);
+  const recordKey = getRecordV2Key(domain, record);
   return Buffer.concat([recordKey.toBuffer(), buffer]);
 };
 
@@ -368,7 +368,7 @@ export const serializeRecordV2 = (
   return recordV2.serialize();
 };
 
-export const getRecordKeyV2 = (domain: string, record: Record): PublicKey => {
+export const getRecordV2Key = (domain: string, record: Record): PublicKey => {
   const { pubkey } = getDomainKeySync(record + "." + domain, RecordVersion.V2);
   return pubkey;
 };
