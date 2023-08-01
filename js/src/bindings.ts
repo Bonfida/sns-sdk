@@ -55,6 +55,7 @@ import {
 import { ErrorType, SNSError } from "./error";
 import { serializeRecord, serializeSolRecord } from "./record";
 import { Record, RecordVersion } from "./types/record";
+import { RecordV2, serializeRecordV2Content } from "./record_v2";
 
 /**
  * Creates a name account with the given rent budget, allocated space, owner and class.
@@ -484,17 +485,61 @@ export const createRecordInstruction = async (
   record: Record,
   data: string,
   owner: PublicKey,
-  payer: PublicKey,
-  recordVersion: RecordVersion
+  payer: PublicKey
 ) => {
   check(record !== Record.SOL, ErrorType.UnsupportedRecord);
   const { pubkey, hashed, parent } = getDomainKeySync(
     `${record}.${domain}`,
-    recordVersion
+    RecordVersion.V1
   );
 
   const serialized = serializeRecord(data, record);
   const space = serialized.length;
+  const lamports = await connection.getMinimumBalanceForRentExemption(
+    space + NameRegistryState.HEADER_LEN
+  );
+
+  const ix = createInstruction(
+    NAME_PROGRAM_ID,
+    SystemProgram.programId,
+    pubkey,
+    owner,
+    payer,
+    hashed,
+    new Numberu64(lamports),
+    new Numberu32(space),
+    undefined,
+    parent,
+    owner
+  );
+
+  return ix;
+};
+
+/**
+ * This function can be used be create a record, it handles the serialization of the record data
+ * To create a SOL record use `createSolRecordInstruction`
+ * @param connection The Solana RPC connection object
+ * @param domain The .sol domain name
+ * @param record The record enum object
+ * @param data The data (as a UTF-8 string) to store in the record account
+ * @param owner The owner of the domain
+ * @param payer The fee payer of the transaction
+ * @returns
+ */
+export const createRecordV2Instruction = async (
+  connection: Connection,
+  domain: string,
+  record: Record,
+  space: number,
+  owner: PublicKey,
+  payer: PublicKey
+) => {
+  const { pubkey, hashed, parent } = getDomainKeySync(
+    `${record}.${domain}`,
+    RecordVersion.V2
+  );
+
   const lamports = await connection.getMinimumBalanceForRentExemption(
     space + NameRegistryState.HEADER_LEN
   );
@@ -522,11 +567,10 @@ export const updateRecordInstruction = async (
   record: Record,
   data: string,
   owner: PublicKey,
-  payer: PublicKey,
-  recordVersion: RecordVersion
+  payer: PublicKey
 ) => {
   check(record !== Record.SOL, ErrorType.UnsupportedRecord);
-  const { pubkey } = getDomainKeySync(`${record}.${domain}`, recordVersion);
+  const { pubkey } = getDomainKeySync(`${record}.${domain}`, RecordVersion.V1);
 
   const info = await connection.getAccountInfo(pubkey);
   check(!!info?.data, ErrorType.AccountDoesNotExist);
@@ -542,8 +586,7 @@ export const updateRecordInstruction = async (
         record,
         data,
         owner,
-        payer,
-        recordVersion
+        payer
       ),
     ];
   }
@@ -553,6 +596,52 @@ export const updateRecordInstruction = async (
     pubkey,
     new Numberu32(0),
     serialized,
+    owner
+  );
+
+  return [ix];
+};
+
+export const updateRecordV2Instruction = async (
+  connection: Connection,
+  domain: string,
+  record: Record,
+  data: string,
+  owner: PublicKey,
+  payer: PublicKey
+) => {
+  const { pubkey } = getDomainKeySync(`${record}.${domain}`, RecordVersion.V2);
+  const info = await connection.getAccountInfo(pubkey);
+  check(!!info?.data, ErrorType.AccountDoesNotExist);
+
+  const serialized = RecordV2.new(data, record).serialize();
+  if (info?.data.slice(96).length !== serialized.length) {
+    // Delete + create until we can realloc accounts
+    return [
+      deleteInstruction(NAME_PROGRAM_ID, pubkey, payer, owner),
+      await createRecordV2Instruction(
+        connection,
+        domain,
+        record,
+        serialized.length,
+        owner,
+        payer
+      ),
+      updateInstruction(
+        NAME_PROGRAM_ID,
+        pubkey,
+        new Numberu32(0),
+        Buffer.from(serialized),
+        owner
+      ),
+    ];
+  }
+
+  const ix = updateInstruction(
+    NAME_PROGRAM_ID,
+    pubkey,
+    new Numberu32(0),
+    Buffer.from(serialized),
     owner
   );
 

@@ -1,11 +1,21 @@
 import { test, expect } from "@jest/globals";
 import {
+  RecordV2,
   deserializeRecordV2,
+  getRecordKeyV2,
   serializeRecordV2Content,
   verifyEthereumSignature,
 } from "../src/record_v2";
 import { Record } from "../src/types/record";
-import { Keypair } from "@solana/web3.js";
+import { Keypair, Connection, PublicKey, Transaction } from "@solana/web3.js";
+import {
+  createRecordV2Instruction,
+  updateRecordV2Instruction,
+} from "../src/bindings";
+
+jest.setTimeout(50_000);
+
+const connection = new Connection("https://rpc-public.hellomoon.io");
 
 test("Records V2 des/ser", () => {
   let content = "this is a test";
@@ -33,4 +43,53 @@ test("Verify ETH signature", () => {
     example.address
   );
   expect(isValid).toBe(true);
+});
+
+test("Create record", async () => {
+  const domain = "record-v2";
+  const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
+  const ix = await createRecordV2Instruction(
+    connection,
+    domain,
+    Record.Github,
+    0,
+    owner,
+    owner
+  );
+  const tx = new Transaction().add(ix);
+  tx.feePayer = owner;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const { value } = await connection.simulateTransaction(tx);
+  expect(value.err).toBe(null);
+});
+
+test("Update record", async () => {
+  const domain = "record-v2";
+  const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
+  const ix = await updateRecordV2Instruction(
+    connection,
+    domain,
+    Record.TXT,
+    "test",
+    owner,
+    owner
+  );
+  const tx = new Transaction().add(...ix);
+  tx.feePayer = owner;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const { value } = await connection.simulateTransaction(tx);
+  expect(value.err).toBe(null);
+});
+
+test("Fetch record", async () => {
+  const domain = "record-v2";
+  const recordKey = getRecordKeyV2(domain, Record.TXT);
+  const record = await RecordV2.retrieve(connection, recordKey, Record.TXT, {
+    skipGuardianSig: true,
+    skipUserSig: true,
+    deserialize: true,
+  });
+  expect(record).toBe("test");
 });

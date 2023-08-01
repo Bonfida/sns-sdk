@@ -26,6 +26,21 @@ export enum UserSig {
   Solana = 1,
 }
 
+export interface Signature {
+  signatureType: GuardianSig | UserSig;
+  signature: Buffer;
+}
+
+export const NullUserSig: Signature = {
+  signatureType: UserSig.None,
+  signature: Buffer.alloc(0),
+};
+
+export const NullGuardianSig: Signature = {
+  signatureType: GuardianSig.None,
+  signature: Buffer.alloc(0),
+};
+
 const Guardians = new Map<Record, PublicKey>([]);
 
 const UTF8_ENCODED = new Set<Record>([
@@ -200,13 +215,19 @@ export class RecordV2 {
   static new(
     content: string,
     record: Record,
-    userSignature = UserSig.None,
-    guardianSignature = GuardianSig.None
+    userSignature = NullUserSig,
+    guardianSignature = NullGuardianSig
   ): RecordV2 {
-    const buffer = serializeRecordV2Content(content, record);
+    const ser = serializeRecordV2Content(content, record);
+
+    const buffer = Buffer.concat([
+      userSignature.signature,
+      guardianSignature.signature,
+      ser,
+    ]);
     const header = new RecordV2Header({
-      userSignature,
-      guardianSignature,
+      userSignature: userSignature.signatureType,
+      guardianSignature: guardianSignature.signatureType,
       contentLength: buffer.length,
     });
     return new RecordV2({ header, buffer });
@@ -232,20 +253,22 @@ export class RecordV2 {
     const offset =
       getSignatureByteLength(header.guardianSignature) +
       getSignatureByteLength(header.userSignature);
-    const content = buffer.slice(offset, offset + header.contentLength);
+    const content = Buffer.from(
+      buffer.slice(offset, offset + header.contentLength)
+    );
     const msgToSign = Buffer.concat([recordKey.toBuffer(), content]);
 
     if (!config?.skipGuardianSig) {
       const sigLen = getSignatureByteLength(header.guardianSignature);
       const offset = getSignatureByteLength(header.userSignature);
-      const signature = buffer.slice(offset, offset + sigLen);
+      const signature = Buffer.from(buffer.slice(offset, offset + sigLen));
       const guardianPublickey = Buffer.alloc(0); // TODO change
       verifyGuardianSignature(msgToSign, signature, guardianPublickey, record);
     }
 
     if (!config?.skipUserSig) {
       const sigLen = getSignatureByteLength(header.userSignature);
-      const signature = registry.data.slice(0, sigLen);
+      const signature = Buffer.from(registry.data.slice(0, sigLen));
       verifySolanaSignature(msgToSign, signature, registry.owner.toBuffer());
     }
 
@@ -254,7 +277,7 @@ export class RecordV2 {
       return deserializeRecordV2(content, record);
     }
 
-    return;
+    return content;
   }
 }
 

@@ -1,6 +1,6 @@
 import { Connection, PublicKey, MemcmpFilter } from "@solana/web3.js";
 import BN from "bn.js";
-import { sha256 } from "@ethersproject/hash";
+import { sha256 } from "@ethersproject/sha2";
 import {
   HASH_PREFIX,
   NAME_PROGRAM_ID,
