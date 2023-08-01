@@ -54,7 +54,7 @@ import {
 } from "@solana/spl-token";
 import { ErrorType, SNSError } from "./error";
 import { serializeRecord, serializeSolRecord } from "./record";
-import { Record } from "./types/record";
+import { Record, RecordVersion } from "./types/record";
 
 /**
  * Creates a name account with the given rent budget, allocated space, owner and class.
@@ -484,12 +484,13 @@ export const createRecordInstruction = async (
   record: Record,
   data: string,
   owner: PublicKey,
-  payer: PublicKey
+  payer: PublicKey,
+  recordVersion: RecordVersion
 ) => {
   check(record !== Record.SOL, ErrorType.UnsupportedRecord);
   const { pubkey, hashed, parent } = getDomainKeySync(
     `${record}.${domain}`,
-    true
+    recordVersion
   );
 
   const serialized = serializeRecord(data, record);
@@ -521,10 +522,11 @@ export const updateRecordInstruction = async (
   record: Record,
   data: string,
   owner: PublicKey,
-  payer: PublicKey
+  payer: PublicKey,
+  recordVersion: RecordVersion
 ) => {
   check(record !== Record.SOL, ErrorType.UnsupportedRecord);
-  const { pubkey } = getDomainKeySync(`${record}.${domain}`, true);
+  const { pubkey } = getDomainKeySync(`${record}.${domain}`, recordVersion);
 
   const info = await connection.getAccountInfo(pubkey);
   check(!!info?.data, ErrorType.AccountDoesNotExist);
@@ -540,7 +542,8 @@ export const updateRecordInstruction = async (
         record,
         data,
         owner,
-        payer
+        payer,
+        recordVersion
       ),
     ];
   }
@@ -576,7 +579,7 @@ export const createSolRecordInstruction = async (
 ) => {
   const { pubkey, hashed, parent } = getDomainKeySync(
     `${Record.SOL}.${domain}`,
-    true
+    RecordVersion.V1
   );
   const serialized = serializeSolRecord(content, pubkey, signer, signature);
   const space = serialized.length;
@@ -609,7 +612,10 @@ export const updateSolRecordInstruction = async (
   signature: Uint8Array,
   payer: PublicKey
 ) => {
-  const { pubkey } = getDomainKeySync(`${Record.SOL}.${domain}`, true);
+  const { pubkey } = getDomainKeySync(
+    `${Record.SOL}.${domain}`,
+    RecordVersion.V1
+  );
 
   const info = await connection.getAccountInfo(pubkey);
   check(!!info?.data, ErrorType.AccountDoesNotExist);

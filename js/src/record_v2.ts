@@ -7,7 +7,7 @@ import * as tweetnacl from "tweetnacl";
 import { hashMessage } from "@ethersproject/hash";
 import { recoverAddress } from "@ethersproject/transactions";
 import { getAddress } from "@ethersproject/address";
-import { encode as encodePunycode } from "punycode";
+import { encode as encodePunycode, decode as decodePunnycode } from "punycode";
 import { check, getDomainKeySync } from "./utils";
 import { decode, encode } from "bech32-buffer";
 import ipaddr from "ipaddr.js";
@@ -170,7 +170,7 @@ export class RecordV2 {
   header: RecordV2Header;
   buffer: Buffer;
 
-  static schema: Schema = new Map([
+  static schema: Schema = new Map<any, any>([
     [
       RecordV2,
       {
@@ -181,7 +181,7 @@ export class RecordV2 {
         ],
       },
     ],
-    RecordV2Header.schema.get(RecordV2Header),
+    [RecordV2Header, RecordV2Header.schema.get(RecordV2Header)],
   ]);
 
   constructor(obj: { header: RecordV2Header; buffer: Buffer }) {
@@ -195,6 +195,21 @@ export class RecordV2 {
 
   serialize(): Uint8Array {
     return serialize(RecordV2.schema, this);
+  }
+
+  static new(
+    content: string,
+    record: Record,
+    userSignature = UserSig.None,
+    guardianSignature = GuardianSig.None
+  ): RecordV2 {
+    const buffer = serializeRecordV2Content(content, record);
+    const header = new RecordV2Header({
+      userSignature,
+      guardianSignature,
+      contentLength: buffer.length,
+    });
+    return new RecordV2({ header, buffer });
   }
 
   static async retrieve(
@@ -247,7 +262,11 @@ export const deserializeRecordV2 = (content: Buffer, record: Record) => {
   const utf8Encoded = UTF8_ENCODED.has(record);
 
   if (utf8Encoded) {
-    return content.toString("utf-8");
+    const decoded = content.toString("utf-8");
+    if (record === Record.CNAME || record === Record.TXT) {
+      return decodePunnycode(decoded);
+    }
+    return decoded;
   } else if (record === Record.SOL) {
     return new PublicKey(content).toBase58();
   } else if (record === Record.ETH || record === Record.BSC) {
