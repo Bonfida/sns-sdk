@@ -12,8 +12,6 @@ import { check, getDomainKeySync } from "./utils";
 import { decode, encode } from "bech32-buffer";
 import ipaddr from "ipaddr.js";
 
-const EMPTY_BUFFER = Buffer.alloc(0);
-
 export enum GuardianSig {
   None = 0,
   Solana = 1,
@@ -41,9 +39,15 @@ export const NullGuardianSig: Signature = {
   signature: Buffer.alloc(0),
 };
 
-const Guardians = new Map<Record, PublicKey>([]);
+/**
+ * Map of record and guardian Public key
+ */
+export const Guardians = new Map<Record, PublicKey>([]);
 
-const UTF8_ENCODED = new Set<Record>([
+/**
+ * Set of records that are UTF-8 encoded strings
+ */
+export const UTF8_ENCODED = new Set<Record>([
   Record.IPFS,
   Record.ARWV,
   Record.LTC,
@@ -63,6 +67,21 @@ const UTF8_ENCODED = new Set<Record>([
   Record.CNAME,
 ]);
 
+/**
+ * Set of records that are self signed i.e signed by the public key contained
+ * in the record itself.
+ */
+export const SELF_SIGNED = new Set<Record>([
+  Record.ETH,
+  Record.Injective,
+  Record.SOL,
+]);
+
+/**
+ * This function returns the byte length given a signature type
+ * @param signatureType The type of signature Guardian or User
+ * @returns The byte length
+ */
 export const getSignatureByteLength = (
   signatureType: GuardianSig | UserSig
 ): number => {
@@ -87,25 +106,41 @@ export const getSignatureByteLength = (
   }
 };
 
-export const getGuardianPublickey = (record: Record, owner: Buffer): Buffer => {
+/**
+ * This function returns the Guardian's public key for the record
+ * @param record The record type
+ * @param owner The owner of the domain
+ * @returns The guardian's public key
+ */
+export const getGuardianPublickey = (record: Record): Buffer => {
   switch (record) {
-    case Record.ETH:
-      return owner;
-    case Record.Injective:
-      return owner;
   }
 
   throw new SNSError(ErrorType.RecordDoestNotSupportGuardianSig);
 };
 
+/**
+ * This function verifies a Solana message's signature
+ * @param message The message to verify as a Buffer
+ * @param signature The signature as a Buffer
+ * @param publicKey The expected signer public key as Buffer
+ * @returns True if the signature is value and false otherwise
+ */
 export const verifySolanaSignature = (
-  content: Buffer,
+  message: Buffer,
   signature: Buffer,
   publicKey: Buffer
 ): boolean => {
-  return tweetnacl.sign.detached.verify(content, signature, publicKey);
+  return tweetnacl.sign.detached.verify(message, signature, publicKey);
 };
 
+/**
+ * This function verifies an Ethereum message's signature
+ * @param message The message to verify as a Buffer
+ * @param signature The signature as a Buffer
+ * @param publicKey The expected signer public key as Buffer
+ * @returns True if the signature is value and false otherwise
+ */
 export const verifyEthereumSignature = (
   message: string,
   signature: string,
@@ -116,20 +151,73 @@ export const verifyEthereumSignature = (
   return recoveredAddress === getAddress(publicKey);
 };
 
-export const verifyInjectiveSignature = (): boolean => {
-  throw new Error("TODO");
-};
-
-export const verifyGuardianSignature = (
-  content: Buffer,
-  signature: Buffer,
-  publicKey: Buffer
+/**
+ * This function verifies an Injective message's signature
+ * @param message The message to verify as a Buffer
+ * @param signature The signature as a Buffer
+ * @param publicKey The expected signer public key as Buffer
+ * @returns True if the signature is value and false otherwise
+ */
+export const verifyInjectiveSignature = (
+  message: string,
+  signature: string,
+  publicKey: string
 ): boolean => {
   throw new Error("TODO");
 };
 
+/**
+ * This function verifies a Guardian's signature
+ * @param message The message to verify as a Buffer
+ * @param signature  The signature as a Buffer
+ * @param signer The signer of the record
+ * @param publicKey
+ * @returns True if the signature is value and false otherwise
+ */
+export const verifyGuardianSignature = (
+  message: Buffer,
+  signature: Buffer,
+  signer: Buffer,
+  guardianSig: GuardianSig
+): boolean => {
+  switch (guardianSig) {
+    case GuardianSig.Ethereum:
+      return verifyEthereumSignature(
+        message.toString(),
+        signature.toString(),
+        signer.toString()
+      );
+    case GuardianSig.Injective:
+      return verifyEthereumSignature(
+        message.toString(),
+        signature.toString(),
+        signer.toString()
+      );
+    case GuardianSig.Solana:
+      return verifySolanaSignature(message, signature, signer);
+    case GuardianSig.None:
+      throw new SNSError(ErrorType.RecordIsNotSigned);
+    default:
+      throw new SNSError(ErrorType.UnsupportedSignatureType);
+  }
+};
+
 // Always a Solana signature
-export const verifyUserSignature = () => {};
+export const verifyUserSignature = (
+  message: Buffer,
+  signature: Buffer,
+  signer: Buffer,
+  userSig: UserSig
+): boolean => {
+  switch (userSig) {
+    case UserSig.Solana:
+      return verifySolanaSignature(message, signature, signer);
+    case UserSig.None:
+      throw new SNSError(ErrorType.RecordIsNotSigned);
+    default:
+      throw new SNSError(ErrorType.UnsupportedSignatureType);
+  }
+};
 
 export class RecordV2Header {
   userSignature: UserSig;
@@ -162,15 +250,24 @@ export class RecordV2Header {
     this.contentLength = obj.contentLength;
   }
 
+  /**
+   * This function deserializes a buffer into a `RecordV2Header`
+   * @param buffer The buffer to deserialize into a `RecordV2Header`
+   * @returns A RecordV2Header
+   */
   static deserialize(buffer: Buffer): RecordV2Header {
     return deserialize(this.schema, RecordV2Header, buffer);
   }
 }
 
+/**
+ *
+ */
 export interface RetrieveConfig {
+  // Whether to skip the signature verification for the user
   skipUserSig?: boolean;
+  // Whether to skip the signature verification for the guardian
   skipGuardianSig?: boolean;
-  deserialize?: boolean;
 }
 
 export class RecordV2 {
@@ -196,18 +293,36 @@ export class RecordV2 {
     this.buffer = obj.buffer;
   }
 
+  /**
+   * This function deserializes a buffer into a `RecordV2`
+   * @param buffer The buffer to deserialize into a `RecordV2`
+   * @returns A RecordV2
+   */
   static deserializeUnchecked(buffer: Buffer): RecordV2 {
     return deserializeUnchecked(this.schema, RecordV2, buffer);
   }
 
+  /**
+   * This function serializes a `RecordV2` into a Uint8Array
+   * @returns A Uint8Array
+   */
   serialize(): Uint8Array {
     return serialize(RecordV2.schema, this);
   }
 
+  /**
+   * This function deserializes the content of a record using the SNS-IP 1 guideline
+   * @param record The record type
+   * @returns The deserialized content as a string
+   */
   deserializeContent(record: Record): string {
     return deserializeRecordV2(this.getContent(), record);
   }
 
+  /**
+   * This function returns the content of the record as a Buffer
+   * @returns The content of the record
+   */
   getContent(): Buffer {
     const offset =
       getSignatureByteLength(this.header.guardianSignature) +
@@ -218,6 +333,14 @@ export class RecordV2 {
     return content;
   }
 
+  /**
+   * This function creates a `RecordV2` object
+   * @param content The content to store in the record as a string
+   * @param record The record type
+   * @param userSignature The optional user signature of the record
+   * @param guardianSignature The option guardian signature of the record
+   * @returns The `RecordV2` created
+   */
   static new(
     content: string,
     record: Record,
@@ -239,24 +362,57 @@ export class RecordV2 {
     return new RecordV2({ header, buffer });
   }
 
+  /**
+   * This function verifies the signature of a message by a guardian
+   * @param msg The message to verify
+   * @param signer The expected signer of the message
+   * @returns True if the signature is value and false otherwise
+   */
   checkGuardianSignature(msg: Buffer, signer: Buffer): boolean {
     const sigLen = getSignatureByteLength(this.header.guardianSignature);
     const offset = getSignatureByteLength(this.header.userSignature);
     const signature = Buffer.from(this.buffer.slice(offset, offset + sigLen));
-    return verifyGuardianSignature(msg, signature, signer);
+    return verifyGuardianSignature(
+      msg,
+      signature,
+      signer,
+      this.header.guardianSignature
+    );
   }
 
+  /**
+   * This function verifies the signature of a message by a user
+   * @param msg The message to verify
+   * @param signer The expected signer of the message
+   * @returns True if the signature is value and false otherwise
+   */
   checkUserSignature(msg: Buffer, signer: Buffer): boolean {
     const sigLen = getSignatureByteLength(this.header.userSignature);
     const signature = Buffer.from(this.buffer.slice(0, sigLen));
-    return verifySolanaSignature(msg, signature, signer);
+    return verifyUserSignature(
+      msg,
+      signature,
+      signer,
+      this.header.userSignature
+    );
   }
 
+  /**
+   * This function fetches the record of a domain. An optional
+   * config can be specified to verify or not the signatures of the record
+   * @param connection The Solana RPC connection object
+   * @param record The type of record to fetch
+   * @param domain The domain for which to fetch the record
+   * @param config Optional config
+   * @returns The `RecordV2` object stored in the record account
+   */
   static async retrieve(
     connection: Connection,
-    recordKey: PublicKey,
+    record: Record,
+    domain: string,
     config?: RetrieveConfig
   ): Promise<RecordV2> {
+    const recordKey = getRecordV2Key(domain, record);
     const { registry } = await NameRegistryState.retrieve(
       connection,
       recordKey
@@ -271,7 +427,11 @@ export class RecordV2 {
     const msgToSign = Buffer.concat([recordKey.toBuffer(), content]);
 
     if (!config?.skipGuardianSig) {
-      recordV2.checkGuardianSignature(msgToSign, Buffer.alloc(0));
+      const selfSigned = SELF_SIGNED.has(record);
+      const signer = selfSigned
+        ? Buffer.from(recordV2.getContent().slice(32))
+        : getGuardianPublickey(record);
+      recordV2.checkGuardianSignature(msgToSign, signer);
     }
 
     if (!config?.skipUserSig) {
@@ -282,7 +442,17 @@ export class RecordV2 {
   }
 }
 
-export const deserializeRecordV2 = (content: Buffer, record: Record) => {
+/**
+ * This function deserializes a buffer based on the type of record it corresponds to
+ * If the record is not properly serialized according to SNS-IP 1 this function will throw an error
+ * @param content The content to deserialize
+ * @param record The type of record
+ * @returns The deserialized content as a string
+ */
+export const deserializeRecordV2 = (
+  content: Buffer,
+  record: Record
+): string => {
   const utf8Encoded = UTF8_ENCODED.has(record);
 
   if (utf8Encoded) {
@@ -304,6 +474,13 @@ export const deserializeRecordV2 = (content: Buffer, record: Record) => {
   }
 };
 
+/**
+ * This function serializes a string based on the type of record it corresponds to
+ * The serialization follows the SNS-IP 1 guideline
+ * @param content The content to serialize
+ * @param record The type of record
+ * @returns The serialized content as a buffer
+ */
 export const serializeRecordV2Content = (
   content: string,
   record: Record
@@ -337,6 +514,13 @@ export const serializeRecordV2Content = (
   }
 };
 
+/**
+ * This function returns the message to sign as Buffer for a domain
+ * @param content The content that will be stored in the record
+ * @param domain The domain which owns the reocrd
+ * @param record The record type
+ * @returns The Buffer to sign
+ */
 export const getMessageToSign = (
   content: string,
   domain: string,
@@ -347,27 +531,12 @@ export const getMessageToSign = (
   return Buffer.concat([recordKey.toBuffer(), buffer]);
 };
 
-export const serializeRecordV2 = (
-  content: string,
-  record: Record,
-  userSignature = EMPTY_BUFFER,
-  guardianSignature = EMPTY_BUFFER
-): Uint8Array => {
-  const buffer = serializeRecordV2Content(content, record);
-
-  const header = new RecordV2Header({
-    userSignature: userSignature.length,
-    guardianSignature: guardianSignature.length,
-    contentLength: buffer.length,
-  });
-  const recordV2 = new RecordV2({
-    header,
-    buffer: Buffer.concat([userSignature, guardianSignature, buffer]),
-  });
-
-  return recordV2.serialize();
-};
-
+/**
+ * This function derives a record v2 key
+ * @param domain The .sol domain name
+ * @param record The record to derive the key for
+ * @returns Public key of the record
+ */
 export const getRecordV2Key = (domain: string, record: Record): PublicKey => {
   const { pubkey } = getDomainKeySync(record + "." + domain, RecordVersion.V2);
   return pubkey;

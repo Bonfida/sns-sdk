@@ -2,7 +2,6 @@ import { test, expect } from "@jest/globals";
 import {
   RecordV2,
   deserializeRecordV2,
-  getRecordV2Key,
   serializeRecordV2Content,
   verifyEthereumSignature,
 } from "../src/record_v2";
@@ -85,11 +84,9 @@ test("Update record", async () => {
 
 test("Fetch record", async () => {
   const domain = "record-v2";
-  const recordKey = getRecordV2Key(domain, Record.TXT);
-  const record = await RecordV2.retrieve(connection, recordKey, {
+  const record = await RecordV2.retrieve(connection, Record.TXT, domain, {
     skipGuardianSig: true,
     skipUserSig: true,
-    deserialize: true,
   });
   expect(record.deserializeContent(Record.TXT)).toBe("test");
 });
