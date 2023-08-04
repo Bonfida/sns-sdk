@@ -90,3 +90,14 @@ test("Fetch record", async () => {
   });
   expect(record.deserializeContent(Record.TXT)).toBe("test");
 });
+
+test("Fetch records", async () => {
+  const domain = "record-v2";
+  const [txt, cname] = await RecordV2.retrieveBatch(
+    connection,
+    [Record.TXT, Record.CNAME],
+    domain
+  );
+  expect(txt?.deserializeContent(Record.TXT)).toBe("test");
+  expect(cname?.deserializeContent(Record.CNAME)).toBe("google.com");
+});

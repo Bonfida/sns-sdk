@@ -306,11 +306,6 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@bonfida/utils@^0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@bonfida/utils/-/utils-0.0.6.tgz#0acf665872a8ffd57b3c679dd29f7ba7f680e8dc"
-  integrity sha512-yjDMMpMh81koQppFHvGR9W3utXZsvqCdqIqby6kPYBdJoiKHevf2jfkM+iPofR27B5Fr5hBJm40MeT0rfrgN1Q==
-
 "@coral-xyz/anchor@^0.28.1-beta.1":
   version "0.28.1-beta.1"
   resolved "https://registry.yarnpkg.com/@coral-xyz/anchor/-/anchor-0.28.1-beta.1.tgz#0f71a3b62e38527f50d4a80e1fb4d20ba95926e2"

@@ -621,10 +621,9 @@ export const updateRecordV2Instruction = async (
 ) => {
   const { pubkey } = getDomainKeySync(`${record}.${domain}`, RecordVersion.V2);
   const info = await connection.getAccountInfo(pubkey);
-  check(!!info?.data, ErrorType.AccountDoesNotExist);
 
   const serialized = RecordV2.new(data, record).serialize();
-  if (info?.data.slice(96).length !== serialized.length) {
+  if (!!info && info?.data.slice(96).length !== serialized.length) {
     // Delete + create until we can realloc accounts
     return [
       deleteInstruction(NAME_PROGRAM_ID, pubkey, payer, owner),
@@ -655,6 +654,24 @@ export const updateRecordV2Instruction = async (
   );
 
   return [ix];
+};
+
+/**
+ * This function deletes a record v2 and returns the rent to the fee payer
+ * @param domain The .sol domain name
+ * @param record  The record type enum
+ * @param owner The owner of the record to delete
+ * @param payer The fee payer of the transaction
+ * @returns The delete transaction instruction
+ */
+export const deleteRecordV2 = async (
+  domain: string,
+  record: Record,
+  owner: PublicKey,
+  payer: PublicKey
+) => {
+  const { pubkey } = getDomainKeySync(`${record}.${domain}`, RecordVersion.V2);
+  return deleteInstruction(NAME_PROGRAM_ID, pubkey, payer, owner);
 };
 
 /**

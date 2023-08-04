@@ -250,6 +250,10 @@ export class RecordV2Header {
     this.contentLength = obj.contentLength;
   }
 
+  serialize(): Uint8Array {
+    return serialize(RecordV2Header.schema, this);
+  }
+
   /**
    * This function deserializes a buffer into a `RecordV2Header`
    * @param buffer The buffer to deserialize into a `RecordV2Header`
@@ -274,23 +278,13 @@ export class RecordV2 {
   header: RecordV2Header;
   buffer: Buffer;
 
-  static schema: Schema = new Map<any, any>([
-    [
-      RecordV2,
-      {
-        kind: "struct",
-        fields: [
-          ["header", RecordV2Header],
-          ["buffer", ["u8"]],
-        ],
-      },
-    ],
-    [RecordV2Header, RecordV2Header.schema.get(RecordV2Header)],
-  ]);
-
   constructor(obj: { header: RecordV2Header; buffer: Buffer }) {
     this.header = obj.header;
     this.buffer = obj.buffer;
+  }
+
+  getLength(): number {
+    return RecordV2Header.LEN + this.buffer.length;
   }
 
   /**
@@ -299,15 +293,24 @@ export class RecordV2 {
    * @returns A RecordV2
    */
   static deserializeUnchecked(buffer: Buffer): RecordV2 {
-    return deserializeUnchecked(this.schema, RecordV2, buffer);
+    const header = deserializeUnchecked(
+      RecordV2Header.schema,
+      RecordV2Header,
+      buffer
+    );
+    return new RecordV2({
+      header,
+      buffer: Buffer.from(buffer.slice(RecordV2Header.LEN)),
+    });
   }
 
   /**
-   * This function serializes a `RecordV2` into a Uint8Array
-   * @returns A Uint8Array
+   * This function serializes a `RecordV2` into a Buffer
+   * @returns A Buffer
    */
-  serialize(): Uint8Array {
-    return serialize(RecordV2.schema, this);
+  serialize(): Buffer {
+    const hd = this.header.serialize();
+    return Buffer.concat([hd, this.buffer]);
   }
 
   /**
@@ -439,6 +442,33 @@ export class RecordV2 {
     }
 
     return recordV2;
+  }
+
+  static async retrieveBatch(
+    connection: Connection,
+    records: Record[],
+    domain: string
+  ): Promise<(RecordV2 | undefined)[]> {
+    const pubkeys = records.map((record) => getRecordV2Key(domain, record));
+    const registries = await NameRegistryState.retrieveBatch(
+      connection,
+      pubkeys
+    );
+    const result: (RecordV2 | undefined)[] = [];
+    for (let r of registries) {
+      try {
+        if (!r?.data) {
+          result.push(undefined);
+          continue;
+        }
+        const des = RecordV2.deserializeUnchecked(r?.data);
+        result.push(des);
+      } catch {
+        result.push(undefined);
+      }
+    }
+
+    return result;
   }
 }
 
