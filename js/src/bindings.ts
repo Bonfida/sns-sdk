@@ -469,7 +469,7 @@ export const createSubdomain = async (
 };
 
 /**
- * This function can be used be create a record, it handles the serialization of the record data
+ * This function can be used be create a record V1, it handles the serialization of the record data
  * To create a SOL record use `createSolRecordInstruction`
  * @param connection The Solana RPC connection object
  * @param domain The .sol domain name
@@ -517,8 +517,7 @@ export const createRecordInstruction = async (
 };
 
 /**
- * This function can be used be create a record, it handles the serialization of the record data
- * To create a SOL record use `createSolRecordInstruction`
+ * This function can be used be create a record V2, it handles the serialization of the record data following SNS-IP 1 guidelines
  * @param connection The Solana RPC connection object
  * @param domain The .sol domain name
  * @param record The record enum object
@@ -602,6 +601,16 @@ export const updateRecordInstruction = async (
   return [ix];
 };
 
+/**
+ * This function updates the content of a record V2. The data serialization follows the SNS-IP 1 guidelines
+ * @param connection The Solana RPC connection object
+ * @param domain The .sol domain name
+ * @param record The record enum object
+ * @param data The data to write in the record
+ * @param owner The owner of the record/domain
+ * @param payer The fee payer of the transaction
+ * @returns The update record instructions
+ */
 export const updateRecordV2Instruction = async (
   connection: Connection,
   domain: string,
@@ -649,7 +658,7 @@ export const updateRecordV2Instruction = async (
 };
 
 /**
- * This function can be used to create a SOL record
+ * This function can be used to create a SOL record (V1)
  * @param connection The Solana RPC connection object
  * @param domain The .sol domain name
  * @param content The content of the SOL record i.e the public key to store as destination of the domain
