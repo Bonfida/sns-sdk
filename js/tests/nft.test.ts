@@ -36,8 +36,7 @@ test("Get tokenized domains", async () => {
       reverse: e.reverse,
     };
   });
-  domains.sort();
-
+  domains.sort((a, b) => a.reverse!.localeCompare(b.reverse!));
   for (let item of items) {
     expect(domains).toEqual(item.domains);
   }
