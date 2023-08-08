@@ -18,6 +18,8 @@ import {
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { cors } from "hono/cors";
+import { cache } from "hono/cache";
+import { logger } from "hono/logger";
 
 const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
@@ -35,7 +37,15 @@ function response<T>(success: boolean, result: T) {
 
 const app = new Hono();
 
+app.use("*", logger());
 app.use("/*", cors({ origin: "*" }));
+app.use(
+  "*",
+  cache({
+    cacheName: "sns-sdk-proxy",
+    cacheControl: "max-age=3600",
+  })
+);
 
 app.get("/", async (c) => c.text("Visit https://github.com/Bonfida/sns-sdk"));
 
