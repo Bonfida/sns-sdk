@@ -20,6 +20,7 @@ export enum ErrorType {
   InvalidReverseTwitter = "InvalidReverseTwitter",
   NoAccountData = "NoAccountData",
   InvalidInput = "InvalidInput",
+  InvalidDomain = "InvalidDomain",
 }
 
 export class SNSError extends Error {

@@ -268,6 +268,10 @@ export const registerDomainName = async (
   mint = USDC_MINT,
   referrerKey?: PublicKey
 ) => {
+  // Basic validation
+  if (name.includes(".") || name.trim().toLowerCase() !== name) {
+    throw new SNSError(ErrorType.InvalidDomain);
+  }
   const [cs] = PublicKey.findProgramAddressSync(
     [REGISTER_PROGRAM_ID.toBuffer()],
     REGISTER_PROGRAM_ID
