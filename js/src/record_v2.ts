@@ -42,7 +42,13 @@ export const NullGuardianSig: Signature = {
 /**
  * Map of record and guardian Public key
  */
-export const Guardians = new Map<Record, PublicKey>([]);
+export const Guardians = new Map<Record, PublicKey>([
+  // TODO: For dev purposes only, change this value later
+  [
+    Record.Backpack,
+    new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3"),
+  ],
+]);
 
 /**
  * Set of records that are UTF-8 encoded strings
