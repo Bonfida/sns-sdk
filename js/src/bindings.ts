@@ -521,7 +521,7 @@ export const createRecordInstruction = async (
  * @param connection The Solana RPC connection object
  * @param domain The .sol domain name
  * @param record The record enum object
- * @param data The data (as a UTF-8 string) to store in the record account
+ * @param recordV2 The `RecordV2` object that will be serialized into the record via the update instruction
  * @param owner The owner of the domain
  * @param payer The fee payer of the transaction
  * @returns
@@ -530,10 +530,11 @@ export const createRecordV2Instruction = async (
   connection: Connection,
   domain: string,
   record: Record,
-  space: number,
+  recordV2: RecordV2,
   owner: PublicKey,
   payer: PublicKey
 ) => {
+  const space = recordV2.serialize().length;
   const { pubkey, hashed, parent } = getDomainKeySync(
     `${record}.${domain}`,
     RecordVersion.V2
@@ -606,7 +607,7 @@ export const updateRecordInstruction = async (
  * @param connection The Solana RPC connection object
  * @param domain The .sol domain name
  * @param record The record enum object
- * @param data The data to write in the record
+ * @param recordV2 The `RecordV2` object to serialize into the record
  * @param owner The owner of the record/domain
  * @param payer The fee payer of the transaction
  * @returns The update record instructions
@@ -615,14 +616,14 @@ export const updateRecordV2Instruction = async (
   connection: Connection,
   domain: string,
   record: Record,
-  data: string,
+  recordV2: RecordV2,
   owner: PublicKey,
   payer: PublicKey
 ) => {
   const { pubkey } = getDomainKeySync(`${record}.${domain}`, RecordVersion.V2);
   const info = await connection.getAccountInfo(pubkey);
 
-  const serialized = RecordV2.new(data, record).serialize();
+  const serialized = recordV2.serialize();
   if (!!info && info?.data.slice(96).length !== serialized.length) {
     // Delete + create until we can realloc accounts
     return [
@@ -631,7 +632,7 @@ export const updateRecordV2Instruction = async (
         connection,
         domain,
         record,
-        serialized.length,
+        recordV2,
         owner,
         payer
       ),

@@ -47,11 +47,12 @@ test("Verify ETH signature", () => {
 test("Create record", async () => {
   const domain = "record-v2";
   const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
+  const recordV2 = RecordV2.new("something", Record.Github);
   const ix = await createRecordV2Instruction(
     connection,
     domain,
     Record.Github,
-    0,
+    recordV2,
     owner,
     owner
   );
@@ -66,11 +67,12 @@ test("Create record", async () => {
 test("Update record", async () => {
   const domain = "record-v2";
   const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
+  const recordV2 = RecordV2.new("test", Record.TXT);
   const ix = await updateRecordV2Instruction(
     connection,
     domain,
     Record.TXT,
-    "test",
+    recordV2,
     owner,
     owner
   );
