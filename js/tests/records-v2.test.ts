@@ -2,6 +2,7 @@ import { test, expect } from "@jest/globals";
 import {
   RecordV2,
   deserializeRecordV2,
+  getRecordV2Key,
   serializeRecordV2Content,
   verifyEthereumSignature,
 } from "../src/record_v2";
@@ -9,8 +10,10 @@ import { Record } from "../src/types/record";
 import { Keypair, Connection, PublicKey, Transaction } from "@solana/web3.js";
 import {
   createRecordV2Instruction,
+  deleteRecordV2,
   updateRecordV2Instruction,
 } from "../src/bindings";
+import { getRecordKeySync } from "../src/record";
 
 jest.setTimeout(50_000);
 
@@ -77,6 +80,18 @@ test("Update record", async () => {
     owner
   );
   const tx = new Transaction().add(...ix);
+  tx.feePayer = owner;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const { value } = await connection.simulateTransaction(tx);
+  expect(value.err).toBe(null);
+});
+
+test("Delete record", async () => {
+  const domain = "record-v2";
+  const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
+  const ix = await deleteRecordV2(domain, Record.TXT, owner, owner);
+  const tx = new Transaction().add(ix);
   tx.feePayer = owner;
   tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
