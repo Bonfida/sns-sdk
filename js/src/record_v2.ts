@@ -71,6 +71,7 @@ export const UTF8_ENCODED = new Set<Record>([
   Record.Backpack,
   Record.TXT,
   Record.CNAME,
+  Record.BTC,
 ]);
 
 /**
@@ -325,7 +326,7 @@ export class RecordV2 {
    * @returns The deserialized content as a string
    */
   deserializeContent(record: Record): string {
-    return deserializeRecordV2(this.getContent(), record);
+    return deserializeRecordV2Content(this.getContent(), record);
   }
 
   /**
@@ -485,7 +486,7 @@ export class RecordV2 {
  * @param record The type of record
  * @returns The deserialized content as a string
  */
-export const deserializeRecordV2 = (
+export const deserializeRecordV2Content = (
   content: Buffer,
   record: Record
 ): string => {

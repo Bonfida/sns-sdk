@@ -1,8 +1,7 @@
 import { test, expect } from "@jest/globals";
 import {
   RecordV2,
-  deserializeRecordV2,
-  getRecordV2Key,
+  deserializeRecordV2Content,
   serializeRecordV2Content,
   verifyEthereumSignature,
 } from "../src/record_v2";
@@ -22,12 +21,12 @@ const connection = new Connection("https://rpc-public.hellomoon.io");
 test("Records V2 des/ser", () => {
   let content = "this is a test";
   let ser = serializeRecordV2Content(content, Record.TXT);
-  let des = deserializeRecordV2(Buffer.from(ser), Record.TXT);
+  let des = deserializeRecordV2Content(Buffer.from(ser), Record.TXT);
   expect(des).toBe(content);
 
   content = Keypair.generate().publicKey.toBase58();
   ser = serializeRecordV2Content(content, Record.SOL);
-  des = deserializeRecordV2(Buffer.from(ser), Record.SOL);
+  des = deserializeRecordV2Content(Buffer.from(ser), Record.SOL);
   expect(des).toBe(content);
   expect(ser.length).toBe(32);
 });

@@ -3012,6 +3012,7 @@ dependencies = [
  "bech32",
  "bonfida-utils",
  "borsh",
+ "bytemuck",
  "derive_more",
  "dotenv",
  "ed25519-dalek",

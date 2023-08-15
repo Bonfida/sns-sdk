@@ -18,11 +18,11 @@ use crate::{
     },
     error::SnsError,
     favourite_domain::{derive_favorite_domain_key, FavouriteDomain},
-    record::{check_sol_record, Record},
+    record::{get_record_key, record_v1::check_sol_record, Record},
 };
 
 pub fn resolve_owner(rpc_client: &RpcClient, domain: &str) -> Result<Option<Pubkey>, SnsError> {
-    let key = get_domain_key(domain, false)?;
+    let key = get_domain_key(domain)?;
 
     let header = match resolve_name_registry(rpc_client, &key)? {
         Some((h, _)) => h,
@@ -35,7 +35,7 @@ pub fn resolve_owner(rpc_client: &RpcClient, domain: &str) -> Result<Option<Pubk
         return Ok(Some(nft_owner));
     }
 
-    let sol_record_key = get_domain_key(&format!("SOL.{domain}"), true)?;
+    let sol_record_key = get_record_key(domain, Record::Sol, crate::record::RecordVersion::V1)?;
     match resolve_name_registry(rpc_client, &sol_record_key) {
         Ok(Some((_, data))) => {
             let data = &data[..96];
@@ -71,7 +71,7 @@ pub fn resolve_record(
     domain: &str,
     record: Record,
 ) -> Result<Option<(NameRecordHeader, Vec<u8>)>, SnsError> {
-    let key = get_domain_key(&format!("{}.{domain}", record.as_str()), true)?;
+    let key = get_record_key(domain, record, crate::record::RecordVersion::V1)?;
     let res = resolve_name_registry(rpc_client, &key)?;
     if let Some(res) = res {
         Ok(Some(res))
@@ -240,7 +240,7 @@ mod tests {
     fn test_subs() {
         dotenv().ok();
         let client = RpcClient::new(std::env::var("RPC_URL").unwrap());
-        let parent: Pubkey = get_domain_key("bonfida.sol", false).unwrap();
+        let parent: Pubkey = get_domain_key("bonfida.sol").unwrap();
         let mut reverse = get_subdomains(&client, parent).unwrap();
         reverse.sort();
         assert_eq!(reverse, vec!["dex", "naming", "test"]);
