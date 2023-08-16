@@ -30,6 +30,8 @@ name-tokenizer = { git = "https://github.com/Bonfida/name-tokenizer", version = 
 
 futures = "0.3.28"
 bytemuck = "1.13.1"
+num-derive = "0.4.0"
+num-traits = "0.2.16"
 
 [dev-dependencies]
 tokio = {version = "1.26.0", features = ["full"]}

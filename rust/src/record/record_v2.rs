@@ -1,16 +1,22 @@
-use std::str::FromStr;
-
-use super::{convert_u5_array, Record};
-use crate::error::SnsError;
+use super::{convert_u5_array, get_record_key, Record};
+use crate::{
+    error::SnsError,
+    non_blocking::resolve::{resolve_name_registry, resolve_name_registry_batch},
+};
 use {
     bech32::ToBase32,
     bonfida_utils::WrappedPodMut,
     bytemuck::{Pod, Zeroable},
+    num_derive::FromPrimitive,
+    num_traits::FromPrimitive,
+    solana_client::nonblocking::rpc_client::RpcClient,
     solana_program::pubkey::Pubkey,
+    spl_name_service::state::NameRecordHeader,
     std::net::{Ipv4Addr, Ipv6Addr},
+    std::str::FromStr,
 };
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, FromPrimitive)]
 #[repr(u16)]
 pub enum GuardianSig {
     None,
@@ -19,7 +25,7 @@ pub enum GuardianSig {
     Injective,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, FromPrimitive)]
 #[repr(u16)]
 pub enum UserSig {
     None,
@@ -32,7 +38,7 @@ pub enum Signature {
     Guardian(GuardianSig),
 }
 
-#[derive(Clone, Copy, Zeroable, Pod)]
+#[derive(Clone, Copy, Zeroable, Pod, Debug)]
 #[repr(C)]
 pub struct RecordV2Header {
     pub user_signature: u16,
@@ -44,7 +50,7 @@ impl RecordV2Header {
     pub const LEN: usize = std::mem::size_of::<RecordV2Header>();
 }
 
-#[derive(WrappedPodMut)]
+#[derive(WrappedPodMut, Debug)]
 pub struct RecordV2<'a> {
     pub header: &'a mut RecordV2Header,
     pub buffer: &'a mut [u8],
@@ -59,6 +65,60 @@ impl<'a> RecordV2<'a> {
             buffer: buf,
         })
     }
+
+    pub fn get_content(&self) -> Result<&[u8], SnsError> {
+        let g_sig = Signature::Guardian(
+            GuardianSig::from_u16(self.header.guardian_signature).ok_or(SnsError::Casting)?,
+        );
+        let u_sig = Signature::User(
+            UserSig::from_u16(self.header.user_signature).ok_or(SnsError::Casting)?,
+        );
+        let offset = get_signature_byte_length(g_sig)? + get_signature_byte_length(u_sig)?;
+        let content = &self
+            .buffer
+            .get(offset..offset + self.header.content_length as usize);
+        if let Some(content) = content {
+            Ok(content)
+        } else {
+            Err(SnsError::InvalidRecordData)
+        }
+    }
+
+    pub fn deserialize(&self, record: Record) -> Result<String, SnsError> {
+        deserialize_record_v2_content(self.get_content()?, record)
+    }
+}
+
+pub async fn retrieve_record_v2(
+    rpc_client: RpcClient,
+    record: Record,
+    domain: &str,
+) -> Result<Option<(NameRecordHeader, Vec<u8>)>, SnsError> {
+    let record_key = get_record_key(domain, record, super::RecordVersion::V2)?;
+    resolve_name_registry(&rpc_client, &record_key).await
+}
+
+pub async fn retrieve_records_batch_v2(
+    rpc_client: RpcClient,
+    records: &[Record],
+    domain: &str,
+) -> Result<Vec<Option<(NameRecordHeader, Vec<u8>)>>, SnsError> {
+    let pubkeys = records
+        .iter()
+        .map(|r| get_record_key(domain, *r, super::RecordVersion::V2))
+        .collect::<Result<Vec<_>, _>>()?;
+    resolve_name_registry_batch(&rpc_client, &pubkeys).await
+}
+
+pub fn verify_solana_signature(
+    message: &[u8],
+    signature: &[u8],
+    public_key: &[u8],
+) -> Result<bool, SnsError> {
+    let key = ed25519_dalek::PublicKey::from_bytes(public_key)?;
+    let sig = ed25519_dalek::Signature::from_bytes(signature)?;
+    let res = key.verify_strict(message, &sig).is_ok();
+    Ok(res)
 }
 
 pub fn get_signature_byte_length(signature_type: Signature) -> Result<usize, SnsError> {
@@ -199,4 +259,100 @@ pub fn serialize_record_v2_content(content: &str, record: Record) -> Result<Vec<
     }
 }
 
-pub fn get_message_to_sign() {}
+pub fn get_message_to_sign(
+    content: &str,
+    domain: &str,
+    record: Record,
+) -> Result<Vec<u8>, SnsError> {
+    let buffer = serialize_record_v2_content(content, record)?;
+    let record_key = get_record_key(domain, record, super::RecordVersion::V2)?;
+    let res = [record_key.to_bytes().to_vec(), buffer].concat();
+    Ok(res)
+}
+
+#[cfg(test)]
+mod test {
+    use dotenv::dotenv;
+
+    use super::*;
+    #[test]
+    fn test_serialize_record_v2_content() {
+        let content = "this is a test";
+        let buffer = vec![
+            116, 104, 105, 115, 32, 105, 115, 32, 97, 32, 116, 101, 115, 116, 45,
+        ];
+        let ser = serialize_record_v2_content(content, Record::TXT).unwrap();
+        assert_eq!(buffer, ser);
+
+        let content = "D8mRVSXrE2uU8KDAKQsGbfBNRyunMrmHBdEMrtWz1cUc";
+        let buffer = vec![
+            180, 73, 137, 132, 77, 15, 98, 34, 43, 221, 219, 250, 234, 69, 5, 187, 165, 135, 112,
+            64, 210, 198, 161, 135, 12, 123, 255, 155, 246, 126, 213, 29,
+        ];
+        let ser = serialize_record_v2_content(content, Record::Sol).unwrap();
+        assert_eq!(buffer, ser)
+    }
+
+    #[test]
+    fn test_deserialize_record_v2_content() {
+        let content = "this is a test";
+        let buffer = vec![
+            116, 104, 105, 115, 32, 105, 115, 32, 97, 32, 116, 101, 115, 116, 45,
+        ];
+        let des = deserialize_record_v2_content(&buffer, Record::TXT).unwrap();
+        assert_eq!(des, content);
+
+        let content = "D8mRVSXrE2uU8KDAKQsGbfBNRyunMrmHBdEMrtWz1cUc";
+        let buffer = vec![
+            180, 73, 137, 132, 77, 15, 98, 34, 43, 221, 219, 250, 234, 69, 5, 187, 165, 135, 112,
+            64, 210, 198, 161, 135, 12, 123, 255, 155, 246, 126, 213, 29,
+        ];
+        let des = deserialize_record_v2_content(&buffer, Record::Sol).unwrap();
+        assert_eq!(des, content)
+    }
+
+    #[test]
+    fn test_des_ser() {
+        let content = "test";
+        let ser = serialize_record_v2_content(content, Record::TXT).unwrap();
+        let des = deserialize_record_v2_content(&ser, Record::TXT).unwrap();
+        assert_eq!(content, des);
+
+        let content = "192.168.0.0";
+        let ser = serialize_record_v2_content(content, Record::A).unwrap();
+        let des = deserialize_record_v2_content(&ser, Record::A).unwrap();
+        assert_eq!(content, des);
+    }
+
+    #[tokio::test]
+    async fn test_fetch_record() {
+        dotenv().ok();
+        let domain = "record-v2";
+        let rpc_client = RpcClient::new(std::env::var("RPC_URL").unwrap());
+        let (_, mut data) = retrieve_record_v2(rpc_client, Record::TXT, domain)
+            .await
+            .unwrap()
+            .unwrap();
+        let record_v2 = RecordV2::from_buffer(&mut data).unwrap();
+        let des = record_v2.deserialize(Record::TXT).unwrap();
+        assert_eq!(des, "test")
+    }
+
+    #[tokio::test]
+    async fn test_fetch_records_batch() {
+        dotenv().ok();
+        let domain = "record-v2";
+        let rpc_client = RpcClient::new(std::env::var("RPC_URL").unwrap());
+        let res = retrieve_records_batch_v2(rpc_client, &[Record::TXT, Record::CNAME], domain)
+            .await
+            .unwrap();
+        let (_, mut txt_data) = res[0].as_ref().unwrap().clone();
+        let txt = RecordV2::from_buffer(&mut txt_data).unwrap();
+        assert_eq!(txt.deserialize(Record::TXT).unwrap(), "test");
+
+        // Process CNAME record
+        let (_, mut cname_data) = res[1].as_ref().unwrap().clone();
+        let cname = RecordV2::from_buffer(&mut cname_data).unwrap();
+        assert_eq!(cname.deserialize(Record::CNAME).unwrap(), "google.com");
+    }
+}
