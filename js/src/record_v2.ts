@@ -42,11 +42,11 @@ export const NullGuardianSig: Signature = {
 /**
  * Map of record and guardian Public key
  */
-export const Guardians = new Map<Record, PublicKey>([
+export const Guardians = new Map<Record, Buffer>([
   // TODO: For dev purposes only, change this value later
   [
     Record.Backpack,
-    new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3"),
+    new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3").toBuffer(),
   ],
 ]);
 
@@ -120,10 +120,11 @@ export const getSignatureByteLength = (
  * @returns The guardian's public key
  */
 export const getGuardianPublickey = (record: Record): Buffer => {
-  switch (record) {
+  const pubkey = Guardians.get(record);
+  if (!pubkey) {
+    throw new SNSError(ErrorType.RecordDoestNotSupportGuardianSig);
   }
-
-  throw new SNSError(ErrorType.RecordDoestNotSupportGuardianSig);
+  return pubkey;
 };
 
 /**
@@ -367,7 +368,7 @@ export class RecordV2 {
     const header = new RecordV2Header({
       userSignature: userSignature.signatureType,
       guardianSignature: guardianSignature.signatureType,
-      contentLength: buffer.length,
+      contentLength: ser.length,
     });
     return new RecordV2({ header, buffer });
   }
