@@ -33,9 +33,23 @@ pub enum UserSig {
 }
 
 #[derive(Clone, Copy)]
-pub enum Signature {
+pub enum SignatureType {
     User(UserSig),
     Guardian(GuardianSig),
+}
+
+impl From<SignatureType> for u16 {
+    fn from(sig_type: SignatureType) -> u16 {
+        match sig_type {
+            SignatureType::User(user_sig) => user_sig as u16,
+            SignatureType::Guardian(guardian_sig) => guardian_sig as u16,
+        }
+    }
+}
+
+pub struct Signatrue<'a> {
+    pub sig_type: SignatureType,
+    pub signature: &'a [u8],
 }
 
 #[derive(Clone, Copy, Zeroable, Pod, Debug)]
@@ -67,10 +81,10 @@ impl<'a> RecordV2<'a> {
     }
 
     pub fn get_content(&self) -> Result<&[u8], SnsError> {
-        let g_sig = Signature::Guardian(
+        let g_sig: SignatureType = SignatureType::Guardian(
             GuardianSig::from_u16(self.header.guardian_signature).ok_or(SnsError::Casting)?,
         );
-        let u_sig = Signature::User(
+        let u_sig = SignatureType::User(
             UserSig::from_u16(self.header.user_signature).ok_or(SnsError::Casting)?,
         );
         let offset = get_signature_byte_length(g_sig)? + get_signature_byte_length(u_sig)?;
@@ -86,6 +100,15 @@ impl<'a> RecordV2<'a> {
 
     pub fn deserialize(&self, record: Record) -> Result<String, SnsError> {
         deserialize_record_v2_content(self.get_content()?, record)
+    }
+
+    pub fn serialize(&mut self) -> Result<Vec<u8>, SnsError> {
+        let header_bytes =
+            bytemuck::cast_mut::<RecordV2Header, [u8; RecordV2Header::LEN]>(self.header);
+        let mut res = Vec::with_capacity(RecordV2Header::LEN + self.buffer.len());
+        res.extend_from_slice(header_bytes);
+        res.extend_from_slice(self.buffer);
+        Ok(res)
     }
 }
 
@@ -103,7 +126,7 @@ pub async fn retrieve_records_batch_v2(
     records: &[Record],
     domain: &str,
 ) -> Result<Vec<Option<(NameRecordHeader, Vec<u8>)>>, SnsError> {
-    let pubkeys = records
+    let pubkeys: Vec<Pubkey> = records
         .iter()
         .map(|r| get_record_key(domain, *r, super::RecordVersion::V2))
         .collect::<Result<Vec<_>, _>>()?;
@@ -121,15 +144,15 @@ pub fn verify_solana_signature(
     Ok(res)
 }
 
-pub fn get_signature_byte_length(signature_type: Signature) -> Result<usize, SnsError> {
+pub fn get_signature_byte_length(signature_type: SignatureType) -> Result<usize, SnsError> {
     match signature_type {
-        Signature::Guardian(guardian) => match guardian {
+        SignatureType::Guardian(guardian) => match guardian {
             GuardianSig::None => Ok(0),
             GuardianSig::Solana => Ok(64),
             GuardianSig::Ethereum => Ok(65),
             GuardianSig::Injective => Ok(65),
         },
-        Signature::User(user) => match user {
+        SignatureType::User(user) => match user {
             UserSig::None => Ok(0),
             UserSig::Solana => Ok(64),
         },
