@@ -65,12 +65,12 @@ impl RecordV2Header {
 }
 
 #[derive(WrappedPodMut, Debug)]
-pub struct RecordV2<'a> {
+pub struct RecordV2Ref<'a> {
     pub header: &'a mut RecordV2Header,
     pub buffer: &'a mut [u8],
 }
 
-impl<'a> RecordV2<'a> {
+impl<'a> RecordV2Ref<'a> {
     pub fn from_buffer(buffer: &'a mut [u8]) -> Result<Self, SnsError> {
         let (hd, buf) = buffer.split_at_mut(RecordV2Header::LEN);
         let header = bytemuck::try_from_bytes_mut::<RecordV2Header>(hd)?;
@@ -290,12 +290,13 @@ pub fn get_message_to_sign(
     let buffer = serialize_record_v2_content(content, record)?;
     let record_key = get_record_key(domain, record, super::RecordVersion::V2)?;
     let res = [record_key.to_bytes().to_vec(), buffer].concat();
-    Ok(res)
+    Ok(hex::encode(res).as_bytes().to_vec())
 }
 
 #[cfg(test)]
 mod test {
     use dotenv::dotenv;
+    use solana_sdk::pubkey;
 
     use super::*;
     #[test]
@@ -356,7 +357,7 @@ mod test {
             .await
             .unwrap()
             .unwrap();
-        let record_v2 = RecordV2::from_buffer(&mut data).unwrap();
+        let record_v2 = RecordV2Ref::from_buffer(&mut data).unwrap();
         let des = record_v2.deserialize(Record::TXT).unwrap();
         assert_eq!(des, "test")
     }
@@ -370,12 +371,32 @@ mod test {
             .await
             .unwrap();
         let (_, mut txt_data) = res[0].as_ref().unwrap().clone();
-        let txt = RecordV2::from_buffer(&mut txt_data).unwrap();
+        let txt = RecordV2Ref::from_buffer(&mut txt_data).unwrap();
         assert_eq!(txt.deserialize(Record::TXT).unwrap(), "test");
 
         // Process CNAME record
         let (_, mut cname_data) = res[1].as_ref().unwrap().clone();
-        let cname = RecordV2::from_buffer(&mut cname_data).unwrap();
+        let cname = RecordV2Ref::from_buffer(&mut cname_data).unwrap();
         assert_eq!(cname.deserialize(Record::CNAME).unwrap(), "google.com");
+    }
+
+    #[tokio::test]
+    async fn test_user_signature() {
+        dotenv().ok();
+        let owner = pubkey!("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
+        let domain = "20220901";
+        let msg = get_message_to_sign("test@email.com1", domain, Record::Email).unwrap();
+        let rpc_client = RpcClient::new(std::env::var("RPC_URL").unwrap());
+        let (_, mut data) = retrieve_record_v2(rpc_client, Record::Email, domain)
+            .await
+            .unwrap()
+            .unwrap();
+        let r = RecordV2Ref::from_buffer(&mut data).unwrap();
+        let sig = r
+            .buffer
+            .get(0..get_signature_byte_length(SignatureType::User(UserSig::Solana)).unwrap())
+            .unwrap();
+        let valid = verify_solana_signature(&msg, sig, &owner.to_bytes()).unwrap();
+        assert!(valid)
     }
 }
