@@ -553,7 +553,7 @@ export const serializeRecordV2Content = (
 };
 
 /**
- * This function returns the message to sign as Buffer for a domain
+ * This function returns the message to sign as Uint8Array for a domain
  * @param content The content that will be stored in the record
  * @param domain The domain which owns the reocrd
  * @param record The record type
@@ -563,10 +563,11 @@ export const getMessageToSign = (
   content: string,
   domain: string,
   record: Record
-): Buffer => {
+): Uint8Array => {
   const buffer = serializeRecordV2Content(content, record);
   const recordKey = getRecordV2Key(domain, record);
-  return Buffer.concat([recordKey.toBuffer(), buffer]);
+  const hexStr = Buffer.concat([recordKey.toBuffer(), buffer]).toString("hex");
+  return Uint8Array.from(Buffer.from(hexStr));
 };
 
 /**
