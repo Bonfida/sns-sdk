@@ -53,6 +53,16 @@ pub struct Signatrue<'a> {
     pub signature: &'a [u8],
 }
 
+pub const EmptyUserSignature: Signatrue<'static> = Signatrue {
+    sig_type: SignatureType::User(UserSig::None),
+    signature: &[],
+};
+
+pub const EmptyGuardianSignature: Signatrue<'static> = Signatrue {
+    sig_type: SignatureType::User(UserSig::None),
+    signature: &[],
+};
+
 #[derive(Clone, Copy, Zeroable, Pod, Debug)]
 #[repr(C)]
 pub struct RecordV2Header {
@@ -81,6 +91,31 @@ impl<'a> RecordV2<&'a mut RecordV2Header, &'a mut [u8]> {
         Ok(Self {
             header,
             buffer: buf,
+        })
+    }
+}
+
+impl RecordV2<Box<RecordV2Header>, Box<[u8]>> {
+    pub fn new(
+        content: &str,
+        record: Record,
+        user_sig: Option<Signatrue>,
+        guardian_sig: Option<Signatrue>,
+    ) -> Result<Self, SnsError> {
+        let content = serialize_record_v2_content(content, record)?;
+
+        let header = RecordV2Header {
+            user_signature: user_sig.unwrap_or(EmptyUserSignature).sig_type.into(),
+            guardian_signature: guardian_sig
+                .unwrap_or(EmptyGuardianSignature)
+                .sig_type
+                .into(),
+            content_length: content.len() as u32,
+        };
+
+        Ok(Self {
+            buffer: content.into_boxed_slice(),
+            header: Box::new(header),
         })
     }
 }
