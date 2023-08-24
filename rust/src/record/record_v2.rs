@@ -1,3 +1,5 @@
+use std::ops::DerefMut;
+
 use super::{convert_u5_array, get_record_key, Record};
 use crate::{
     error::SnsError,
@@ -5,7 +7,6 @@ use crate::{
 };
 use {
     bech32::ToBase32,
-    bonfida_utils::WrappedPodMut,
     bytemuck::{Pod, Zeroable},
     num_derive::FromPrimitive,
     num_traits::FromPrimitive,
@@ -64,13 +65,16 @@ impl RecordV2Header {
     pub const LEN: usize = std::mem::size_of::<RecordV2Header>();
 }
 
-#[derive(WrappedPodMut, Debug)]
-pub struct RecordV2Ref<'a> {
-    pub header: &'a mut RecordV2Header,
-    pub buffer: &'a mut [u8],
+#[derive(Debug)]
+pub struct RecordV2<H: DerefMut<Target = RecordV2Header>, B: DerefMut<Target = [u8]>> {
+    pub header: H,
+    pub buffer: B,
 }
 
-impl<'a> RecordV2Ref<'a> {
+pub type RecordV2Ref<'a> = RecordV2<&'a mut RecordV2Header, &'a mut [u8]>;
+pub type ReccordV2Heaped = RecordV2<Box<RecordV2Header>, Box<[u8]>>;
+
+impl<'a> RecordV2<&'a mut RecordV2Header, &'a mut [u8]> {
     pub fn from_buffer(buffer: &'a mut [u8]) -> Result<Self, SnsError> {
         let (hd, buf) = buffer.split_at_mut(RecordV2Header::LEN);
         let header = bytemuck::try_from_bytes_mut::<RecordV2Header>(hd)?;
@@ -79,7 +83,9 @@ impl<'a> RecordV2Ref<'a> {
             buffer: buf,
         })
     }
+}
 
+impl<H: DerefMut<Target = RecordV2Header>, B: DerefMut<Target = [u8]>> RecordV2<H, B> {
     pub fn get_content(&self) -> Result<&[u8], SnsError> {
         let g_sig: SignatureType = SignatureType::Guardian(
             GuardianSig::from_u16(self.header.guardian_signature).ok_or(SnsError::Casting)?,
@@ -104,10 +110,10 @@ impl<'a> RecordV2Ref<'a> {
 
     pub fn serialize(&mut self) -> Result<Vec<u8>, SnsError> {
         let header_bytes =
-            bytemuck::cast_mut::<RecordV2Header, [u8; RecordV2Header::LEN]>(self.header);
+            bytemuck::cast_mut::<RecordV2Header, [u8; RecordV2Header::LEN]>(&mut self.header);
         let mut res = Vec::with_capacity(RecordV2Header::LEN + self.buffer.len());
         res.extend_from_slice(header_bytes);
-        res.extend_from_slice(self.buffer);
+        res.extend_from_slice(&self.buffer);
         Ok(res)
     }
 }
@@ -357,7 +363,7 @@ mod test {
             .await
             .unwrap()
             .unwrap();
-        let record_v2 = RecordV2Ref::from_buffer(&mut data).unwrap();
+        let record_v2 = RecordV2::from_buffer(&mut data).unwrap();
         let des = record_v2.deserialize(Record::TXT).unwrap();
         assert_eq!(des, "test")
     }
@@ -371,12 +377,12 @@ mod test {
             .await
             .unwrap();
         let (_, mut txt_data) = res[0].as_ref().unwrap().clone();
-        let txt = RecordV2Ref::from_buffer(&mut txt_data).unwrap();
+        let txt = RecordV2::from_buffer(&mut txt_data).unwrap();
         assert_eq!(txt.deserialize(Record::TXT).unwrap(), "test");
 
         // Process CNAME record
         let (_, mut cname_data) = res[1].as_ref().unwrap().clone();
-        let cname = RecordV2Ref::from_buffer(&mut cname_data).unwrap();
+        let cname = RecordV2::from_buffer(&mut cname_data).unwrap();
         assert_eq!(cname.deserialize(Record::CNAME).unwrap(), "google.com");
     }
 
@@ -391,7 +397,7 @@ mod test {
             .await
             .unwrap()
             .unwrap();
-        let r = RecordV2Ref::from_buffer(&mut data).unwrap();
+        let r = RecordV2::from_buffer(&mut data).unwrap();
         let sig = r
             .buffer
             .get(0..get_signature_byte_length(SignatureType::User(UserSig::Solana)).unwrap())
