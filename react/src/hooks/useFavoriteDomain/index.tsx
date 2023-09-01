@@ -18,7 +18,7 @@ export const useFavoriteDomain = (
     if (!key) return;
     try {
       const res = await getFavoriteDomain(connection, key);
-      return res;
+      return { pubkey: res.domain, domain: res.reverse };
     } catch (err) {
       console.log(err);
       return undefined;

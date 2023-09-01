@@ -24,7 +24,10 @@ export const useDomainsForOwner = (
       .map((e, idx) => {
         return { pubkey: e, domain: reverses[idx] };
       })
-      .filter((e) => !!e.domain) as Result;
+      .filter((e) => !!e.domain)
+      .sort((a, b) =>
+        (a.domain as string).localeCompare(b.domain as string)
+      ) as Result;
     return result;
   }, [key?.toBase58()]);
 };
