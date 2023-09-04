@@ -4,12 +4,14 @@ use {
     bech32,
     bech32::u5,
     bech32::ToBase32,
+    bonfida_utils::BorshSize,
+    borsh::{BorshDeserialize, BorshSerialize},
     ed25519_dalek,
     solana_program::pubkey::Pubkey,
     std::net::{Ipv4Addr, Ipv6Addr},
 };
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, BorshDeserialize, BorshSerialize)]
 pub enum Record {
     Ipfs,
     Arwv,
@@ -35,6 +37,12 @@ pub enum Record {
     AAAA,
     CNAME,
     TXT,
+}
+
+impl BorshSize for Record {
+    fn borsh_len(&self) -> usize {
+        1
+    }
 }
 
 impl Record {
