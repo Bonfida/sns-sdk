@@ -5,11 +5,30 @@ use {
 
 use crate::error::SnsError;
 
-pub const ROOT_DOMAIN_ACCOUNT: Pubkey = pubkey!("58PwtjSDuFHuUkYjH9BYnnQKHfwo9reZhC2zMJv9JPkx");
-pub const REVERSE_LOOKUP_CLASS: Pubkey = pubkey!("33m47vH6Eav6jr5Ry86XjhRft2jRBLDnDgPSHoquXi2Z");
+pub use constants::*;
+#[cfg(not(feature = "devnet"))]
+mod constants {
+    use super::*;
 
-pub const MINT_PREFIX: &[u8; 14] = b"tokenized_name";
-pub const NAME_TOKENIZER_ID: Pubkey = pubkey!("nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk");
+    pub const ROOT_DOMAIN_ACCOUNT: Pubkey = pubkey!("58PwtjSDuFHuUkYjH9BYnnQKHfwo9reZhC2zMJv9JPkx");
+    pub const REVERSE_LOOKUP_CLASS: Pubkey =
+        pubkey!("33m47vH6Eav6jr5Ry86XjhRft2jRBLDnDgPSHoquXi2Z");
+
+    pub const MINT_PREFIX: &[u8; 14] = b"tokenized_name";
+    pub const NAME_TOKENIZER_ID: Pubkey = pubkey!("nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk");
+}
+#[cfg(feature = "devnet")]
+mod constants {
+    use super::*;
+
+    pub const ROOT_DOMAIN_ACCOUNT: Pubkey = pubkey!("5eoDkP6vCQBXqDV9YN2NdUs3nmML3dMRNmEYpiyVNBm2");
+    pub const REVERSE_LOOKUP_CLASS: Pubkey =
+        pubkey!("7NbD1vprif6apthEZAqhRfYuhrqnuderB8qpnfXGCc8H");
+
+    pub const MINT_PREFIX: &[u8; 14] = b"tokenized_name";
+    // TODO
+    pub const NAME_TOKENIZER_ID: Pubkey = pubkey!("nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk");
+}
 
 #[derive(Copy, Clone, Debug)]
 pub enum Domain {

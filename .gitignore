@@ -174,4 +174,6 @@ js/.DS_Store
 
 target
 
+.vscode
+
 .wrangler
