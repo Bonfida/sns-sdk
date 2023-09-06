@@ -30,10 +30,10 @@
   dependencies:
     regenerator-runtime "^0.13.11"
 
-"@bonfida/spl-name-service@^1.0.8":
-  version "1.0.8"
-  resolved "https://registry.yarnpkg.com/@bonfida/spl-name-service/-/spl-name-service-1.0.8.tgz#afd76c3d6cd746aeee65a4b4112af30c3a7f7991"
-  integrity sha512-OVWo9lqpHs2SibcW3ZGaRK4hqgZzIq5CdvU5SO148gsjzFH2w41/MBFrB4Tp1zDA+sld50r8Fesq2HbnlPG3/Q==
+"@bonfida/spl-name-service@^1.0.11":
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/@bonfida/spl-name-service/-/spl-name-service-1.0.11.tgz#f84f149d3ca6b470444d4bfc64c25303d71bc707"
+  integrity sha512-uZA19yMkiv/bZt/QRH3gDWfL3ed15zFj3+ojhyQWhea+Esw5QEXuvHNS8CuWPHieqz8P00DzBI/EJyxWCs/OIg==
   dependencies:
     "@ethersproject/sha2" "^5.7.0"
     "@pythnetwork/client" "^2.19.0"
