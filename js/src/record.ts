@@ -365,6 +365,24 @@ export const deserializeRecord = (
     return buffer.slice(0, idx).toString("utf-8");
   }
 
+  // Handle SOL record first whether it's over allocated or not
+  if (record === Record.SOL) {
+    const encoder = new TextEncoder();
+    const expectedBuffer = Buffer.concat([
+      buffer.slice(0, 32),
+      recordKey.toBuffer(),
+    ]);
+    const expected = encoder.encode(expectedBuffer.toString("hex"));
+    const valid = checkSolRecord(
+      expected,
+      buffer.slice(32, 96),
+      registry.owner
+    );
+    if (valid) {
+      return base58.encode(buffer.slice(0, 32));
+    }
+  }
+
   // Old record UTF-8 encoded
   if (size && idx !== size) {
     const address = buffer.slice(0, idx).toString("utf-8");
@@ -387,18 +405,7 @@ export const deserializeRecord = (
     throw new SNSError(ErrorType.InvalidRecordData);
   }
 
-  if (record === Record.SOL) {
-    const encoder = new TextEncoder();
-    const expectedBuffer = Buffer.concat([
-      buffer.slice(0, 32),
-      recordKey.toBuffer(),
-    ]);
-    const expected = encoder.encode(expectedBuffer.toString("hex"));
-    const valid = checkSolRecord(expected, buffer.slice(32), registry.owner);
-    if (valid) {
-      return base58.encode(buffer.slice(0, 32));
-    }
-  } else if (record === Record.ETH || record === Record.BSC) {
+  if (record === Record.ETH || record === Record.BSC) {
     return "0x" + buffer.slice(0, size).toString("hex");
   } else if (record === Record.Injective) {
     return encode("inj", buffer.slice(0, size), "bech32");
