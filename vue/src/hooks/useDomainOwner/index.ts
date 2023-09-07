@@ -1,4 +1,4 @@
-import { ref, watch, Ref, toRef } from "vue";
+import { ref, watch, Ref, MaybeRef, toRef } from "vue";
 import { resolve } from "@bonfida/spl-name-service";
 import { Connection, PublicKey } from "@solana/web3.js";
 
@@ -9,25 +9,40 @@ import { Connection, PublicKey } from "@solana/web3.js";
  * @returns ref publicKey of the domain owner, or undefined if not found.
  *
  * @example
- * const owner = useDomainOwner(connection, 'domain');
+ * const { owner, isLoading, loadingError } = useDomainOwner(connection, 'domain');
  * console.log(owner.value); // '9ZNTfG4NyQgxy2SWjSiQoUyBPEvXT2xo7fKc5hPYYJ7b' | undefined
  */
 export const useDomainOwner = (
   connection: Connection | null | undefined,
-  domain: Ref<string | null | undefined> | string | null | undefined,
-): Ref<PublicKey | undefined> => {
-  const owner = ref<PublicKey | undefined>(undefined);
+  domain: MaybeRef<string | null | undefined>,
+) => {
+  const owner = ref<PublicKey | null>(null);
   const refDomain = toRef(domain);
+  const isLoading = ref(false);
+  const loadingError: Ref<any> = ref(null);
 
   const updateOwner = async () => {
-    if (refDomain.value && connection) {
-      owner.value = await resolve(connection, refDomain.value);
-    } else {
-      owner.value = undefined;
+    try {
+      isLoading.value = true;
+      loadingError.value = null;
+
+      if (refDomain.value && connection) {
+        owner.value = await resolve(connection, refDomain.value);
+      } else {
+        owner.value = null;
+      }
+    } catch (err) {
+      loadingError.value = err;
+    } finally {
+      isLoading.value = false;
     }
   }
 
   watch(refDomain, updateOwner, { immediate: true });
 
-  return owner;
+  return {
+    owner,
+    isLoading,
+    loadingError,
+  };
 };
