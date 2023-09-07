@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import SolanaWallets from "solana-wallets-vue";
 import './style.css'
-import App from './App.vue'
+import App from './app.vue'
 import { initSolanaConnection } from './utils/solana';
 
 import "solana-wallets-vue/styles.css";
