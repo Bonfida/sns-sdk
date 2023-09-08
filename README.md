@@ -44,9 +44,12 @@ SNS SDK monorepo
 6. [Swift](#swift)
 7. [CLI](#cli)
 8. [React](#react)
-9. [Examples](#examples)
-   - Resolving a domain
-10. [Bounties](#bounties)
+9. [Vue](#vue)
+10. [Examples](#examples)
+
+- Resolving a domain
+
+11. [Bounties](#bounties)
 
 <br />
 <a name="javascript"></a>
@@ -165,7 +168,7 @@ Work in progress
 
 <br />
 <a name="examples"></a>
-<h2 align="center">React</h2>
+<h2 id="react" align="center">React</h2>
 <br />
 
 This package contains a set of useful React hooks to help you build your perfect dApp. If you are interested in a hook that is not included in this package please open an issue to let us know!
@@ -177,6 +180,22 @@ npm i @bonfida/sns-react
 ```
 yarn add @bonfida/sns-react
 ```
+
+<br />
+<h2 id="vue" align="center">Vue</h2>
+<br />
+
+This package contains a set of useful Vue composables to help you build your perfect dApp. If you are interested in a composable that is not included in this package please open an issue to let us know!
+
+```
+npm i @bonfida/sns-vue
+```
+
+```
+yarn add @bonfida/sns-vue
+```
+
+[Demo app](/examples/vue-app) with an example of each composable usage.
 
 <br />
 <a name="examples"></a>
