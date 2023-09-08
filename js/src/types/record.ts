@@ -26,6 +26,7 @@ export enum Record {
   AAAA = "AAAA",
   CNAME = "CNAME",
   TXT = "TXT",
+  Background = "background",
 }
 
 export const RECORD_V1_SIZE: Map<Record, number> = new Map([
@@ -35,4 +36,5 @@ export const RECORD_V1_SIZE: Map<Record, number> = new Map([
   [Record.Injective, 20],
   [Record.A, 4],
   [Record.AAAA, 16],
+  [Record.Background, 32],
 ]);

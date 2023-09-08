@@ -343,7 +343,22 @@ export const getBackpackRecord = async (
 };
 
 /**
+
  * This function can be used to deserialize the content of a record. If the content is invalid it will throw an error
+ * This function can be used to retrieve the Background record (V1) of a domain name
+ * @param connection The Solana RPC connection object
+ * @param domain The .sol domain name
+ * @returns
+ */
+export const getBackgroundRecord = async (
+  connection: Connection,
+  domain: string
+) => {
+  return await getRecord(connection, domain, Record.Background, true);
+};
+
+/**
+ * This function can be used to deserialize the content of a record (V1). If the content is invalid it will throw an error
  * @param registry The name registry state object of the record being deserialized
  * @param record The record enum being deserialized
  * @param recordKey The public key of the record being deserialized
@@ -411,6 +426,8 @@ export const deserializeRecord = (
     return encode("inj", buffer.slice(0, size), "bech32");
   } else if (record === Record.A || record === Record.AAAA) {
     return ipaddr.fromByteArray([...buffer.slice(0, size)]).toString();
+  } else if (record === Record.Background) {
+    return new PublicKey(buffer.slice(0, size)).toString();
   }
   throw new SNSError(ErrorType.InvalidRecordData);
 };
@@ -453,6 +470,8 @@ export const serializeRecord = (str: string, record: Record): Buffer => {
     const array = ipaddr.parse(str).toByteArray();
     check(array.length === 16, ErrorType.InvalidAAAARecord);
     return Buffer.from(array);
+  } else if (record === Record.Background) {
+    return new PublicKey(str).toBuffer();
   }
 
   throw new SNSError(ErrorType.InvalidRecordInput);
