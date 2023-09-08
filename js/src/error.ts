@@ -21,6 +21,7 @@ export enum ErrorType {
   NoAccountData = "NoAccountData",
   InvalidInput = "InvalidInput",
   InvalidDomain = "InvalidDomain",
+  InvalidCustomBg = "InvalidCustomBackground",
 }
 
 export class SNSError extends Error {
