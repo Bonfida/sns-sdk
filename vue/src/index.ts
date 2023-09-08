@@ -1,2 +1,3 @@
-export { useDomainOwner } from './composables/useDomainOwner';
-export { useDomainsForOwner } from './composables/useDomainsForOwner';
+export * from './composables/useDomainOwner';
+export * from './composables/useDomainsForOwner';
+export * from './composables/useDomainSize';
