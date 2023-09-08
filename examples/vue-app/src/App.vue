@@ -2,6 +2,7 @@
 import { WalletMultiButton } from 'solana-wallets-vue';
 import UseDomainOwnerExample from './components/useDomainOwner-example.vue';
 import UseDomainsForOwnerExample from './components/useDomainsForOwner-example.vue';
+import UseDomainSizeExample from './components/useDomainSize-example.vue';
 </script>
 
 <template>
@@ -10,8 +11,8 @@ import UseDomainsForOwnerExample from './components/useDomainsForOwner-example.v
 
     <div class="grid gap-6">
       <UseDomainOwnerExample />
-
       <UseDomainsForOwnerExample />
+      <UseDomainSizeExample />
     </div>
   </div>
 </template>
