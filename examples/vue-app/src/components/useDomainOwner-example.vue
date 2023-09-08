@@ -26,5 +26,8 @@ const connection = useSolanaConnection();
 const domainName = ref('');
 const debouncedDomainName = refDebounced(domainName);
 
-const { owner, isLoading } = useDomainOwner(connection, debouncedDomainName);
+const { result: owner, isLoading } = useDomainOwner(
+  connection,
+  debouncedDomainName,
+);
 </script>

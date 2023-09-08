@@ -1,2 +1,2 @@
-export { useDomainOwner } from './hooks/useDomainOwner';
-export { useDomainsForOwner } from './hooks/useDomainsForOwner';
+export { useDomainOwner } from './composables/useDomainOwner';
+export { useDomainsForOwner } from './composables/useDomainsForOwner';

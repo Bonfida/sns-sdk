@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/Bonfida/sns-sdk/blob/main/vue/README.md",
   "peerDependencies": {
-    "vue": "^3.0.0"
+    "vue": "^3.3.0"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^11.1.3",
