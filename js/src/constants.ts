@@ -103,3 +103,7 @@ export const PYTH_MAPPING_ACC = new PublicKey(
 export const VAULT_OWNER = new PublicKey(
   "GcWEQ9K78FV7LEHteFVciYApERk5YvQuFDQPk1yYJVXi"
 );
+
+export const CUSTOM_BG_TLD = new PublicKey(
+  "BPeXUQDqGbzxeK1LJby6ugvCBuo7kRSEUkjD726mUVsz"
+);
