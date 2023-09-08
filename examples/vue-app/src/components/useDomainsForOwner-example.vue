@@ -10,7 +10,10 @@ const connection = useSolanaConnection();
 const owner = ref('');
 const debouncedOwner = refDebounced(owner);
 
-const { domains, isLoading } = useDomainsForOwner(connection, debouncedOwner);
+const { result: domains, isLoading } = useDomainsForOwner(
+  connection,
+  debouncedOwner,
+);
 </script>
 
 <template>
@@ -20,14 +23,14 @@ const { domains, isLoading } = useDomainsForOwner(connection, debouncedOwner);
 
       <input
         v-model="owner"
-        class="p-2 outline-none w-[300px]"
+        class="w-[500px] p-2 outline-none"
         placeholder="Owner pubkey"
       />
     </label>
 
     <div class="mb-4">Domains:</div>
 
-    <template v-if="!domains.length && !isLoading"> No data </template>
+    <template v-if="!domains?.length && !isLoading"> No data </template>
     <template v-else-if="isLoading">
       <p>Loading...</p>
     </template>
