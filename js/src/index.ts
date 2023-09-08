@@ -9,6 +9,8 @@ export * from "./constants";
 export * from "./int";
 export * from "./record";
 export * from "./types/record";
+export * from "./types/custom-bg";
 export * from "./resolve";
 export * from "./deprecated/utils";
 export * from "./error";
+export * from "./custom-bg";
