@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { WalletMultiButton } from 'solana-wallets-vue';
-import UseDomainOwnerExample from './components/useDomainOwner-example.vue';
-import UseDomainsForOwnerExample from './components/useDomainsForOwner-example.vue';
-import UseDomainSizeExample from './components/useDomainSize-example.vue';
+import { defineAsyncComponent } from 'vue';
+
+const components = import.meta.glob('./components/examples/*.vue');
+const asyncComponents = Object.keys(components).map((path) =>
+  defineAsyncComponent(() => import(/* @vite-ignore */ path)),
+);
 </script>
 
 <template>
   <div class="root-page">
-    <WalletMultiButton />
-
     <div class="grid gap-6">
-      <UseDomainOwnerExample />
-      <UseDomainsForOwnerExample />
-      <UseDomainSizeExample />
+      <template v-for="component in asyncComponents">
+        <component :is="component" />
+      </template>
     </div>
   </div>
 </template>

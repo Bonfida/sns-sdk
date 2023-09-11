@@ -2020,6 +2020,7 @@ dependencies = [
 [[package]]
 name = "name-tokenizer"
 version = "0.1.0"
+source = "git+https://github.com/Bonfida/name-tokenizer#e0b9ebced1203424ddf04ea9ffc523f39fe87a9b"
 dependencies = [
  "bonfida-utils",
  "borsh",

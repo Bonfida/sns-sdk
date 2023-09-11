@@ -1,10 +1,10 @@
 <template>
-  <UsageExample name="useDomainOwner">
+  <UsageExample :name="fileName">
     <label class="block mb-4">
       Enter domain name:
 
       <input
-        v-model="domainName"
+        v-model="formValue"
         class="p-2 outline-none"
         placeholder="Domain name"
       />
@@ -18,16 +18,17 @@
 import { ref } from 'vue';
 import { refDebounced } from '@vueuse/core';
 import { useDomainOwner } from '@bonfida/sns-vue';
-import { useSolanaConnection } from '../utils/solana';
-import UsageExample from './usage-example.vue';
+import { useSolanaConnection } from '../../utils/solana';
+import UsageExample from '../usage-example.vue';
 
 const connection = useSolanaConnection();
+const fileName = import.meta.url.match(/\/([^\/]+)\.vue/)?.[1] || '';
 
-const domainName = ref('');
-const debouncedDomainName = refDebounced(domainName);
+const formValue = ref('');
+const debouncedFormValue = refDebounced(formValue, 500);
 
 const { result: owner, isLoading } = useDomainOwner(
   connection,
-  debouncedDomainName,
+  debouncedFormValue,
 );
 </script>

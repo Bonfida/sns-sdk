@@ -1,4 +1,4 @@
-import { computed, MaybeRef, toRef } from "vue";
+import { unref, computed, MaybeRef, toRef } from "vue";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { NameRegistryState } from "@bonfida/spl-name-service";
 import { toDomainKey } from "@/utils/domain-to-key";
@@ -17,20 +17,19 @@ import { useLoadingFactory } from '@/utils/use-loading-factory';
  * console.log(size2.value) // 10
  */
 export const useDomainSize = (
-  connection: Connection | null | undefined,
+  connection: MaybeRef<Connection | null | undefined>,
   domain: MaybeRef<string | PublicKey>,
 ) => {
-  const refDomain = toRef(domain);
-  const key = computed(() => toDomainKey(refDomain.value));
-
   return useLoadingFactory(async () => {
-    let size = null;
-    if (!key.value && !connection) return size;
+    const rawConnection = unref(connection);
+    const key = toDomainKey(unref(domain));
 
-    const acc = await connection!.getAccountInfo(key.value!);
+    if (!key || !rawConnection) return null;
 
-    if (!acc) return size = 0;
+    const acc = await rawConnection!.getAccountInfo(key);
 
-    return size = (acc.data.length - NameRegistryState.HEADER_LEN) / 1_000; // in kB;
-  }, [key]);
+    if (!acc) return 0;
+
+    return (acc.data.length - NameRegistryState.HEADER_LEN) / 1_000; // in kB;
+  }, () => [unref(connection), unref(domain)]);
 };

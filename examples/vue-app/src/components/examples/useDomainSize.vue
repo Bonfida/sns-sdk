@@ -1,12 +1,12 @@
 <template>
-  <UsageExample name="useDomainSize">
+  <UsageExample :name="fileName">
     <label class="block mb-4">
       Enter domain name:
 
       <input
-        v-model="domainName"
+        v-model="formValue"
         class="p-2 outline-none"
-        placeholder="Domain name"
+        placeholder="Enter value"
       />
     </label>
 
@@ -18,16 +18,17 @@
 import { ref } from 'vue';
 import { refDebounced } from '@vueuse/core';
 import { useDomainSize } from '@bonfida/sns-vue';
-import { useSolanaConnection } from '../utils/solana';
-import UsageExample from './usage-example.vue';
+import { useSolanaConnection } from '../../utils/solana';
+import UsageExample from '../usage-example.vue';
 
 const connection = useSolanaConnection();
 
-const domainName = ref('');
-const debouncedDomainName = refDebounced(domainName);
+const fileName = import.meta.url.match(/\/([^\/]+)\.vue/)?.[1] || '';
+const formValue = ref('');
+const debouncedFormValue = refDebounced(formValue, 500);
 
 const { result: size, isLoading } = useDomainSize(
   connection,
-  debouncedDomainName,
+  debouncedFormValue,
 );
 </script>

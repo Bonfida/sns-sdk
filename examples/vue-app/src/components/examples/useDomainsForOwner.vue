@@ -2,29 +2,30 @@
 import { ref } from 'vue';
 import { refDebounced } from '@vueuse/core';
 import { useDomainsForOwner } from '@bonfida/sns-vue';
-import { useSolanaConnection } from '../utils/solana';
-import UsageExample from './usage-example.vue';
+import { useSolanaConnection } from '../../utils/solana';
+import UsageExample from '../usage-example.vue';
 
 const connection = useSolanaConnection();
 
-const owner = ref('');
-const debouncedOwner = refDebounced(owner);
+const fileName = import.meta.url.match(/\/([^\/]+)\.vue/)?.[1] || '';
+const formValue = ref('');
+const debouncedFormValue = refDebounced(formValue, 500);
 
 const { result: domains, isLoading } = useDomainsForOwner(
   connection,
-  debouncedOwner,
+  debouncedFormValue,
 );
 </script>
 
 <template>
-  <UsageExample name="useDomainsForOwner">
+  <UsageExample :name="fileName">
     <label class="block mb-4">
       Enter owner pubkey:
 
       <input
-        v-model="owner"
+        v-model="formValue"
         class="w-[500px] p-2 outline-none"
-        placeholder="Owner pubkey"
+        placeholder="Enter value"
       />
     </label>
 
@@ -36,7 +37,7 @@ const { result: domains, isLoading } = useDomainsForOwner(
     </template>
     <template v-else>
       <div class="max-h-[300px] overflow-auto">
-        <teble>
+        <table>
           <tr>
             <td>Domain name</td>
             <td>Pubkey</td>
@@ -47,7 +48,7 @@ const { result: domains, isLoading } = useDomainsForOwner(
               <td>{{ domain.pubkey }}</td>
             </tr>
           </template>
-        </teble>
+        </table>
       </div>
     </template>
   </UsageExample>
