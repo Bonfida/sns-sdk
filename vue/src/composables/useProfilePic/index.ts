@@ -1,7 +1,7 @@
-import { MaybeRef, unref } from "vue";
-import { Connection } from "@solana/web3.js";
-import { Record } from "@bonfida/spl-name-service";
-import { useDeserializedRecords } from "../useRecords";
+import { MaybeRef, unref } from 'vue';
+import { Connection } from '@solana/web3.js';
+import { Record } from '@bonfida/spl-name-service';
+import { useDeserializedRecords } from '../useRecords';
 
 /**
  * Returns the profile picture URI for the given domain
@@ -20,6 +20,6 @@ export const useProfilePic = (
 
   return {
     result: Array.isArray(result) ? result[0] : result,
-    ...rest
+    ...rest,
   };
 };

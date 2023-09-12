@@ -1,6 +1,6 @@
-import { unref, Ref, MaybeRef } from "vue";
-import { resolve } from "@bonfida/spl-name-service";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { unref, Ref, MaybeRef } from 'vue';
+import { resolve } from '@bonfida/spl-name-service';
+import { Connection, PublicKey } from '@solana/web3.js';
 
 import { useLoadingFactory } from '@/utils/use-loading-factory';
 
@@ -18,15 +18,18 @@ export const useDomainOwner = (
   connection: MaybeRef<Connection | null | undefined>,
   domain: Ref<string | null | undefined>,
 ) => {
-  return useLoadingFactory(async () => {
-    let owner: PublicKey | null = null;
-    const rawDomain = unref(domain);
-    const rawConnection = unref(connection);
+  return useLoadingFactory(
+    async () => {
+      let owner: PublicKey | null = null;
+      const rawDomain = unref(domain);
+      const rawConnection = unref(connection);
 
-    if (rawDomain && rawConnection) {
-      owner = await resolve(rawConnection, rawDomain);
-    }
+      if (rawDomain && rawConnection) {
+        owner = await resolve(rawConnection, rawDomain);
+      }
 
-    return owner;
-  }, () => [unref(domain), unref(connection)]);
+      return owner;
+    },
+    () => [unref(domain), unref(connection)],
+  );
 };

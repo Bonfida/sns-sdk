@@ -1,7 +1,7 @@
-import { computed, MaybeRef, unref } from "vue";
-import { getFavoriteDomain } from "@bonfida/spl-name-service";
-import { Connection, PublicKey } from "@solana/web3.js";
-import { toKey } from "@/utils/pubkey";
+import { computed, MaybeRef, unref } from 'vue';
+import { getFavoriteDomain } from '@bonfida/spl-name-service';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { toKey } from '@/utils/pubkey';
 import { useLoadingFactory } from '@/utils/use-loading-factory';
 
 /**
@@ -16,15 +16,18 @@ export const useFavoriteDomain = (
   connection: MaybeRef<Connection>,
   owner: MaybeRef<string | PublicKey | null | undefined>,
 ) => {
-  return useLoadingFactory(async () => {
-    const rawConnection = unref(connection);
+  return useLoadingFactory(
+    async () => {
+      const rawConnection = unref(connection);
 
-    const key = toKey(unref(owner));
+      const key = toKey(unref(owner));
 
-    if (!key || !rawConnection) return null;
+      if (!key || !rawConnection) return null;
 
-    const res = await getFavoriteDomain(rawConnection, key);
+      const res = await getFavoriteDomain(rawConnection, key);
 
-    return { pubkey: res.domain, domain: res.reverse };
-  }, () => [unref(connection), unref(owner)]);
+      return { pubkey: res.domain, domain: res.reverse };
+    },
+    () => [unref(connection), unref(owner)],
+  );
 };
