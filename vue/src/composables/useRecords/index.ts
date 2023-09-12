@@ -1,6 +1,6 @@
-import { MaybeRef, unref } from "vue";
-import { Connection } from "@solana/web3.js";
-import { Record, getRecords } from "@bonfida/spl-name-service";
+import { MaybeRef, unref } from 'vue';
+import { Connection } from '@solana/web3.js';
+import { Record, getRecords } from '@bonfida/spl-name-service';
 import { useLoadingFactory } from '@/utils/use-loading-factory';
 
 /**
@@ -17,9 +17,17 @@ export const useRecords = (
   domain: MaybeRef<string>,
   records: MaybeRef<Record[]>,
 ) => {
-  return useLoadingFactory(async () => {
-    return getRecords(unref(connection), unref(domain), unref(records), false);
-  }, () => [unref(domain), unref(records), unref(connection)]);
+  return useLoadingFactory(
+    async () => {
+      return getRecords(
+        unref(connection),
+        unref(domain),
+        unref(records),
+        false,
+      );
+    },
+    () => [unref(domain), unref(records), unref(connection)],
+  );
 };
 
 /**
@@ -36,7 +44,10 @@ export const useDeserializedRecords = (
   domain: MaybeRef<string>,
   records: MaybeRef<Record[]>,
 ) => {
-  return useLoadingFactory(async () => {
-    return getRecords(unref(connection), unref(domain), unref(records), true);
-  }, () => [unref(connection), unref(domain), unref(records)]);
+  return useLoadingFactory(
+    async () => {
+      return getRecords(unref(connection), unref(domain), unref(records), true);
+    },
+    () => [unref(connection), unref(domain), unref(records)],
+  );
 };

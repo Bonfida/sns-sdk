@@ -1,8 +1,8 @@
-import { MaybeRef, computed, toRef, unref } from "vue";
-import { findSubdomains } from "@bonfida/spl-name-service";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { MaybeRef, computed, toRef, unref } from 'vue';
+import { findSubdomains } from '@bonfida/spl-name-service';
+import { Connection, PublicKey } from '@solana/web3.js';
 import { useLoadingFactory } from '@/utils/use-loading-factory';
-import { toDomainKey } from "@/utils/domain-to-key";
+import { toDomainKey } from '@/utils/domain-to-key';
 
 /**
  * Returns the list of all sudomains for a given parent
@@ -19,9 +19,12 @@ export const useSubdomains = (
   const refDomain = toRef(domain);
   const key = computed(() => toDomainKey(refDomain.value));
 
-  return useLoadingFactory(async () => {
-    if (!key.value) return;
+  return useLoadingFactory(
+    async () => {
+      if (!key.value) return;
 
-    return findSubdomains(unref(connection), key.value);
-  }, () => [unref(connection), key.value]);
+      return findSubdomains(unref(connection), key.value);
+    },
+    () => [unref(connection), key.value],
+  );
 };

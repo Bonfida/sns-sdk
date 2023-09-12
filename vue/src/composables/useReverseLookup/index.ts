@@ -1,6 +1,6 @@
-import { MaybeRef, unref } from "vue";
-import { reverseLookup } from "@bonfida/spl-name-service";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { MaybeRef, unref } from 'vue';
+import { reverseLookup } from '@bonfida/spl-name-service';
+import { Connection, PublicKey } from '@solana/web3.js';
 import { useLoadingFactory } from '@/utils/use-loading-factory';
 
 /**
@@ -15,11 +15,14 @@ export const useReverseLookup = (
   connection: MaybeRef<Connection>,
   pubkey: MaybeRef<PublicKey | null | undefined>,
 ) => {
-  return useLoadingFactory(async () => {
-    const key = unref(pubkey);
+  return useLoadingFactory(
+    async () => {
+      const key = unref(pubkey);
 
-    if (!key) return null;
+      if (!key) return null;
 
-    return reverseLookup(unref(connection), key);
-  }, () => [unref(connection), unref(pubkey)]);
+      return reverseLookup(unref(connection), key);
+    },
+    () => [unref(connection), unref(pubkey)],
+  );
 };

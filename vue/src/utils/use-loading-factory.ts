@@ -1,6 +1,6 @@
-import { ref, shallowRef, Ref, watch, unref, UnwrapRef, WatchSource } from 'vue';
+import { ref, shallowRef, Ref, watch, unref, UnwrapRef } from 'vue';
 
-type LoadingStatus = 'not-requested' | 'loading' | 'success' | 'error'
+type LoadingStatus = 'not-requested' | 'loading' | 'success' | 'error';
 
 export const useLoadingFactory = <T>(
   fn: () => Promise<T>,
@@ -25,7 +25,7 @@ export const useLoadingFactory = <T>(
     } finally {
       isLoading.value = false;
     }
-  }
+  };
 
   watch(trigger, handler, { immediate: true });
 
@@ -34,5 +34,5 @@ export const useLoadingFactory = <T>(
     status,
     isLoading,
     loadingError,
-  }
-}
+  };
+};

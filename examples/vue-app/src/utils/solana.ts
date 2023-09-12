@@ -1,9 +1,9 @@
-import { Connection } from "@solana/web3.js";
+import { Connection } from '@solana/web3.js';
 
-const commitment = "confirmed";
+const commitment = 'confirmed';
 
 let solanaUtils: {
-  connection: Connection | null,
+  connection: Connection | null;
 } = {
   connection: null,
 };
@@ -11,9 +11,12 @@ let solanaUtils: {
 export const useSolanaConnection = () => solanaUtils.connection;
 
 export const initSolanaConnection = () => {
-  const connection = new Connection("https://helius-proxy.bonfida.com", commitment);
+  const connection = new Connection(
+    'https://helius-proxy.bonfida.com',
+    commitment,
+  );
 
   solanaUtils = {
     connection,
-  }
+  };
 };
