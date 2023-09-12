@@ -4,6 +4,7 @@
   "description": "A set of Vue hooks to interact with the Solana Name Service",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "publishConfig": {"access": "public"},
   "scripts": {
     "build": "vite build"
   },
