@@ -1,13 +1,13 @@
 package record
 
 import (
+	"crypto/ed25519"
 	"encoding/hex"
 	"net"
 
 	"vendor/golang.org/x/net/idna"
 
 	"github.com/Bonfida/sns-sdk/golang/errors"
-	"github.com/Bonfida/sns-sdk/golang/resolve"
 	"github.com/Bonfida/sns-sdk/golang/state"
 	"github.com/Bonfida/sns-sdk/golang/types"
 	"github.com/Bonfida/sns-sdk/golang/utils"
@@ -171,8 +171,8 @@ func GetShdwRecord(client rpc.Client, domain string) string {
 	return record
 }
 
-func GetSolRecord(client rpc.Client, domain string) string {
-	record, _ := GetDeserializedRecord(client, domain, types.SOL)
+func GetSolRecord(client rpc.Client, domain string) *state.NameRegistryState {
+	record, _ := GetRecord(client, domain, types.SOL)
 	return record
 }
 
@@ -230,7 +230,7 @@ func DeserializeRecord(registry *state.NameRegistryState, record string, recordK
 	if record == types.SOL {
 		expectedBuffer := append(buffer[:32], recordKey.Bytes()...)
 		expected := []byte(hex.EncodeToString(expectedBuffer))
-		valid := resolve.CheckSolRecord(expected, buffer[32:], *registry.Owner)
+		valid := CheckSolRecord(expected, buffer[32:], *registry.Owner)
 		if valid {
 			return string(buffer[:32]), nil
 		}
@@ -290,9 +290,41 @@ func SerializeRecord(str string, record string) ([]byte, error) {
 func SerializeSolRecord(content solana.PublicKey, recordKey solana.PublicKey, signer solana.PublicKey, signature []byte) ([]byte, error) {
 	expected := append(content.Bytes(), recordKey.Bytes()...)
 	encodedMessage := []byte(hex.EncodeToString(expected))
-	valid := resolve.CheckSolRecord(encodedMessage, signature, signer)
+	valid := CheckSolRecord(encodedMessage, signature, signer)
 	if !valid {
 		return nil, errors.ErrInvalidSolRecord
 	}
 	return append(content[:], signature...), nil
+}
+
+func CheckSolRecord(record []byte, signedRecord []byte, pubkey solana.PublicKey) bool {
+	return ed25519.Verify(pubkey.Bytes(), record, signedRecord)
+}
+
+func Resolve(client rpc.Client, domain string) (solana.PublicKey, error) {
+	pubkey, _, _, _ := utils.GetDomainKeySync(domain, false)
+	_, owner, _ := state.RetrieveNameRegistry(client, *pubkey)
+	if owner != nil {
+		return *owner, nil
+	}
+
+	recordKey, err := GetRecordKeySync(domain, types.SOL)
+	if err != err {
+		return solana.PublicKey{}, err
+	}
+	solRecord := GetSolRecord(client, domain)
+
+	if solRecord.Data == nil {
+		return solana.PublicKey{}, errors.ErrNoRecordData
+	}
+
+	expectedBuffer := append(solRecord.Data[:32], recordKey.Bytes()...)
+	expected := []byte(hex.EncodeToString(expectedBuffer))
+	valid := CheckSolRecord(expected, solRecord.Data[32:], *solRecord.Owner)
+
+	if !valid {
+		return solana.PublicKey{}, errors.ErrInvalidSolRecord
+	}
+
+	return solana.PublicKeyFromBytes(solRecord.Data[:32]), nil
 }

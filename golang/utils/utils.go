@@ -21,9 +21,9 @@ func GetHashedNameSync(name string) []byte {
 	return str[:]
 }
 
-func GetNameAccountKeySync(args types.GetNameAccountKeySyncOpts) solana.PublicKey {
+func GetNameAccountKeySync(HashedName []byte, args types.GetNameAccountKeySyncOpts) solana.PublicKey {
 	seeds := [][]byte{
-		args.HashedName,
+		HashedName,
 	}
 	if args.NameClass.Bytes() != nil {
 		seeds = append(seeds, args.NameClass.Bytes())
@@ -41,9 +41,8 @@ func GetNameAccountKeySync(args types.GetNameAccountKeySyncOpts) solana.PublicKe
 
 func ReverseLookup(client rpc.Client, nameAccount solana.PublicKey) (string, error) {
 	hashedReverseLookup := GetHashedNameSync(nameAccount.String())
-	reverseLookupAccount := GetNameAccountKeySync(types.GetNameAccountKeySyncOpts{
-		HashedName: hashedReverseLookup,
-		NameClass:  constants.REVERSE_LOOKUP_CLASS,
+	reverseLookupAccount := GetNameAccountKeySync(hashedReverseLookup, types.GetNameAccountKeySyncOpts{
+		NameClass: constants.REVERSE_LOOKUP_CLASS,
 	})
 	registry, _, err := state.RetrieveNameRegistry(client, reverseLookupAccount)
 	if err != nil {
@@ -65,9 +64,8 @@ func ReverseLookupBatch(client rpc.Client, nameAccounts []solana.PublicKey) ([]s
 	reverseLookupAccounts := make([]solana.PublicKey, len(nameAccounts))
 	for i, nameAccount := range nameAccounts {
 		hashedReverseLookup := GetHashedNameSync(nameAccount.String())
-		reverseLookupAccounts[i] = GetNameAccountKeySync(types.GetNameAccountKeySyncOpts{
-			HashedName: hashedReverseLookup,
-			NameClass:  constants.REVERSE_LOOKUP_CLASS,
+		reverseLookupAccounts[i] = GetNameAccountKeySync(hashedReverseLookup, types.GetNameAccountKeySyncOpts{
+			NameClass: constants.REVERSE_LOOKUP_CLASS,
 		})
 	}
 	names, err := state.RetrieveNameRegistryBatch(client, reverseLookupAccounts)
@@ -92,13 +90,13 @@ func ReverseLookupBatch(client rpc.Client, nameAccounts []solana.PublicKey) ([]s
 
 func FindSubdomains(client rpc.Client, parentKey solana.PublicKey) ([]string, error) {
 	filters := []rpc.RPCFilter{
-		rpc.RPCFilter{
+		{
 			Memcmp: &rpc.RPCFilterMemcmp{
 				Offset: 0,
 				Bytes:  solana.Base58(parentKey.String()),
 			},
 		},
-		rpc.RPCFilter{
+		{
 			Memcmp: &rpc.RPCFilterMemcmp{
 				Offset: 64,
 				Bytes:  solana.Base58(constants.REVERSE_LOOKUP_CLASS.String()),
@@ -140,8 +138,7 @@ func deriveSync(opts types.DeriveSyncOpts) (solana.PublicKey, []byte) {
 		opts.Parent = &constants.ROOT_DOMAIN_ACCOUNT
 	}
 	var hashed = GetHashedNameSync(opts.Name)
-	var pubKey = GetNameAccountKeySync(types.GetNameAccountKeySyncOpts{
-		HashedName: hashed,
+	var pubKey = GetNameAccountKeySync(hashed, types.GetNameAccountKeySyncOpts{
 		NameParent: *opts.Parent,
 	})
 	return pubKey, hashed
@@ -176,13 +173,13 @@ func GetDomainKeySync(domain string, record bool) (*solana.PublicKey, []byte, bo
 
 func GetAllDomains(client rpc.Client, wallet solana.PublicKey) ([]*solana.PublicKey, error) {
 	filters := []rpc.RPCFilter{
-		rpc.RPCFilter{
+		{
 			Memcmp: &rpc.RPCFilterMemcmp{
 				Offset: 32,
 				Bytes:  solana.Base58(wallet.String()),
 			},
 		},
-		rpc.RPCFilter{
+		{
 			Memcmp: &rpc.RPCFilterMemcmp{
 				Offset: 0,
 				Bytes:  solana.Base58(constants.ROOT_DOMAIN_ACCOUNT.String()),
@@ -202,7 +199,7 @@ func GetAllDomains(client rpc.Client, wallet solana.PublicKey) ([]*solana.Public
 
 func GetAllRegisteredDomains(client rpc.Client) (*rpc.GetProgramAccountsResult, error) {
 	filters := []rpc.RPCFilter{
-		rpc.RPCFilter{
+		{
 			Memcmp: &rpc.RPCFilterMemcmp{
 				Offset: 0,
 				Bytes:  solana.Base58(constants.ROOT_DOMAIN_ACCOUNT.String()),
@@ -229,16 +226,14 @@ func GetReverseKeySync(opts types.GetReverseKeySyncOpts) *solana.PublicKey {
 	hashedReverseLookup := GetHashedNameSync(pubKey.String())
 	var reverseLookupAccount solana.PublicKey
 	if opts.IsSub {
-		reverseLookupAccount = GetNameAccountKeySync(types.GetNameAccountKeySyncOpts{
-			HashedName: hashedReverseLookup,
+		reverseLookupAccount = GetNameAccountKeySync(hashedReverseLookup, types.GetNameAccountKeySyncOpts{
 			NameClass:  constants.REVERSE_LOOKUP_CLASS,
 			NameParent: *parent,
 		})
 		return &reverseLookupAccount
 	} else {
-		reverseLookupAccount = GetNameAccountKeySync(types.GetNameAccountKeySyncOpts{
-			HashedName: hashedReverseLookup,
-			NameClass:  constants.REVERSE_LOOKUP_CLASS,
+		reverseLookupAccount = GetNameAccountKeySync(hashedReverseLookup, types.GetNameAccountKeySyncOpts{
+			NameClass: constants.REVERSE_LOOKUP_CLASS,
 		})
 		return &reverseLookupAccount
 	}
