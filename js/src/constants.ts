@@ -107,3 +107,11 @@ export const VAULT_OWNER = new PublicKey(
 export const CUSTOM_BG_TLD = new PublicKey(
   "BPeXUQDqGbzxeK1LJby6ugvCBuo7kRSEUkjD726mUVsz"
 );
+
+export const WOLVES_COLLECTION_METADATA = new PublicKey(
+  "72aLKvXeV4aansAQtxKymeXDevT5ed6sCuz9iN62ugPT"
+);
+
+export const METAPLEX_ID = new PublicKey(
+  "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+);

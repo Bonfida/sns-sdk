@@ -13,6 +13,8 @@ import {
   updateInstruction,
   createReverseInstruction,
   createInstructionV3,
+  burnInstruction,
+  createWithNftInstruction,
 } from "./instructions";
 import { NameRegistryState } from "./state";
 import { Numberu64, Numberu32 } from "./int";
@@ -30,6 +32,9 @@ import {
   TOKENS_SYM_MINT,
   PYTH_MAPPING_ACC,
   VAULT_OWNER,
+  REVERSE_LOOKUP_CLASS,
+  WOLVES_COLLECTION_METADATA,
+  METAPLEX_ID,
 } from "./constants";
 import {
   getPythProgramKeyForCluster,
@@ -633,4 +638,71 @@ export const updateSolRecordInstruction = async (
   );
 
   return [ix];
+};
+
+export const burnDomain = (
+  domain: string,
+  owner: PublicKey,
+  target: PublicKey
+) => {
+  const { pubkey } = getDomainKeySync(domain);
+  const [state] = PublicKey.findProgramAddressSync(
+    [pubkey.toBuffer()],
+    REGISTER_PROGRAM_ID
+  );
+  const [resellingState] = PublicKey.findProgramAddressSync(
+    [pubkey.toBuffer(), Uint8Array.from([1, 1])],
+    REGISTER_PROGRAM_ID
+  );
+
+  const ix = new burnInstruction().getInstruction(
+    REGISTER_PROGRAM_ID,
+    NAME_PROGRAM_ID,
+    SystemProgram.programId,
+    pubkey,
+    getReverseKeySync(domain),
+    resellingState,
+    state,
+    REVERSE_LOOKUP_CLASS,
+    owner,
+    target
+  );
+  return ix;
+};
+
+export const registerWithNft = (
+  name: string,
+  space: number,
+  nameAccount: PublicKey,
+  reverseLookupAccount: PublicKey,
+  buyer: PublicKey,
+  nftSource: PublicKey,
+  nftMetadata: PublicKey,
+  nftMint: PublicKey,
+  masterEdition: PublicKey
+) => {
+  const [state] = PublicKey.findProgramAddressSync(
+    [nameAccount.toBuffer()],
+    REGISTER_PROGRAM_ID
+  );
+  const ix = new createWithNftInstruction({ space, name }).getInstruction(
+    REGISTER_PROGRAM_ID,
+    NAME_PROGRAM_ID,
+    ROOT_DOMAIN_ACCOUNT,
+    nameAccount,
+    reverseLookupAccount,
+    SystemProgram.programId,
+    REVERSE_LOOKUP_CLASS,
+    buyer,
+    nftSource,
+    nftMetadata,
+    nftMint,
+    masterEdition,
+    WOLVES_COLLECTION_METADATA,
+    TOKEN_PROGRAM_ID,
+    SYSVAR_RENT_PUBKEY,
+    state,
+    METAPLEX_ID
+  );
+  return ix;
 };
