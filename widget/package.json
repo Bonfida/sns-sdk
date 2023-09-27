@@ -1,0 +1,40 @@
+{
+  "name": "@bonfida/sns-widget",
+  "version": "0.1.0",
+  "description": "SNS Widget for 3rd-party apps for quick domain search and register",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bonfida/sns-sdk.git",
+    "directory": "widget"
+  },
+  "author": "letehaha",
+  "license": "MIT",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Bonfida/sns-sdk/issues"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@types/react": "^18.2.23",
+    "@types/react-dom": "^18.2.8",
+    "@typescript-eslint/eslint-plugin": "^6.7.3",
+    "@typescript-eslint/parser": "^6.7.3",
+    "@vitejs/plugin-react-swc": "^3.4.0",
+    "eslint": "^8.50.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.3",
+    "typescript": "^5.2.2",
+    "vite": "^4.4.9"
+  }
+}
