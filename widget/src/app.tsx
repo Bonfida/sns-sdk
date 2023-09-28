@@ -1,9 +1,7 @@
-import { WidgetRoot } from './lib';
+import { WidgetRoot } from "./lib";
 
 function App() {
-  return (
-    <WidgetRoot />
-  );
+  return <WidgetRoot />;
 }
 
 export default App;
