@@ -84,9 +84,9 @@ mod constants {
     pub const SOL_MINT: Pubkey = pubkey!("So11111111111111111111111111111111111111112");
     pub const FIDA_MINT: Pubkey = pubkey!("fidaWCioBQjieRrUQDxxS5Uxmq1CLi2VuVRyv4dEBey");
     pub const INJ_MINT: Pubkey = pubkey!("DL4ivZm3NVHWk9ZvtcqTchxoKArDK4rT3vbDx2gYVr7P");
-    pub const MSOL_MINT: Pubkey = pubkey!("EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp");
+    // pub const MSOL_MINT: Pubkey = pubkey!("EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp");
     pub const PYTH_PROGRAM_ID: Pubkey = pubkey!("gSbePebfvPy7tRqimPoVecS2UsBvYv46ynrzWocc92s");
-    pub const PYTH_MAPPING_ACC: Pubkey = pubkey!("AHtgzX45WTKfkPG53L6WYhGEXwQkN1BVknET3sVsLL8J");
+    pub const PYTH_MAPPING_ACC: Pubkey = pubkey!("BmA9Z6FjioHJPpjT39QazZyhDRUdZy2ezwx4GiDdE2u2");
 
     pub const PYTH_PRICE_PRODUCT_ACCOUNTS: [(Pubkey, Pubkey, Pubkey); 5] = [
         (
