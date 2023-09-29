@@ -1,5 +1,6 @@
 import { abbreviate } from "../utils";
 import { twMerge } from "tailwind-merge";
+import { ShoppingBasketHorizontal, Tick } from "react-huge-icons/outline";
 
 export const DomainSearchResultRow = ({
   domain,
@@ -24,59 +25,37 @@ export const DomainSearchResultRow = ({
   // };
 
   return (
-    <div className="flex flex-row items-center gap-4 px-4 py-3 my-2 border-0 rounded-xl bg-background-secondary">
-      <div className="flex-auto mr-auto">
-        <span className="text-base text-content-secondary">
+    <div className="flex flex-row items-center gap-4 px-4 py-3 rounded-xl bg-background-secondary min-h-[72px]">
+      <div className="flex flex-col mr-auto">
+        <span className="text-base text-content-secondary font-primary">
           {abbreviate(`${domain}.sol`, 25, 3)}
         </span>
+        {available && <span className="text-sm font-medium">{price}</span>}
       </div>
       {!available && (
-        <div className="rounded-[100px] border border-content-success px-3 bg-content-success bg-opacity-10">
-          <span className="text-xs font-semibold leading-6 text-content-success">
-            Purchased
+        <div className="px-3 rounded-lg bg-accent bg-opacity-10">
+          <span className="text-xs font-semibold leading-6 tracking-widest text-accent">
+            Registered
           </span>
         </div>
       )}
-      <div
-        className={twMerge(
-          "flex items-center flex-row justify-between min-w-[93px]",
-          available ? "gap-2" : "gap-1",
-        )}
-      >
-        <div className="flex flex-row items-center gap-1">
-          USDC
-          <span className="text-sm font-medium text-content-primary">
-            {/* TODO: locale formatting */}
-            {price}
-          </span>
-        </div>
-        {/* <button
-          onClick={
-            available
-              ? handle
-              : () => navigation.navigate("domain-div", { domain })
-          }
+      {available && (
+        <div
           className={twMerge(
-            "h-[32px] w-[32px] flex items-center justify-center",
-            available && "border rounded-md border-brand-primary",
-            available && !inCart && "bg-brand-primary",
+            "flex items-center flex-row justify-between min-w-[93px]",
+            available ? "gap-2" : "gap-1",
           )}
         >
-          {available ? (
-            inCart ? (
-              <MaterialCommunityIcons
-                name="delete-outline"
-                size={24}
-                color={tw.color("brand-primary")}
-              />
-            ) : (
-              <Feather name="shopping-cart" size={18} color="white" />
-            )
-          ) : (
-            <Feather name="arrow-right" size={20} color="#ADAEB2" />
-          )}
-        </button> */}
-      </div>
+          <button
+            type="button"
+            className="flex items-center gap-2 px-3 py-1 text-sm text-white rounded-lg font-primary bg-theme-primary"
+          >
+            Add to cart
+            <ShoppingBasketHorizontal width={20} height={20} />
+            {/* <Tick width={24} height={24} /> */}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
