@@ -36,20 +36,28 @@ SNS SDK monorepo
 <h2 align="center">Table of contents</h2>
 <br />
 
-1. [Javascript](#javascript)
-2. [Rust](#rust)
-3. [SDK Proxy](#sdk-proxy)
-4. [Python](#python)
-5. [Java](#java)
-6. [Swift](#swift)
-7. [CLI](#cli)
-8. [React](#react)
-9. [Vue](#vue)
-10. [Examples](#examples)
+1. [SNS documentation](#sns-documentation)
+2. [Javascript](#javascript)
+3. [Rust](#rust)
+4. [SDK Proxy](#sdk-proxy)
+5. [Python](#python)
+6. [Java](#java)
+7. [Swift](#swift)
+8. [CLI](#cli)
+9. [React](#react)
+10. [Vue](#vue)
+11. [Examples](#examples)
 
 - Resolving a domain
 
-11. [Bounties](#bounties)
+12. [Bounties](#bounties)
+
+<br />
+<a name="sns-documentation"></a>
+<h2 align="center">SNS documentation</h2>
+<br />
+
+This repository contains the Developer documentation specifically for the SNS SDK. You can find the general SNS documentation at [sns.guide](https://sns.guide/)
 
 <br />
 <a name="javascript"></a>
