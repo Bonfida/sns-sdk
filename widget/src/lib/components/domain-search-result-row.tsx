@@ -1,6 +1,8 @@
 import { abbreviate } from "../utils";
 import { twMerge } from "tailwind-merge";
 import { ShoppingBasketHorizontal, Tick } from "react-huge-icons/outline";
+import { useContext } from "react";
+import { CartContext } from "../contexts/cart";
 
 export const DomainSearchResultRow = ({
   domain,
@@ -11,21 +13,12 @@ export const DomainSearchResultRow = ({
   available?: boolean;
   price?: number | string;
 }) => {
-  // const [cart, setCart] = useRecoilState(cartState);
-  // const inCart = cart.includes(domain);
-  // price = price ?? priceFromLength(domain);
-  // const navigation = useNavigation<domaindivScreenProp>();
+  const { cart, addToCart, removeFromCart } = useContext(CartContext);
 
-  // const handle = () => {
-  //   if (cart.includes(domain)) {
-  //     setCart((prev) => prev.filter((e) => e !== domain));
-  //   } else {
-  //     setCart((prev) => [...prev, domain]);
-  //   }
-  // };
+  const isInCart = Boolean(cart[domain]);
 
   return (
-    <div className="flex flex-row items-center gap-4 px-4 py-3 rounded-xl bg-background-secondary min-h-[72px]">
+    <div className="flex flex-row items-center gap-4 px-4 py-3 shadow-domain rounded-xl bg-background-secondary min-h-[72px]">
       <div className="flex flex-col mr-auto">
         <span className="text-base text-content-secondary font-primary">
           {abbreviate(`${domain}.sol`, 25, 3)}
@@ -48,11 +41,24 @@ export const DomainSearchResultRow = ({
         >
           <button
             type="button"
-            className="flex items-center gap-2 px-3 py-1 text-sm text-white rounded-lg font-primary bg-theme-primary"
+            className="flex items-center gap-2 px-3 py-1 text-sm text-[#fff] rounded-lg font-primary bg-theme-primary"
+            onClick={() =>
+              isInCart
+                ? removeFromCart(domain)
+                : addToCart({ domain, storage: 10 })
+            }
           >
-            Add to cart
-            <ShoppingBasketHorizontal width={20} height={20} />
-            {/* <Tick width={24} height={24} /> */}
+            {!isInCart ? (
+              <>
+                Add to cart
+                <ShoppingBasketHorizontal width={20} height={20} />
+              </>
+            ) : (
+              <>
+                Added
+                <Tick width={24} height={24} />
+              </>
+            )}
           </button>
         </div>
       )}
