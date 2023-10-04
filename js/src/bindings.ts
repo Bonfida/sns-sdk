@@ -706,3 +706,49 @@ export const registerWithNft = (
   );
   return ix;
 };
+
+/**
+ * This function is used to transfer the ownership of a subdomain in the Solana Name Service.
+ *
+ * @param {Connection} connection - The Solana RPC connection object.
+ * @param {string} subdomain - The subdomain to transfer. It can be with or without .sol suffix (e.g., 'something.bonfida.sol' or 'something.bonfida').
+ * @param {PublicKey} newOwner - The public key of the new owner of the subdomain.
+ * @param {boolean} [isParentOwnerSigner=false] - A flag indicating whether the parent name owner is signing this transfer.
+ *
+ * @returns {Promise<TransactionInstruction>} - A promise that resolves to a Solana instruction for the transfer operation.
+ */
+export const transferSubdomain = async (
+  connection: Connection,
+  subdomain: string,
+  newOwner: PublicKey,
+  isParentOwnerSigner?: boolean
+): Promise<TransactionInstruction> => {
+  const { pubkey, isSub, parent } = getDomainKeySync(subdomain);
+
+  if (!parent || !isSub) {
+    throw new SNSError(ErrorType.InvalidSubdomain);
+  }
+
+  const { registry } = await NameRegistryState.retrieve(connection, pubkey);
+
+  let nameParent: PublicKey | undefined = undefined;
+  let nameParentOwner: PublicKey | undefined = undefined;
+
+  if (isParentOwnerSigner) {
+    nameParent = parent;
+    nameParentOwner = (await NameRegistryState.retrieve(connection, parent))
+      .registry.owner;
+  }
+
+  const ix = transferInstruction(
+    NAME_PROGRAM_ID,
+    pubkey,
+    newOwner,
+    registry.owner,
+    undefined,
+    nameParent,
+    nameParentOwner
+  );
+
+  return ix;
+};
