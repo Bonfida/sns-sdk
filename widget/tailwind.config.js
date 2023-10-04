@@ -18,7 +18,7 @@ export default {
       },
       boxShadow: {
         '3xl': '0px 16px 32px rgba(215, 221, 225, 0.25)',
-        'domain': '0px 20px 40px -10px rgba(179, 179, 179, 0.25)',
+        'domain': '0px 20px 40px 0px rgba(179, 179, 179, 0.25)',
       },
     },
     colors: {

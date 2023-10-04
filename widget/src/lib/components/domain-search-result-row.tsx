@@ -1,8 +1,8 @@
-import { abbreviate } from "../utils";
 import { twMerge } from "tailwind-merge";
 import { ShoppingBasketHorizontal, Tick } from "react-huge-icons/outline";
 import { useContext } from "react";
 import { CartContext } from "../contexts/cart";
+import { DomainCardBase } from "./domain-card-base";
 
 export const DomainSearchResultRow = ({
   domain,
@@ -11,20 +11,14 @@ export const DomainSearchResultRow = ({
 }: {
   domain: string;
   available?: boolean;
-  price?: number | string;
+  price?: number;
 }) => {
   const { cart, addToCart, removeFromCart } = useContext(CartContext);
 
   const isInCart = Boolean(cart[domain]);
 
   return (
-    <div className="flex flex-row items-center gap-4 px-4 py-3 shadow-domain rounded-xl bg-background-secondary min-h-[72px]">
-      <div className="flex flex-col mr-auto">
-        <span className="text-base text-content-secondary font-primary">
-          {abbreviate(`${domain}.sol`, 25, 3)}
-        </span>
-        {available && <span className="text-sm font-medium">{price}</span>}
-      </div>
+    <DomainCardBase domain={domain} available={available} price={price}>
       {!available && (
         <div className="px-3 rounded-lg bg-accent bg-opacity-10">
           <span className="text-xs font-semibold leading-6 tracking-widest text-accent">
@@ -45,7 +39,7 @@ export const DomainSearchResultRow = ({
             onClick={() =>
               isInCart
                 ? removeFromCart(domain)
-                : addToCart({ domain, storage: 10 })
+                : addToCart({ domain, storage: 10, price: Number(price) })
             }
           >
             {!isInCart ? (
@@ -62,6 +56,6 @@ export const DomainSearchResultRow = ({
           </button>
         </div>
       )}
-    </div>
+    </DomainCardBase>
   );
 };

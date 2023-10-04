@@ -88,11 +88,11 @@ const WidgetHome = () => {
 
             {isSearchView && (
               <>
-                <div className="px-3 overflow-auto animate-fade-in">
+                <div className="px-3 mb-3 overflow-auto animate-fade-in">
                   <DomainSearchResultRow domain="design" available={false} />
 
                   <div className="mt-4">
-                    <p className="mb-2 ml-4 text-sm text-text-secondary">
+                    <p className="mb-2 ml-4 text-sm text-text-secondary font-primary">
                       You might also like
                     </p>
 
@@ -113,17 +113,17 @@ const WidgetHome = () => {
                         price={20}
                       />
                       <DomainSearchResultRow
-                        domain="designonline"
+                        domain="designonline1"
                         available
                         price={20}
                       />
                       <DomainSearchResultRow
-                        domain="designonline"
+                        domain="designonline2"
                         available
                         price={20}
                       />
                       <DomainSearchResultRow
-                        domain="designonline"
+                        domain="designonline3"
                         available
                         price={20}
                       />
@@ -143,7 +143,9 @@ const WidgetHome = () => {
           </>
         )}
 
-        {isCartView && <CartView />}
+        {isCartView && (
+          <CartView backHandler={() => setCurrentView("search")} />
+        )}
 
         {isHomeView && (
           <div
@@ -153,6 +155,7 @@ const WidgetHome = () => {
               text-theme-primary
               rounded-[10px] py-4 px-2.5
               font-primary
+              mx-3 mb-3
             "
           >
             <SafeBoxStar width={24} height={24} />
@@ -161,8 +164,8 @@ const WidgetHome = () => {
         )}
       </div>
 
-      <div className="px-3 pb-3">
-        <div className="flex items-center justify-center gap-2 mt-6 text-sm font-medium text-center text-[#000000]">
+      <div className="p-3">
+        <div className="flex items-center justify-center gap-2 text-sm font-medium text-center text-[#000000]">
           Powered by
           <span className="h-[20px]">
             <FidaLogo />

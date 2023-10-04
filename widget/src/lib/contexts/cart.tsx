@@ -3,6 +3,7 @@ import { type ReactNode, createContext, useState } from "react";
 interface CartItem {
   domain: string;
   storage: number;
+  price: number;
 }
 
 type Domain = string;
