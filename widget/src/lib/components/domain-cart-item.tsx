@@ -5,7 +5,12 @@ import { TrashBent } from "react-huge-icons/outline";
 import { CartContext } from "../contexts/cart";
 import { DomainCardBase } from "./domain-card-base";
 
-export const DomainCartItem = ({ domain }: { domain: string }) => {
+interface DomainCartItemProps {
+  domain: string;
+  onEdit?: () => void;
+}
+
+export const DomainCartItem = ({ domain, onEdit }: DomainCartItemProps) => {
   const { cart, removeFromCart } = useContext(CartContext);
   const cartItem = cart[domain];
 
@@ -17,6 +22,7 @@ export const DomainCartItem = ({ domain }: { domain: string }) => {
           <button
             type="button"
             className="flex items-center text-theme-primary gap-0.5"
+            onClick={onEdit}
           >
             Edit
             <Edit width={16} height={16} />

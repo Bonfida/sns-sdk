@@ -44,7 +44,7 @@ const WidgetHome = () => {
   const isCartView = currentView === "cart";
 
   return (
-    <div className="flex flex-col h-[560px] w-[400px] bg-background-primary">
+    <div className="flex flex-col h-[560px] w-[400px] bg-background-primary relative">
       <div className="px-3 pt-3">
         <button
           type="button"
