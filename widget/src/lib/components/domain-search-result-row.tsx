@@ -3,6 +3,7 @@ import { ShoppingBasketHorizontal, Tick } from "react-huge-icons/outline";
 import { useContext } from "react";
 import { CartContext } from "../contexts/cart";
 import { DomainCardBase } from "./domain-card-base";
+import { priceFromLength } from "../utils";
 
 export const DomainSearchResultRow = ({
   domain,
@@ -14,6 +15,8 @@ export const DomainSearchResultRow = ({
   price?: number;
 }) => {
   const { cart, addToCart, removeFromCart } = useContext(CartContext);
+
+  price = price ?? priceFromLength(domain);
 
   const isInCart = Boolean(cart[domain]);
 

@@ -10,7 +10,7 @@
 export const abbreviate = (
   text: string | undefined,
   len: number,
-  charsAtTheEnd: number = 5
+  charsAtTheEnd: number = 5,
 ) => {
   if (!text) return "";
   if (text.length <= len) return text;
@@ -19,3 +19,23 @@ export const abbreviate = (
     text.slice(0, len - charsAtTheEnd) + "..." + text.slice(-charsAtTheEnd)
   );
 };
+
+const uniq = <T>(array: T[]) => [...new Set(array)];
+
+const chars = ["-", "_"];
+
+const getRandomChar = () => {
+  const i = Math.floor(2 * Math.random());
+  return chars[i];
+};
+
+export const generateRandomDomain = (domain: string, min = 4) => {
+  const results: string[] = [];
+  for (let i = 0; i < min; i++) {
+    results.push(domain + getRandomChar() + Math.floor(100 * Math.random()));
+  }
+  return uniq(results);
+};
+
+export * from "./domain-price-from-length";
+export * from "./tokens";

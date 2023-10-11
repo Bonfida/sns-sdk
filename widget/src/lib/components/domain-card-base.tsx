@@ -1,5 +1,5 @@
-import { abbreviate } from "../utils";
 import type { ReactNode } from "react";
+import { abbreviate, tokenIconBySymbol } from "../utils";
 
 export const DomainCardBase = ({
   domain,
@@ -18,7 +18,12 @@ export const DomainCardBase = ({
         <span className="text-base text-content-secondary font-primary">
           {abbreviate(`${domain}.sol`, 25, 3)}
         </span>
-        {available && <span className="text-sm font-medium">{price}</span>}
+        {available && (
+          <span className="flex items-center gap-1 text-sm font-medium">
+            <img className="w-4 h-4" src={tokenIconBySymbol("USDC")} alt="$" />
+            {price}
+          </span>
+        )}
       </div>
 
       {children}

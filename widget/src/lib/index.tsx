@@ -11,6 +11,8 @@ import { DomainSearchResultRow } from "./components/domain-search-result-row";
 import { CustomButton } from "./components/button";
 import { FidaLogo } from "./components/fida-logo";
 import { CartView } from "./cart-view";
+import { useSearch } from "./hooks/useSearch";
+import { useDomainSuggestions } from "./hooks/useDomainSuggestions";
 
 export const WidgetRoot = () => {
   return (
@@ -25,11 +27,16 @@ type Views = "home" | "search" | "cart";
 const WidgetHome = () => {
   const [currentView, setCurrentView] = useState<Views>("home");
   const [finished, finish] = useState(false);
+  const [searchInput, updateSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const { isCartEmpty } = useContext(CartContext);
+  const domains = useSearch(searchQuery);
+  const suggestions = useDomainSuggestions(searchQuery);
 
   const search = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setCurrentView("search");
+    setSearchQuery(searchInput);
   };
 
   const isHomeView = currentView === "home";
@@ -70,9 +77,11 @@ const WidgetHome = () => {
 
               <form className="flex gap-2 mt-10" onSubmit={search}>
                 <InputField
+                  value={searchInput}
                   placeholder="Search your domain"
                   className="shadow-3xl"
                   type="search"
+                  onChange={(e) => updateSearchInput(e.target.value)}
                 />
 
                 <button
@@ -89,7 +98,13 @@ const WidgetHome = () => {
             {isSearchView && (
               <>
                 <div className="px-3 mb-3 overflow-auto animate-fade-in">
-                  <DomainSearchResultRow domain="design" available={false} />
+                  {domains.result?.map((domain) => (
+                    <DomainSearchResultRow
+                      key={domain.domain}
+                      domain={domain.domain}
+                      available={domain.available}
+                    />
+                  ))}
 
                   <div className="mt-4">
                     <p className="mb-2 ml-4 text-sm text-text-secondary font-primary">
@@ -97,36 +112,13 @@ const WidgetHome = () => {
                     </p>
 
                     <div className="flex flex-col gap-2">
-                      <DomainSearchResultRow
-                        domain="designing"
-                        available
-                        price={20}
-                      />
-                      <DomainSearchResultRow
-                        domain="designer"
-                        available
-                        price={20}
-                      />
-                      <DomainSearchResultRow
-                        domain="designonline"
-                        available
-                        price={20}
-                      />
-                      <DomainSearchResultRow
-                        domain="designonline1"
-                        available
-                        price={20}
-                      />
-                      <DomainSearchResultRow
-                        domain="designonline2"
-                        available
-                        price={20}
-                      />
-                      <DomainSearchResultRow
-                        domain="designonline3"
-                        available
-                        price={20}
-                      />
+                      {suggestions.result?.map((domain) => (
+                        <DomainSearchResultRow
+                          key={domain.domain}
+                          domain={domain.domain}
+                          available={domain.available}
+                        />
+                      ))}
                     </div>
                   </div>
                 </div>

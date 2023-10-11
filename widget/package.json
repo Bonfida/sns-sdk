@@ -20,6 +20,7 @@
     "preview": "vite preview"
   },
   "peerDependencies": {
+    "@solana/web3.js": "^1.78.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -43,6 +44,9 @@
     "vite": "^4.4.9"
   },
   "dependencies": {
-    "react-huge-icons": "^1.3.7"
+    "@bonfida/spl-name-service": "^1.4.0",
+    "react-async-hook": "^4.0.0",
+    "react-huge-icons": "^1.3.7",
+    "split-graphemes": "^0.5.0"
   }
 }
