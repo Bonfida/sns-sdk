@@ -1,12 +1,13 @@
 import { useAsync } from "react-async-hook";
+import { useConnection } from "@solana/wallet-adapter-react";
 import { generateRandomDomain } from "../utils";
 import { getDomainsResult } from "./useSearch";
-import { useSolanaConnection } from "./index";
 
 const URL = "https://sns-api.bonfida.com/v2/suggestion/search";
 
 export const useDomainSuggestions = (domain: string) => {
-  const connection = useSolanaConnection();
+  const { connection } = useConnection();
+
   const fn = async () => {
     if (!domain || domain === "") return;
 

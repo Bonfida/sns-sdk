@@ -1,24 +1,35 @@
+import { Buffer } from "buffer";
 import { type FormEvent, useState, useContext } from "react";
 import { InputField } from "./components/input-field";
-import {
-  SearchShort,
-  SafeBoxStar,
-  WalletClose,
-} from "react-huge-icons/outline";
+import { SearchShort, SafeBoxStar } from "react-huge-icons/outline";
 import { twMerge } from "tailwind-merge";
 import { CartContext, CartContextProvider } from "./contexts/cart";
+import { SolanaProvider } from "./contexts/solana";
 import { DomainSearchResultRow } from "./components/domain-search-result-row";
 import { CustomButton } from "./components/button";
 import { FidaLogo } from "./components/fida-logo";
-import { CartView } from "./cart-view";
+import { CartView } from "./views/cart";
 import { useSearch } from "./hooks/useSearch";
 import { useDomainSuggestions } from "./hooks/useDomainSuggestions";
+import { ConnectWalletButton } from "./components/connect-wallet-button";
+import { GlobalStatusCard } from "./components/global-status";
+import {
+  GlobalStatusContextProvider,
+  GlobalStatusContext,
+} from "./contexts/status-messages";
+
+// TODO: check if possible to avoid doing that
+window.Buffer = Buffer;
 
 export const WidgetRoot = () => {
   return (
-    <CartContextProvider>
-      <WidgetHome />
-    </CartContextProvider>
+    <SolanaProvider>
+      <CartContextProvider>
+        <GlobalStatusContextProvider>
+          <WidgetHome />
+        </GlobalStatusContextProvider>
+      </CartContextProvider>
+    </SolanaProvider>
   );
 };
 
@@ -30,6 +41,7 @@ const WidgetHome = () => {
   const [searchInput, updateSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const { isCartEmpty } = useContext(CartContext);
+  const { status } = useContext(GlobalStatusContext);
   const domains = useSearch(searchQuery);
   const suggestions = useDomainSuggestions(searchQuery);
 
@@ -44,15 +56,19 @@ const WidgetHome = () => {
   const isCartView = currentView === "cart";
 
   return (
-    <div className="flex flex-col h-[560px] w-[400px] bg-background-primary relative">
-      <div className="px-3 pt-3">
-        <button
-          type="button"
-          className="flex items-center gap-2 px-3 py-2 ml-auto text-xs tracking-wide rounded-lg bg-theme-secondary font-primary text-theme-primary"
-        >
-          <WalletClose width={16} height={16} />
-          Connect wallet
-        </button>
+    <div className="flex flex-col h-[560px] w-[400px] bg-background-primary relative rounded-lg">
+      {status && <GlobalStatusCard status={status} />}
+
+      <div className="flex items-center px-3 pt-3">
+        {!isHomeView && (
+          <div className="flex items-center justify-center gap-2 text-sm font-medium text-center text-[#000000]">
+            <span className="h-[26px]">
+              <FidaLogo />
+            </span>
+          </div>
+        )}
+
+        <ConnectWalletButton />
       </div>
 
       <div className="flex flex-col flex-grow overflow-auto">
@@ -111,7 +127,7 @@ const WidgetHome = () => {
                       You might also like
                     </p>
 
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 pb-14">
                       {suggestions.result?.map((domain) => (
                         <DomainSearchResultRow
                           key={domain.domain}
@@ -124,9 +140,10 @@ const WidgetHome = () => {
                 </div>
                 {!isCartEmpty && (
                   <CustomButton
-                    className="absolute left-3 right-3 bottom-4 text-[#fff]"
+                    className="absolute left-3 right-3 bottom-3 text-[#fff]"
                     onClick={() => setCurrentView("cart")}
                   >
+                    {/* TODO: Ask to connect wallet first */}
                     Go to cart
                   </CustomButton>
                 )}
@@ -156,14 +173,16 @@ const WidgetHome = () => {
         )}
       </div>
 
-      <div className="p-3">
-        <div className="flex items-center justify-center gap-2 text-sm font-medium text-center text-[#000000]">
-          Powered by
-          <span className="h-[20px]">
-            <FidaLogo />
-          </span>
+      {isHomeView && (
+        <div className="p-3">
+          <div className="flex items-center justify-center gap-2 text-sm font-medium text-center text-[#000000]">
+            Powered by
+            <span className="h-[20px]">
+              <FidaLogo />
+            </span>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

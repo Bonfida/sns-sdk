@@ -13,6 +13,7 @@ export interface CartContextValue {
   cart: Cart;
   isCartEmpty: boolean;
   addToCart: (x: CartItem) => void;
+  emptyCart: () => void;
   removeFromCart: (x: Domain) => void;
 }
 
@@ -20,6 +21,7 @@ export const CartContext = createContext<CartContextValue>({
   cart: {},
   isCartEmpty: true,
   addToCart: () => {},
+  emptyCart: () => {},
   removeFromCart: () => {},
 });
 
@@ -39,6 +41,8 @@ export const CartContextProvider = ({ children }: { children: ReactNode }) => {
     updateCart(tempCart);
   };
 
+  const emptyCart = () => updateCart({});
+
   const isCartEmpty = !Object.values(cart).length;
 
   return (
@@ -48,6 +52,7 @@ export const CartContextProvider = ({ children }: { children: ReactNode }) => {
         addToCart,
         removeFromCart,
         isCartEmpty,
+        emptyCart,
       }}
     >
       {children}

@@ -11,10 +11,15 @@ export default {
           '0%': { opacity: '0' },
           '20%': { opacity: '0' },
           '100%': { opacity: '1' },
-        }
+        },
+        'width-to-zero': {
+          'from': { width: '100%' },
+          'to': { width: '0' }
+        },
       },
       animation: {
         'fade-in': 'fade-in 1s linear',
+        'width-to-zero': 'width-to-zero 4s forwards',
       },
       boxShadow: {
         '3xl': '0px 16px 32px rgba(215, 221, 225, 0.25)',

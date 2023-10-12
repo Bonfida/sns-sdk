@@ -1,5 +1,5 @@
 import { getDomainKeySync } from "@bonfida/spl-name-service";
-import { useSolanaConnection } from "./index";
+import { useConnection } from "@solana/wallet-adapter-react";
 import { useAsync } from "react-async-hook";
 import { generateRandomDomain } from "../utils";
 import { Connection } from "@solana/web3.js";
@@ -26,7 +26,7 @@ export const getDomainsResult = async (
 };
 
 export const useSearch = (domain: string) => {
-  const connection = useSolanaConnection();
+  const { connection } = useConnection();
   const fn = async (): Promise<Result[]> => {
     if (!domain || !connection) return [];
 

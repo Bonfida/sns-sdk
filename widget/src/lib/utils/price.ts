@@ -16,3 +16,18 @@ export const priceFromLength = (name: string, discountMultiplier = 1) => {
       return 20 * discountMultiplier;
   }
 };
+
+const formatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+
+  minimumFractionDigits: 2,
+});
+
+export const formatPrice = (x: number, stripDollar?: boolean) => {
+  const f = formatter.format(x);
+  if (stripDollar) {
+    return f.replace("$", "");
+  }
+  return f;
+};

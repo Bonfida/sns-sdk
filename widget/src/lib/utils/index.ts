@@ -37,5 +37,8 @@ export const generateRandomDomain = (domain: string, min = 4) => {
   return uniq(results);
 };
 
-export * from "./domain-price-from-length";
+export * from "./price";
 export * from "./tokens";
+export * from "./chunk-tx";
+export * from "./wrap-sol";
+export * from "./unwrap-sol";
