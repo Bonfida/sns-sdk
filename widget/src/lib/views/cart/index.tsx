@@ -7,6 +7,7 @@ import {
   Transaction,
   TransactionInstruction,
 } from "@solana/web3.js";
+import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
 import { registerDomainName } from "@bonfida/spl-name-service";
 import { DomainCartItem } from "../../components/domain-cart-item";
 import { CartContext } from "../../contexts/cart";
@@ -36,9 +37,7 @@ interface CartViewProps {
 export const CartView = ({ backHandler }: CartViewProps) => {
   const pyth = usePyth();
   const { publicKey, connection, signAllTransactions } = useWallet();
-  // TODO: move each step in a separate component so balances will be asked to load only on the 2nd step
   const { balances } = useWalletBalances();
-  console.log("balances", balances);
 
   const [step, setStep] = useState<Step>(1);
   const { cart, emptyCart } = useContext(CartContext);
@@ -172,8 +171,12 @@ export const CartView = ({ backHandler }: CartViewProps) => {
       setFormState("success");
       setStep(3);
     } catch (err) {
-      console.log(err);
-      // TODO: handle that error is caused by user's cancel action, to not throw error screen
+      console.error(err);
+      if (err instanceof WalletSignTransactionError) {
+        setError(err.message);
+        setFormState("registering");
+        return;
+      }
       setStep(3);
       setFormState("error");
     }

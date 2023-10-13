@@ -1,6 +1,8 @@
-import { useWallet as useWalletAdapterReact } from "@solana/wallet-adapter-react";
+import {
+  useWallet as useWalletAdapterReact,
+  useConnection,
+} from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { useConnection } from "@solana/wallet-adapter-react";
 
 export const useWallet = () => {
   const wallet = useWalletAdapterReact();
