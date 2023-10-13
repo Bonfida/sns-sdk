@@ -32,6 +32,7 @@ export default {
       'background-primary': '#FFFFFF',
       'background-secondary': '#FFFFFF',
       'background-tertiary': '#F5F7FF',
+      'background-skeleton': '#E5E7EB',
       'field-border': '#D7DDE1',
       'text-primary': '#090A21',
       'text-secondary': '#585858',

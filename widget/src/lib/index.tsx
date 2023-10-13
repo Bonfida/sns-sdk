@@ -6,6 +6,7 @@ import { twMerge } from "tailwind-merge";
 import { CartContext, CartContextProvider } from "./contexts/cart";
 import { SolanaProvider } from "./contexts/solana";
 import { DomainSearchResultRow } from "./components/domain-search-result-row";
+import { DomainCardSkeleton } from "./components/domain-card-skeleton";
 import { CustomButton } from "./components/button";
 import { FidaLogo } from "./components/fida-logo";
 import { CartView } from "./views/cart";
@@ -114,13 +115,19 @@ const WidgetHome = () => {
             {isSearchView && (
               <>
                 <div className="px-3 mb-3 overflow-auto animate-fade-in">
-                  {domains.result?.map((domain) => (
-                    <DomainSearchResultRow
-                      key={domain.domain}
-                      domain={domain.domain}
-                      available={domain.available}
-                    />
-                  ))}
+                  {domains.loading ? (
+                    <DomainCardSkeleton />
+                  ) : (
+                    <>
+                      {domains.result?.map((domain) => (
+                        <DomainSearchResultRow
+                          key={domain.domain}
+                          domain={domain.domain}
+                          available={domain.available}
+                        />
+                      ))}
+                    </>
+                  )}
 
                   <div className="mt-4">
                     <p className="mb-2 ml-4 text-sm text-text-secondary font-primary">
@@ -128,13 +135,23 @@ const WidgetHome = () => {
                     </p>
 
                     <div className="flex flex-col gap-2 pb-14">
-                      {suggestions.result?.map((domain) => (
-                        <DomainSearchResultRow
-                          key={domain.domain}
-                          domain={domain.domain}
-                          available={domain.available}
-                        />
-                      ))}
+                      {suggestions.loading ? (
+                        <>
+                          {new Array(5).fill(0).map((_, index) => (
+                            <DomainCardSkeleton key={index} />
+                          ))}
+                        </>
+                      ) : (
+                        <>
+                          {suggestions.result?.map((domain) => (
+                            <DomainSearchResultRow
+                              key={domain.domain}
+                              domain={domain.domain}
+                              available={domain.available}
+                            />
+                          ))}
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
