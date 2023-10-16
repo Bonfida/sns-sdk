@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from "react";
-import { ArrowLeft, WalletClose } from "react-huge-icons/outline";
+import { ArrowLeft, WalletClose, RemoveThin } from "react-huge-icons/outline";
 import { twMerge } from "tailwind-merge";
 import { NATIVE_MINT, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import {
@@ -34,17 +34,30 @@ interface CartViewProps {
   backHandler: () => void;
 }
 
+const SIZES_LIST = [
+  { label: "1kb", value: 1_000 },
+  { label: "2kb", value: 2_000 },
+  { label: "3kb", value: 3_000 },
+  { label: "4kb", value: 4_000 },
+  { label: "5kb", value: 5_000 },
+  { label: "6kb", value: 6_000 },
+  { label: "7kb", value: 7_000 },
+  { label: "8kb", value: 8_000 },
+  { label: "9kb", value: 9_000 },
+  { label: "10kb", value: 10_000 },
+];
+
 export const CartView = ({ backHandler }: CartViewProps) => {
   const pyth = usePyth();
   const { publicKey, connection, signAllTransactions } = useWallet();
   const { balances } = useWalletBalances();
 
   const [step, setStep] = useState<Step>(1);
-  const { cart, emptyCart } = useContext(CartContext);
+  const { cart, emptyCart, addToCart } = useContext(CartContext);
   const { setError } = useContext(GlobalStatusContext);
   const [selectedToken, selectToken] = useState(tokenList[0]);
   const [isTokenSelectorOpen, toggleTokenSelector] = useState(false);
-  const [isStorageSelectorOpen, toggleStorageSelector] = useState(false);
+  const [selectedStorageDomain, editStorageForDomain] = useState("");
 
   const [formState, setFormState] = useState<
     "registering" | "processing" | "success" | "error"
@@ -220,18 +233,66 @@ export const CartView = ({ backHandler }: CartViewProps) => {
                     <DomainCartItem
                       key={item.domain}
                       domain={item.domain}
-                      onEdit={() => toggleStorageSelector(true)}
+                      onEdit={() => editStorageForDomain(item.domain)}
                     />
                   ))}
                 </div>
 
                 <BaseModal
-                  isVisible={isStorageSelectorOpen}
-                  toggleVisibility={toggleStorageSelector}
+                  isVisible={!!selectedStorageDomain}
+                  toggleVisibility={() => editStorageForDomain("")}
                 >
-                  <div className="w-[320px] bg-background-primary flex flex-col gap-3 py-3 rounded-xl">
-                    Selector
-                  </div>
+                  {!!selectedStorageDomain && (
+                    <div className="w-[320px] p bg-background-primary flex flex-col gap-3 p-4 rounded-xl">
+                      <p className="flex items-start justify-between text-lg font-medium font-primary">
+                        Storage size
+                        <button
+                          type="button"
+                          className="p-1 -mt-3 -mr-3"
+                          onClick={() => editStorageForDomain("")}
+                        >
+                          <RemoveThin width={24} height={24} />
+                        </button>
+                      </p>
+
+                      <div className="text-xs">
+                        <p className="mb-2">
+                          The storage size will determine the maximum amount of
+                          data you can store on your domain.
+                        </p>
+
+                        <p>
+                          Each additional kb of memory costs around 0.007 SOL
+                          (0.001 USDC)
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-5 gap-2">
+                        {SIZES_LIST.map((size) => {
+                          const domain = cart[selectedStorageDomain];
+                          // TODO: autofous selected on modal open
+                          const selected = size.value === domain?.storage;
+
+                          return (
+                            <button
+                              type="button"
+                              key={size.value}
+                              className={twMerge(
+                                "border-2 border-solid rounded-lg px-2 py-2 border-theme-primary border-opacity-10 text-sm",
+                                selected && "border-opacity-100",
+                              )}
+                              onClick={() => {
+                                addToCart({ ...domain, storage: size.value });
+                                editStorageForDomain("");
+                              }}
+                            >
+                              {size.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </BaseModal>
               </>
             )}

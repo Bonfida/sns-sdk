@@ -18,7 +18,7 @@ export const DomainCartItem = ({ domain, onEdit }: DomainCartItemProps) => {
     <DomainCardBase domain={cartItem.domain} available price={cartItem.price}>
       <div className="flex flex-col items-end gap-2 text-sm">
         <div className="flex flex-row gap-2">
-          <span>Storage: 10kB</span>
+          <span>Storage: {cartItem.storage / 1_000}kB</span>
           <button
             type="button"
             className="flex items-center text-theme-primary gap-0.5"

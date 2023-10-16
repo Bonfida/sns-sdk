@@ -42,7 +42,7 @@ export const DomainSearchResultRow = ({
             onClick={() =>
               isInCart
                 ? removeFromCart(domain)
-                : addToCart({ domain, storage: 10, price: Number(price) })
+                : addToCart({ domain, storage: 10_000, price: Number(price) })
             }
           >
             {!isInCart ? (

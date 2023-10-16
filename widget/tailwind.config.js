@@ -19,6 +19,7 @@ export default {
       },
       animation: {
         'fade-in': 'fade-in 1s linear',
+        'modal-fade-in': 'fade-in 200ms linear',
         'width-to-zero': 'width-to-zero 4s forwards',
       },
       boxShadow: {
