@@ -13,7 +13,7 @@ export const GlobalStatusCard = ({ status }: { status: GlobalStatus }) => {
   }, [setStatus]);
 
   return (
-    <div className="bg-background-primary fixed top-2.5 left-3 right-3 rounded-lg py-3 px-4 flex gap-2 shadow-xl overflow-hidden z-10">
+    <div className="bg-background-primary absolute top-2.5 left-3 right-3 rounded-lg py-3 px-4 flex gap-2 shadow-xl overflow-hidden z-10">
       <div
         className={twMerge(
           "absolute top-0 left-0 right-0 h-0.5 animate-width-to-zero",

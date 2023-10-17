@@ -4,7 +4,6 @@ import { InputField } from "./components/input-field";
 import { SearchShort, SafeBoxStar } from "react-huge-icons/outline";
 import { twMerge } from "tailwind-merge";
 import { CartContext, CartContextProvider } from "./contexts/cart";
-import { SolanaProvider } from "./contexts/solana";
 import { DomainSearchResultRow } from "./components/domain-search-result-row";
 import { DomainCardSkeleton } from "./components/domain-card-skeleton";
 import { CustomButton } from "./components/button";
@@ -25,13 +24,11 @@ window.Buffer = Buffer;
 
 export const WidgetRoot = () => {
   return (
-    <SolanaProvider>
-      <CartContextProvider>
-        <GlobalStatusContextProvider>
-          <WidgetHome />
-        </GlobalStatusContextProvider>
-      </CartContextProvider>
-    </SolanaProvider>
+    <CartContextProvider>
+      <GlobalStatusContextProvider>
+        <WidgetHome />
+      </GlobalStatusContextProvider>
+    </CartContextProvider>
   );
 };
 

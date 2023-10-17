@@ -1,5 +1,10 @@
 import { useState, useContext, useEffect } from "react";
-import { ArrowLeft, WalletClose, RemoveThin } from "react-huge-icons/outline";
+import {
+  ArrowLeft,
+  WalletClose,
+  RemoveThin,
+  Information,
+} from "react-huge-icons/outline";
 import { twMerge } from "tailwind-merge";
 import { NATIVE_MINT, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import {
@@ -261,7 +266,12 @@ export const CartView = ({ backHandler }: CartViewProps) => {
                           data you can store on your domain.
                         </p>
 
-                        <p>
+                        <p className="">
+                          <Information
+                            width={16}
+                            height={16}
+                            className="inline mr-1 mb-[2px] text-accent"
+                          />
                           Each additional kb of memory costs around 0.007 SOL
                           (0.001 USDC)
                         </p>
