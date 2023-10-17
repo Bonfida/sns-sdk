@@ -23,7 +23,6 @@ export const useWalletBalances = () => {
 
   const loadBalances = useCallback(async () => {
     if (publicKey) {
-      console.log("load balances");
       const balances: Record<string, number> = {};
 
       for (const token of tokenList) {

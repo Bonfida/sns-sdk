@@ -22,7 +22,7 @@ export const DomainSearchResultRow = ({
   price = price ?? priceFromLength(domain);
   const isInCart = Boolean(cart[domain]);
 
-  const [showRemoveButton, toggleRemoveButton] = useState(false);
+  const [showRemoveButton, toggleRemoveButton] = useState(isInCart);
 
   const remove = (domain: string) => {
     toggleRemoveButton(false);
