@@ -10,6 +10,7 @@ import { DomainCardSkeleton } from "./components/domain-card-skeleton";
 import { CustomButton } from "./components/button";
 import { FidaLogo } from "./components/fida-logo";
 import { CartView } from "./views/cart";
+import { useWallet } from "./hooks/useWallet";
 import { useSearch } from "./hooks/useSearch";
 import { useDomainSuggestions } from "./hooks/useDomainSuggestions";
 import { ConnectWalletButton } from "./components/connect-wallet-button";
@@ -37,6 +38,7 @@ export const WidgetRoot = () => {
 type Views = "home" | "search" | "cart";
 
 const WidgetHome = () => {
+  const { connected } = useWallet();
   const [currentView, setCurrentView] = useState<Views>("home");
   const [finished, finish] = useState(false);
   const [searchInput, updateSearchInput] = useState("");
@@ -158,10 +160,12 @@ const WidgetHome = () => {
                 {!isCartEmpty && (
                   <CustomButton
                     className="absolute left-3 right-3 bottom-3 text-[#fff]"
-                    onClick={() => setCurrentView("cart")}
+                    disabled={!connected}
+                    onClick={() => {
+                      if (connected) setCurrentView("cart");
+                    }}
                   >
-                    {/* TODO: Ask to connect wallet first */}
-                    Go to cart
+                    {connected ? "Go to cart" : "Connect your wallet"}
                   </CustomButton>
                 )}
               </>

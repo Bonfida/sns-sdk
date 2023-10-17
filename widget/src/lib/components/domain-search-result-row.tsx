@@ -1,6 +1,10 @@
 import { twMerge } from "tailwind-merge";
-import { ShoppingBasketHorizontal, Tick } from "react-huge-icons/outline";
-import { useContext } from "react";
+import {
+  ShoppingBasketHorizontal,
+  Tick,
+  TrashBent,
+} from "react-huge-icons/outline";
+import { useContext, useEffect, useState } from "react";
 import { CartContext } from "../contexts/cart";
 import { DomainCardBase } from "./domain-card-base";
 import { priceFromLength } from "../utils";
@@ -15,10 +19,26 @@ export const DomainSearchResultRow = ({
   price?: number;
 }) => {
   const { cart, addToCart, removeFromCart } = useContext(CartContext);
-
   price = price ?? priceFromLength(domain);
-
   const isInCart = Boolean(cart[domain]);
+
+  const [showRemoveButton, toggleRemoveButton] = useState(false);
+
+  const remove = (domain: string) => {
+    toggleRemoveButton(false);
+    removeFromCart(domain);
+  };
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    if (isInCart && !showRemoveButton) {
+      timer = setTimeout(() => {
+        toggleRemoveButton(true);
+      }, 1500);
+    }
+    return () => clearTimeout(timer);
+  }, [isInCart, showRemoveButton]);
 
   return (
     <DomainCardBase domain={domain} available={available} price={price}>
@@ -38,10 +58,15 @@ export const DomainSearchResultRow = ({
         >
           <button
             type="button"
-            className="flex items-center gap-2 px-3 py-1 text-sm text-[#fff] rounded-lg font-primary bg-theme-primary"
+            className={twMerge(
+              "flex items-center gap-2 px-3 py-1 text-sm text-[#fff] rounded-lg font-primary bg-theme-primary",
+              isInCart &&
+                showRemoveButton &&
+                "bg-transparent text-theme-primary",
+            )}
             onClick={() =>
               isInCart
-                ? removeFromCart(domain)
+                ? remove(domain)
                 : addToCart({ domain, storage: 10_000, price: Number(price) })
             }
           >
@@ -52,8 +77,17 @@ export const DomainSearchResultRow = ({
               </>
             ) : (
               <>
-                Added
-                <Tick width={24} height={24} />
+                {showRemoveButton ? (
+                  <>
+                    Remove
+                    <TrashBent width={24} height={24} />
+                  </>
+                ) : (
+                  <>
+                    Added
+                    <Tick width={24} height={24} />
+                  </>
+                )}
               </>
             )}
           </button>
