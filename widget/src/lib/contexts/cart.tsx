@@ -1,4 +1,5 @@
-import { type ReactNode, createContext, useState } from "react";
+import { type ReactNode, createContext } from "react";
+import { useSessionStorageState } from "ahooks";
 
 interface CartItem {
   domain: string;
@@ -26,7 +27,12 @@ export const CartContext = createContext<CartContextValue>({
 });
 
 export const CartContextProvider = ({ children }: { children: ReactNode }) => {
-  const [cart, updateCart] = useState<Cart>({});
+  const [cart = {}, updateCart] = useSessionStorageState<Cart>(
+    "bonfida-widget-cart",
+    {
+      defaultValue: {},
+    },
+  );
 
   const addToCart = (item: CartItem) => {
     updateCart({
