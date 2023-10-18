@@ -10,19 +10,24 @@
   "author": "letehaha",
   "license": "MIT",
   "type": "module",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/sns-widget.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "bugs": {
     "url": "https://github.com/Bonfida/sns-sdk/issues"
   },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "peerDependencies": {
-    "@solana/wallet-adapter-react": "^0.15.35",
-    "@solana/wallet-adapter-react-ui": "^0.9.34",
-    "@solana/web3.js": "^1.78.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -43,9 +48,13 @@
     "tailwind-merge": "^1.14.0",
     "tailwindcss": "^3.3.3",
     "typescript": "^5.2.2",
-    "vite": "^4.4.9"
+    "vite": "^4.4.9",
+    "vite-plugin-dts": "^3.6.0"
   },
   "dependencies": {
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-react-ui": "^0.9.34",
+    "@solana/web3.js": "^1.78.7",
     "@bonfida/spl-name-service": "^1.4.0",
     "@pythnetwork/client": "^2.19.0",
     "ahooks": "^3.7.8",

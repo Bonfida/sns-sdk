@@ -8,7 +8,7 @@ import {
   WalletModalProvider,
   useWalletModal,
 } from "@solana/wallet-adapter-react-ui";
-import { WidgetRoot } from "./lib";
+import Widget from "./lib";
 
 import "@solana/wallet-adapter-react-ui/styles.css";
 
@@ -27,7 +27,7 @@ const Content = () => {
   const { visible, setVisible } = useWalletModal();
 
   return (
-    <WidgetRoot
+    <Widget
       endpoint={PUBLIC_RPC}
       passthroughWallet={{ ...wallet, visible, setVisible }}
     />
