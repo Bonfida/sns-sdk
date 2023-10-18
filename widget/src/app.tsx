@@ -1,9 +1,13 @@
 import { ReactNode } from "react";
 import {
-  ConnectionProvider,
+  // ConnectionProvider,
   WalletProvider,
+  useWallet,
 } from "@solana/wallet-adapter-react";
-import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+import {
+  WalletModalProvider,
+  useWalletModal,
+} from "@solana/wallet-adapter-react-ui";
 import { WidgetRoot } from "./lib";
 
 import "@solana/wallet-adapter-react-ui/styles.css";
@@ -12,18 +16,28 @@ const PUBLIC_RPC = import.meta.env.VITE_PUBLIC_RPC as string;
 
 const SolanaProvider = ({ children }: { children: ReactNode }) => {
   return (
-    <ConnectionProvider endpoint={PUBLIC_RPC}>
-      <WalletProvider autoConnect wallets={[]}>
-        <WalletModalProvider>{children}</WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
+    <WalletProvider autoConnect wallets={[]}>
+      <WalletModalProvider>{children}</WalletModalProvider>
+    </WalletProvider>
+  );
+};
+
+const Content = () => {
+  const wallet = useWallet();
+  const { visible, setVisible } = useWalletModal();
+
+  return (
+    <WidgetRoot
+      endpoint={PUBLIC_RPC}
+      passthroughWallet={{ ...wallet, visible, setVisible }}
+    />
   );
 };
 
 function App() {
   return (
     <SolanaProvider>
-      <WidgetRoot />
+      <Content />
     </SolanaProvider>
   );
 }

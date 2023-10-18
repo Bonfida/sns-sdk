@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { NATIVE_MINT, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import { useWallet } from "./useWallet";
+import { useWalletPassThrough } from "../contexts/wallet-passthrough-provider";
 import { tokenList } from "../utils";
 
 const getTokenAccountBalance = async (
@@ -17,7 +17,7 @@ const getTokenAccountBalance = async (
 };
 
 export const useWalletBalances = () => {
-  const { publicKey, connection } = useWallet();
+  const { publicKey, connection } = useWalletPassThrough();
 
   const [balances, setBalances] = useState<Record<string, number>>({});
 
@@ -28,11 +28,11 @@ export const useWalletBalances = () => {
       for (const token of tokenList) {
         const mint = new PublicKey(token.mintAddress);
         const ata = getAssociatedTokenAddressSync(mint, publicKey);
-        const balance = await getTokenAccountBalance(connection, ata);
+        const balance = await getTokenAccountBalance(connection!, ata);
 
         if (mint.equals(NATIVE_MINT)) {
           const sol =
-            (await connection.getBalance(publicKey)) / LAMPORTS_PER_SOL;
+            (await connection!.getBalance(publicKey)) / LAMPORTS_PER_SOL;
 
           balances[token.tokenSymbol] = sol + balance;
         } else {

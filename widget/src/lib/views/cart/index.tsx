@@ -28,7 +28,8 @@ import {
   unwrapSol,
   chunkIx,
 } from "../../utils";
-import { usePyth, useWallet, useWalletBalances } from "../../hooks";
+import { usePyth, useWalletBalances } from "../../hooks";
+import { useWalletPassThrough } from "../../contexts/wallet-passthrough-provider";
 import { CartProcessing } from "./processing";
 import { CartSuccess } from "./success";
 import { CartError } from "./error";
@@ -54,7 +55,7 @@ const SIZES_LIST = [
 
 export const CartView = ({ backHandler }: CartViewProps) => {
   const pyth = usePyth();
-  const { publicKey, connection, signAllTransactions } = useWallet();
+  const { publicKey, connection, signAllTransactions } = useWalletPassThrough();
   const { balances } = useWalletBalances();
 
   const [step, setStep] = useState<Step>(1);

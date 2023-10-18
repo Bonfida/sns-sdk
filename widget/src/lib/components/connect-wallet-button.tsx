@@ -1,9 +1,9 @@
 import { WalletClose } from "react-huge-icons/outline";
-import { useWallet } from "../hooks";
+import { useWalletPassThrough } from "../contexts/wallet-passthrough-provider";
 import { abbreviate } from "../utils";
 
 export const ConnectWalletButton = () => {
-  const { visible, setVisible, connected, publicKey } = useWallet();
+  const { visible, setVisible, connected, publicKey } = useWalletPassThrough();
 
   return (
     <button

@@ -9,7 +9,10 @@ import { DomainCardSkeleton } from "./components/domain-card-skeleton";
 import { CustomButton } from "./components/button";
 import { FidaLogo } from "./components/fida-logo";
 import { CartView } from "./views/cart";
-import { useWallet } from "./hooks/useWallet";
+import {
+  useWalletPassThrough,
+  type WalletPassThroughProps,
+} from "./contexts/wallet-passthrough-provider";
 import { useSearch } from "./hooks/useSearch";
 import { useDomainSuggestions } from "./hooks/useDomainSuggestions";
 import { ConnectWalletButton } from "./components/connect-wallet-button";
@@ -18,24 +21,32 @@ import {
   GlobalStatusContextProvider,
   GlobalStatusContext,
 } from "./contexts/status-messages";
+import { SolanaProvider } from "./contexts/solana";
 
 // TODO: check if possible to avoid doing that
 window.Buffer = Buffer;
 
-export const WidgetRoot = () => {
+interface WidgetProps {
+  endpoint: string;
+  passthroughWallet?: WalletPassThroughProps;
+}
+
+export const WidgetRoot = ({ endpoint, passthroughWallet }: WidgetProps) => {
   return (
-    <CartContextProvider>
-      <GlobalStatusContextProvider>
-        <WidgetHome />
-      </GlobalStatusContextProvider>
-    </CartContextProvider>
+    <SolanaProvider endpoint={endpoint} passthroughWallet={passthroughWallet}>
+      <CartContextProvider>
+        <GlobalStatusContextProvider>
+          <WidgetHome />
+        </GlobalStatusContextProvider>
+      </CartContextProvider>
+    </SolanaProvider>
   );
 };
 
 type Views = "home" | "search" | "cart";
 
 const WidgetHome = () => {
-  const { connected } = useWallet();
+  const { connected } = useWalletPassThrough();
   const [currentView, setCurrentView] = useState<Views>("home");
   const [finished, finish] = useState(false);
   const [searchInput, updateSearchInput] = useState("");
