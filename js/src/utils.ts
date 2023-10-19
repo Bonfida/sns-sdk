@@ -207,6 +207,43 @@ export async function getAllDomains(
 }
 
 /**
+ * This function can be used to retrieve all domain names owned by `wallet` in a human readable format
+ * @param connection The Solana RPC connection object
+ * @param wallet The wallet you want to search domain names for
+ * @returns Array of pubkeys and the corresponding human readable domain names
+ */
+export async function getAllReversedDomains(
+  connection: Connection,
+  wallet: PublicKey
+) {
+  const filters = [
+    {
+      memcmp: {
+        offset: 32,
+        bytes: wallet.toBase58(),
+      },
+    },
+    {
+      memcmp: {
+        offset: 0,
+        bytes: ROOT_DOMAIN_ACCOUNT.toBase58(),
+      },
+    },
+  ];
+  const accounts = await connection.getProgramAccounts(NAME_PROGRAM_ID, {
+    filters,
+  });
+
+  const encodedNameArr = accounts.map((a) => a.pubkey);
+  const names = await reverseLookupBatch(connection, encodedNameArr);
+
+  return encodedNameArr.map((pubKey, index) => ({
+    pubKey,
+    reverse: names[index],
+  }));
+}
+
+/**
  * This function can be used to retrieve all the registered `.sol` domains.
  * The account data is sliced to avoid enormous payload and only the owner is returned
  * @param connection The Solana RPC connection object
