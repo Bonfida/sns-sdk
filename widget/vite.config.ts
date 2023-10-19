@@ -2,7 +2,7 @@ import dts from "vite-plugin-dts";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import path from "path";
-// import { terser } from "rollup-plugin-terser";
+import { terser } from "rollup-plugin-terser";
 
 const resolvePath = (str: string) => path.resolve(__dirname, str);
 
@@ -50,7 +50,7 @@ export default defineConfig({
           "react-async-hook": "react-async-hook",
         },
       },
-      // plugins: [terser({ compress: true })],
+      plugins: [terser({ compress: true })],
     },
   },
   plugins: [react(), dts({ rollupTypes: true, include: ["src/lib"] })],

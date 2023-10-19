@@ -1,6 +1,6 @@
 {
   "name": "@bonfida/sns-widget",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "SNS Widget for 3rd-party apps for quick domain search and register",
   "repository": {
     "type": "git",
