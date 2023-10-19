@@ -212,34 +212,16 @@ export async function getAllDomains(
  * @param wallet The wallet you want to search domain names for
  * @returns Array of pubkeys and the corresponding human readable domain names
  */
-export async function getAllReversedDomains(
+export async function getDomainKeysWithReverses(
   connection: Connection,
   wallet: PublicKey
 ) {
-  const filters = [
-    {
-      memcmp: {
-        offset: 32,
-        bytes: wallet.toBase58(),
-      },
-    },
-    {
-      memcmp: {
-        offset: 0,
-        bytes: ROOT_DOMAIN_ACCOUNT.toBase58(),
-      },
-    },
-  ];
-  const accounts = await connection.getProgramAccounts(NAME_PROGRAM_ID, {
-    filters,
-  });
-
-  const encodedNameArr = accounts.map((a) => a.pubkey);
+  const encodedNameArr = await getAllDomains(connection, wallet);
   const names = await reverseLookupBatch(connection, encodedNameArr);
 
   return encodedNameArr.map((pubKey, index) => ({
     pubKey,
-    reverse: names[index],
+    domain: names[index],
   }));
 }
 
