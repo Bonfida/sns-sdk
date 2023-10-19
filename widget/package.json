@@ -7,60 +7,81 @@
     "url": "git+https://github.com/Bonfida/sns-sdk.git",
     "directory": "widget"
   },
-  "author": "letehaha",
-  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "files": [
-    "dist"
+    "dist",
+    "tailwind.config.js"
   ],
+  "main": "dist/sns-widget.mjs",
+  "module": "dist/sns-widget.mjs",
   "exports": {
+    "./style.css": "./dist/style.css",
     ".": {
-      "import": "./dist/sns-widget.js",
+      "import": "./dist/sns-widget.mjs",
+      "require": "./dist/sns-widget.umd.js",
       "types": "./dist/index.d.ts"
     }
   },
   "bugs": {
     "url": "https://github.com/Bonfida/sns-sdk/issues"
   },
+  "engines": {
+    "node": "18"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "analyse": "vite-bundle-visualizer"
   },
   "peerDependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@solana/wallet-adapter-react": "^0.15",
+    "@solana/wallet-adapter-react-ui": "^0.9",
+    "@solana/web3.js": "^1.78",
+    "ahooks": "^3",
+    "buffer": "^6.0.0",
+    "react": "^18",
+    "react-async-hook": "^4.0.0",
+    "react-dom": "^18",
+    "react-huge-icons": "^1.3",
+    "react-icons": "^4.11.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.23",
     "@types/react-dom": "^18.2.8",
     "@typescript-eslint/eslint-plugin": "^6.7.3",
     "@typescript-eslint/parser": "^6.7.3",
-    "@vitejs/plugin-react-swc": "^3.4.0",
+    "@vitejs/plugin-react": "^4.1.0",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.50.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
     "postcss": "^8.4.30",
     "prettier": "3.0.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "rollup-plugin-terser": "^7.0.2",
     "tailwind-merge": "^1.14.0",
     "tailwindcss": "^3.3.3",
     "typescript": "^5.2.2",
     "vite": "^4.4.9",
+    "vite-bundle-visualizer": "^0.10.0",
     "vite-plugin-dts": "^3.6.0"
   },
   "dependencies": {
-    "@solana/wallet-adapter-react": "^0.15.35",
-    "@solana/wallet-adapter-react-ui": "^0.9.34",
-    "@solana/web3.js": "^1.78.7",
     "@bonfida/spl-name-service": "^1.4.0",
     "@pythnetwork/client": "^2.19.0",
-    "ahooks": "^3.7.8",
-    "buffer": "^6.0.3",
+    "@solana/wallet-adapter-react": "^0.15",
+    "@solana/wallet-adapter-react-ui": "^0.9",
+    "@solana/web3.js": "^1.78",
+    "ahooks": "^3",
+    "buffer": "^6.0.0",
     "react-async-hook": "^4.0.0",
-    "react-huge-icons": "^1.3.7",
+    "react-huge-icons": "^1.3",
+    "react-icons": "^4.11.0",
     "split-graphemes": "^0.5.0"
-  }
+  },
+  "author": "letehaha",
+  "license": "MIT"
 }

@@ -1,44 +1,32 @@
-import { useState, type CSSProperties, lazy, Suspense } from "react";
-import type { PublicKey } from "@solana/web3.js";
-import type {
-  WalletName,
-  SignerWalletAdapterProps,
-} from "@solana/wallet-adapter-base";
-import type { Wallet } from "@solana/wallet-adapter-react";
-// import { type WalletPassThroughProps } from "./contexts/wallet-passthrough-provider";
+import "./index.css";
 
-interface WalletPassThroughProps {
-  publicKey: PublicKey | null | undefined;
-  wallets: Wallet[];
-  wallet: Wallet | null;
-  connect: () => Promise<void>;
-  select: (walletName: WalletName) => void;
-  connecting: boolean;
-  connected: boolean;
-  disconnect: () => Promise<void>;
-  signAllTransactions:
-    | SignerWalletAdapterProps["signAllTransactions"]
-    | undefined;
-
-  visible: boolean;
-  setVisible: (visible: boolean) => void;
-}
-
-interface WidgetProps {
-  endpoint: string;
-  passthroughWallet?: WalletPassThroughProps;
-  containerStyles?: CSSProperties;
-}
+import { useState, lazy, Suspense } from "react";
+import type { WidgetProps, WalletPassThroughProps } from "./types";
+import { twMerge } from "tailwind-merge";
+import { FidaIcon } from "./components/fida-icon";
 
 const Widget = lazy(() => import(`./widget`));
 
-const EntryPoint = (props: WidgetProps) => {
+const EntryPoint = ({
+  rootWrapperClassNames,
+  rootWrapperStyles,
+  ...props
+}: WidgetProps) => {
   const [visible, setVisible] = useState(false);
 
   return (
-    <div className="fixed bottom-3 right-3">
-      <button onClick={() => setVisible(!visible)} className="text-[#fff]">
-        Widget
+    <div
+      className={twMerge("fixed bottom-3 right-3 z-1", rootWrapperClassNames)}
+      style={rootWrapperStyles}
+    >
+      <button
+        onClick={() => setVisible(!visible)}
+        className="w-[50px] h-[50px] rounded-full bg-background-primary overflow-hidden text-text-primary p-2 flex items-center justify-center"
+        type="button"
+        aria-label={visible ? "Close SNS widget" : "Open SNS widget"}
+        aria-haspopup="true"
+      >
+        <FidaIcon />
       </button>
 
       <Suspense>{visible && <Widget {...props} />}</Suspense>
@@ -46,5 +34,5 @@ const EntryPoint = (props: WidgetProps) => {
   );
 };
 
-export type { WidgetProps };
+export type { WidgetProps, WalletPassThroughProps };
 export default EntryPoint;

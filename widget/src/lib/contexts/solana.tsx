@@ -4,10 +4,8 @@ import {
   WalletProvider,
 } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import {
-  WalletPassthroughProvider,
-  type WalletPassThroughProps,
-} from "./wallet-passthrough-provider";
+import type { WalletPassThroughProps } from "../types";
+import { WalletPassthroughProvider } from "./wallet-passthrough-provider";
 
 import "@solana/wallet-adapter-react-ui/styles.css";
 

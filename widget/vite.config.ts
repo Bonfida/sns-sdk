@@ -1,21 +1,57 @@
-import { defineConfig } from "vite";
-import { resolve } from "path";
 import dts from "vite-plugin-dts";
-import react from "@vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+import path from "path";
+// import { terser } from "rollup-plugin-terser";
+
+const resolvePath = (str: string) => path.resolve(__dirname, str);
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), dts({ rollupTypes: true, include: ["src/lib"] })],
   server: {
     port: 3000,
   },
   build: {
     lib: {
-      entry: resolve(__dirname, "src/lib/index.tsx"),
-      formats: ["es"],
+      entry: resolvePath("src/lib/index.tsx"),
+      name: "SNS Widget",
+      formats: ["es", "cjs", "umd"],
+      fileName: (format) =>
+        `sns-widget.${
+          format === "cjs" ? "cjs" : format === "es" ? "mjs" : "umd.js"
+        }`,
     },
     rollupOptions: {
-      external: ["react", "react-dom", "react/jsx-runtime"],
+      external: [
+        "react",
+        "react-dom",
+        "react/jsx-runtime",
+        "@solana/web3.js",
+        "@solana/spl-token",
+        "ahooks",
+        "tailwind-merge",
+        "buffer",
+        "react-huge-icons",
+        "react-async-hook",
+      ],
+      output: {
+        // Provide global variables to use in the UMD build for externalized deps
+        globals: {
+          react: "react",
+          "react-dom": "react-dom",
+          "react/jsx-runtime": "react/jsx-runtime",
+          "@solana/web3.js": "@solana/web3.js",
+          "@solana/spl-token": "@solana/spl-token",
+          ahooks: "ahooks",
+          bs58: "bs58",
+          "tailwind-merge": "tailwind-merge",
+          buffer: "buffer",
+          "react-huge-icons": "react-huge-icons",
+          "react-async-hook": "react-async-hook",
+        },
+      },
+      // plugins: [terser({ compress: true })],
     },
   },
+  plugins: [react(), dts({ rollupTypes: true, include: ["src/lib"] })],
 });

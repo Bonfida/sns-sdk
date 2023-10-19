@@ -1,7 +1,6 @@
 import { Buffer } from "buffer";
-import type { CSSProperties } from "react";
 import { CartContextProvider } from "./contexts/cart";
-import { type WalletPassThroughProps } from "./contexts/wallet-passthrough-provider";
+import type { WidgetProps } from "./types";
 import { GlobalStatusContextProvider } from "./contexts/status-messages";
 import { SolanaProvider } from "./contexts/solana";
 import { WidgetHome } from "./views/home";
@@ -9,18 +8,17 @@ import { WidgetHome } from "./views/home";
 // TODO: check if possible to avoid doing that
 window.Buffer = Buffer;
 
-interface WidgetProps {
-  endpoint: string;
-  passthroughWallet?: WalletPassThroughProps;
-  containerStyles?: CSSProperties;
-}
-
-const Widget = ({ endpoint, passthroughWallet }: WidgetProps) => {
+const Widget = ({
+  endpoint,
+  passthroughWallet,
+  containerClassNames,
+  containerStyles,
+}: WidgetProps) => {
   return (
     <SolanaProvider endpoint={endpoint} passthroughWallet={passthroughWallet}>
       <CartContextProvider>
         <GlobalStatusContextProvider>
-          <WidgetHome />
+          <WidgetHome className={containerClassNames} style={containerStyles} />
         </GlobalStatusContextProvider>
       </CartContextProvider>
     </SolanaProvider>

@@ -1,4 +1,9 @@
-import { type FormEvent, useState, useContext } from "react";
+import {
+  type FormEvent,
+  useState,
+  useContext,
+  type CSSProperties,
+} from "react";
 import { InputField } from "../components/input-field";
 import { SearchShort, SafeBoxStar } from "react-huge-icons/outline";
 import { twMerge } from "tailwind-merge";
@@ -17,7 +22,10 @@ import { GlobalStatusContext } from "../contexts/status-messages";
 
 type Views = "home" | "search" | "cart";
 
-export const WidgetHome = () => {
+export const WidgetHome = ({
+  className,
+  style,
+}: { className?: string; style?: CSSProperties } = {}) => {
   const { connected } = useWalletPassThrough();
   const [currentView, setCurrentView] = useState<Views>("home");
   const [finished, finish] = useState(false);
@@ -39,7 +47,14 @@ export const WidgetHome = () => {
   const isCartView = currentView === "cart";
 
   return (
-    <div className="flex flex-col h-[560px] w-[400px] bg-background-primary rounded-lg absolute bottom-12 right-0">
+    <div
+      className={twMerge(
+        "flex flex-col h-[560px] w-[400px] bg-background-primary rounded-lg absolute bottom-16 right-0",
+        className,
+      )}
+      style={style}
+      aria-label="SNS widget allows you to quickly search and buy .sol domains"
+    >
       {status && <GlobalStatusCard status={status} />}
 
       <div className="flex items-center px-3 pt-3">

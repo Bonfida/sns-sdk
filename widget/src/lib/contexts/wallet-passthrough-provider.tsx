@@ -1,32 +1,11 @@
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection } from "@solana/web3.js";
 import { createContext, PropsWithChildren, ReactNode, useContext } from "react";
-import type {
-  WalletName,
-  SignerWalletAdapterProps,
-} from "@solana/wallet-adapter-base";
 import {
   useWallet as useWalletAdapterReact,
   useConnection,
-  type Wallet,
 } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-
-export interface WalletPassThroughProps {
-  publicKey: PublicKey | null | undefined;
-  wallets: Wallet[];
-  wallet: Wallet | null;
-  connect: () => Promise<void>;
-  select: (walletName: WalletName) => void;
-  connecting: boolean;
-  connected: boolean;
-  disconnect: () => Promise<void>;
-  signAllTransactions:
-    | SignerWalletAdapterProps["signAllTransactions"]
-    | undefined;
-
-  visible: boolean;
-  setVisible: (visible: boolean) => void;
-}
+import type { WalletPassThroughProps } from "../types";
 
 interface WalletPassThroughStructure extends WalletPassThroughProps {
   connection: Connection | null;
