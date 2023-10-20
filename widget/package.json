@@ -1,6 +1,6 @@
 {
   "name": "@bonfida/sns-widget",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "SNS Widget for 3rd-party apps for quick domain search and register",
   "repository": {
     "type": "git",
@@ -41,13 +41,16 @@
     "@solana/wallet-adapter-react": "^0.15",
     "@solana/wallet-adapter-react-ui": "^0.9",
     "@solana/web3.js": "^1.78",
+    "@pythnetwork/client": "^2.7",
+    "@bonfida/spl-name-service": "^1.4.0",
     "ahooks": "^3",
-    "buffer": "^6.0.0",
     "react": "^18",
     "react-async-hook": "^4.0.0",
     "react-dom": "^18",
     "react-huge-icons": "^1.3",
-    "react-icons": "^4.11.0"
+    "react-icons": "^4.11.0",
+    "buffer": "^6.0.0",
+    "split-graphemes": "^0.5.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.23",
