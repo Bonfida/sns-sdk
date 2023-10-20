@@ -6,7 +6,9 @@ import { SolanaProvider } from "./contexts/solana";
 import { WidgetHome } from "./views/home";
 
 // TODO: check if possible to avoid doing that
-window.Buffer = Buffer;
+if (typeof window !== "undefined") {
+  window.Buffer = Buffer;
+}
 
 const Widget = ({
   endpoint,
