@@ -12,12 +12,17 @@ if (typeof window !== "undefined") {
 
 const Widget = ({
   endpoint,
+  connection,
   passthroughWallet,
   containerClassNames,
   containerStyles,
 }: WidgetProps) => {
   return (
-    <SolanaProvider endpoint={endpoint} passthroughWallet={passthroughWallet}>
+    <SolanaProvider
+      endpoint={endpoint}
+      connection={connection}
+      passthroughWallet={passthroughWallet}
+    >
       <CartContextProvider>
         <GlobalStatusContextProvider>
           <WidgetHome className={containerClassNames} style={containerStyles} />

@@ -1,7 +1,7 @@
 import { parsePriceData } from "@pythnetwork/client";
 import { useAsync } from "react-async-hook";
 import { PublicKey, Connection } from "@solana/web3.js";
-import { useConnection } from "@solana/wallet-adapter-react";
+import { useConnectionPassThrough } from "../contexts/connection-passthrough-provider";
 import { tokenList } from "../utils/tokens";
 
 export interface Pyth {
@@ -37,7 +37,7 @@ const getPrice = async (connection: Connection, feed: PublicKey) => {
 };
 
 export const usePyth = () => {
-  const { connection } = useConnection();
+  const { connection } = useConnectionPassThrough();
 
   const fn = async () => {
     if (!connection) return;

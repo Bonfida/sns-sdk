@@ -1,6 +1,6 @@
 import "./index.css";
 
-import type { PublicKey } from "@solana/web3.js";
+import type { Connection, PublicKey } from "@solana/web3.js";
 import type {
   WalletName,
   SignerWalletAdapterProps,
@@ -25,10 +25,20 @@ export interface WalletPassThroughProps {
   setVisible: (visible: boolean) => void;
 }
 
-export interface WidgetProps {
-  endpoint: string;
-  passthroughWallet?: WalletPassThroughProps;
+export type WidgetProps = (EndpointOnly | ConnectionOnly) & CommonProps;
 
+interface EndpointOnly {
+  endpoint: string;
+  connection?: never;
+}
+
+interface ConnectionOnly {
+  endpoint?: never;
+  connection: Connection;
+}
+
+interface CommonProps {
+  passthroughWallet?: WalletPassThroughProps;
   containerClassNames?: string;
   containerStyles?: CSSProperties;
   rootWrapperClassNames?: string;
