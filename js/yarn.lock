@@ -313,9 +313,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@bonfida/sns-records@file:../../../../../Volumes/TRANSCEND/repos/sns-records/js/bonfida-sns-records-0.0.1-alpha.4.tgz":
-  version "0.0.1-alpha.4"
-  resolved "file:../../../../../Volumes/TRANSCEND/repos/sns-records/js/bonfida-sns-records-0.0.1-alpha.4.tgz#35233321fab4b238e95a30a8d409a39d057b15ac"
+"@bonfida/sns-records@^0.0.1-alpha.5":
+  version "0.0.1-alpha.5"
+  resolved "https://registry.yarnpkg.com/@bonfida/sns-records/-/sns-records-0.0.1-alpha.5.tgz#2e25732fff49d49cd5c9c8121287beed62e0fafc"
+  integrity sha512-wNrDYZoCWi9XfnT18j78PczlRRLhnysTtAJl9ns6PHdMoNBSvTGGr0JNczh5koG2Z0RVeC++6Uq9czGiN/G9aw==
   dependencies:
     "@solana/spl-token" "0.3.8"
     "@solana/web3.js" "1.87.2"

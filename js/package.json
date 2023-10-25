@@ -59,6 +59,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@bonfida/sns-records": "^0.0.1-alpha.5",
     "@ethersproject/address": "^5.7.0",
     "@ethersproject/hash": "^5.7.0",
     "@ethersproject/sha2": "^5.7.0",
