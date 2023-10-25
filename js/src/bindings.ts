@@ -55,7 +55,16 @@ import {
 import { ErrorType, SNSError } from "./error";
 import { serializeRecord, serializeSolRecord } from "./record";
 import { Record, RecordVersion } from "./types/record";
-import { RecordV2, serializeRecordV2Content } from "./record_v2";
+import { serializeRecordV2Content } from "./record_v2";
+import {
+  editRecord,
+  allocateAndPostRecord,
+  SNS_RECORDS_ID,
+  deleteRecord,
+  validateSolanaSignature,
+  validateEthSignature,
+  Validation,
+} from "@bonfida/sns-records";
 
 /**
  * Creates a name account with the given rent budget, allocated space, owner and class.
@@ -518,7 +527,6 @@ export const createRecordInstruction = async (
 
 /**
  * This function can be used be create a record V2, it handles the serialization of the record data following SNS-IP 1 guidelines
- * @param connection The Solana RPC connection object
  * @param domain The .sol domain name
  * @param record The record enum object
  * @param recordV2 The `RecordV2` object that will be serialized into the record via the update instruction
@@ -526,38 +534,32 @@ export const createRecordInstruction = async (
  * @param payer The fee payer of the transaction
  * @returns
  */
-export const createRecordV2Instruction = async (
-  connection: Connection,
+export const createRecordV2Instruction = (
   domain: string,
   record: Record,
-  recordV2: RecordV2,
+  content: string,
   owner: PublicKey,
   payer: PublicKey
 ) => {
-  const space = recordV2.serialize().length;
-  const { pubkey, hashed, parent } = getDomainKeySync(
+  const { pubkey, parent } = getDomainKeySync(
     `${record}.${domain}`,
     RecordVersion.V2
   );
 
-  const lamports = await connection.getMinimumBalanceForRentExemption(
-    space + NameRegistryState.HEADER_LEN
-  );
+  if (!parent) {
+    throw new Error("Invalid parent");
+  }
 
-  const ix = createInstruction(
-    NAME_PROGRAM_ID,
-    SystemProgram.programId,
-    pubkey,
-    owner,
+  const ix = allocateAndPostRecord(
     payer,
-    hashed,
-    new Numberu64(lamports),
-    new Numberu32(space),
-    undefined,
+    pubkey,
     parent,
-    owner
+    owner,
+    NAME_PROGRAM_ID,
+    `\x02`.concat(record as string),
+    serializeRecordV2Content(content, record),
+    SNS_RECORDS_ID
   );
-
   return ix;
 };
 
@@ -612,49 +614,33 @@ export const updateRecordInstruction = async (
  * @param payer The fee payer of the transaction
  * @returns The update record instructions
  */
-export const updateRecordV2Instruction = async (
-  connection: Connection,
+export const updateRecordV2Instruction = (
   domain: string,
   record: Record,
-  recordV2: RecordV2,
+  content: string,
   owner: PublicKey,
   payer: PublicKey
 ) => {
-  const { pubkey } = getDomainKeySync(`${record}.${domain}`, RecordVersion.V2);
-  const info = await connection.getAccountInfo(pubkey);
-
-  const serialized = recordV2.serialize();
-  if (!!info && info?.data.slice(96).length !== serialized.length) {
-    // Delete + create until we can realloc accounts
-    return [
-      deleteInstruction(NAME_PROGRAM_ID, pubkey, payer, owner),
-      await createRecordV2Instruction(
-        connection,
-        domain,
-        record,
-        recordV2,
-        owner,
-        payer
-      ),
-      updateInstruction(
-        NAME_PROGRAM_ID,
-        pubkey,
-        new Numberu32(0),
-        Buffer.from(serialized),
-        owner
-      ),
-    ];
+  const { pubkey, parent } = getDomainKeySync(
+    `${record}.${domain}`,
+    RecordVersion.V2
+  );
+  if (!parent) {
+    throw new Error("Invalid parent");
   }
 
-  const ix = updateInstruction(
-    NAME_PROGRAM_ID,
+  const ix = editRecord(
+    payer,
     pubkey,
-    new Numberu32(0),
-    Buffer.from(serialized),
-    owner
+    parent,
+    owner,
+    NAME_PROGRAM_ID,
+    `\x02`.concat(record as string),
+    Buffer.from(content),
+    SNS_RECORDS_ID
   );
 
-  return [ix];
+  return ix;
 };
 
 /**
@@ -665,14 +651,91 @@ export const updateRecordV2Instruction = async (
  * @param payer The fee payer of the transaction
  * @returns The delete transaction instruction
  */
-export const deleteRecordV2 = async (
+export const deleteRecordV2 = (
   domain: string,
   record: Record,
   owner: PublicKey,
   payer: PublicKey
 ) => {
-  const { pubkey } = getDomainKeySync(`${record}.${domain}`, RecordVersion.V2);
-  return deleteInstruction(NAME_PROGRAM_ID, pubkey, payer, owner);
+  const { pubkey, parent } = getDomainKeySync(
+    `${record}.${domain}`,
+    RecordVersion.V2
+  );
+
+  if (!parent) {
+    throw new Error("Invalid parent");
+  }
+
+  const ix = deleteRecord(
+    payer,
+    parent,
+    owner,
+    pubkey,
+    NAME_PROGRAM_ID,
+    SNS_RECORDS_ID
+  );
+  return ix;
+};
+
+export const validateRecordV2Content = (
+  staleness: boolean,
+  domain: string,
+  record: Record,
+  owner: PublicKey,
+  payer: PublicKey,
+  verifier: PublicKey
+) => {
+  const { pubkey, parent } = getDomainKeySync(
+    `${record}.${domain}`,
+    RecordVersion.V2
+  );
+
+  if (!parent) {
+    throw new Error("Invalid parent");
+  }
+
+  const ix = validateSolanaSignature(
+    payer,
+    pubkey,
+    parent,
+    owner,
+    verifier,
+    NAME_PROGRAM_ID,
+    staleness,
+    SNS_RECORDS_ID
+  );
+  return ix;
+};
+
+export const ethValidateRecordV2Content = (
+  domain: string,
+  record: Record,
+  owner: PublicKey,
+  payer: PublicKey,
+  signature: Buffer,
+  expectedPubkey: Buffer
+) => {
+  const { pubkey, parent } = getDomainKeySync(
+    `${record}.${domain}`,
+    RecordVersion.V2
+  );
+
+  if (!parent) {
+    throw new Error("Invalid parent");
+  }
+
+  const ix = validateEthSignature(
+    payer,
+    pubkey,
+    parent,
+    owner,
+    NAME_PROGRAM_ID,
+    Validation.Ethereum,
+    signature,
+    expectedPubkey,
+    SNS_RECORDS_ID
+  );
+  return ix;
 };
 
 /**

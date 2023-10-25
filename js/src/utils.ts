@@ -6,7 +6,8 @@ import { NameRegistryState } from "./state";
 import { REVERSE_LOOKUP_CLASS } from "./constants";
 import { Buffer } from "buffer";
 import { ErrorType, SNSError } from "./error";
-import { RecordVersion } from "record";
+import { CENTRAL_STATE_SNS_RECORDS } from "@bonfida/sns-records";
+import { RecordVersion } from "./types/record";
 
 export const getHashedNameSync = (name: string): Buffer => {
   const input = HASH_PREFIX + name;
@@ -138,9 +139,13 @@ export const findSubdomains = async (
   return subs.filter((_, idx) => !!subsAcc[idx]);
 };
 
-const _deriveSync = (name: string, parent: PublicKey = ROOT_DOMAIN_ACCOUNT) => {
+const _deriveSync = (
+  name: string,
+  parent: PublicKey = ROOT_DOMAIN_ACCOUNT,
+  classKey?: PublicKey
+) => {
   let hashed = getHashedNameSync(name);
-  let pubkey = getNameAccountKeySync(hashed, undefined, parent);
+  let pubkey = getNameAccountKeySync(hashed, classKey, parent);
   return { pubkey, hashed };
 };
 
@@ -159,7 +164,11 @@ export const getDomainKeySync = (domain: string, record?: RecordVersion) => {
     const prefix = Buffer.from([record ? record : 0]).toString();
     const sub = prefix.concat(splitted[0]);
     const { pubkey: parentKey } = _deriveSync(splitted[1]);
-    const result = _deriveSync(sub, parentKey);
+    const result = _deriveSync(
+      sub,
+      parentKey,
+      record === RecordVersion.V2 ? CENTRAL_STATE_SNS_RECORDS : undefined
+    );
     return { ...result, isSub: true, parent: parentKey };
   } else if (splitted.length === 3 && !!record) {
     // Parent key

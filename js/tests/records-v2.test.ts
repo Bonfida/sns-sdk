@@ -1,18 +1,20 @@
 import { test, expect } from "@jest/globals";
 import {
-  RecordV2,
   deserializeRecordV2Content,
+  getRecordV2Key,
   serializeRecordV2Content,
-  verifyEthereumSignature,
 } from "../src/record_v2";
 import { Record } from "../src/types/record";
 import { Keypair, Connection, PublicKey, Transaction } from "@solana/web3.js";
 import {
   createRecordV2Instruction,
   deleteRecordV2,
+  ethValidateRecordV2Content,
   updateRecordV2Instruction,
+  validateRecordV2Content,
 } from "../src/bindings";
-import { getRecordKeySync } from "../src/record";
+import fs from "fs";
+import { Validation } from "@bonfida/sns-records";
 
 jest.setTimeout(50_000);
 
@@ -31,30 +33,13 @@ test("Records V2 des/ser", () => {
   expect(ser.length).toBe(32);
 });
 
-test("Verify ETH signature", () => {
-  // Found here https://etherscan.io/verifySig/22233
-  const example = {
-    address: "0xe88cb208c598e99949ddc23e2a534550391fc5aa",
-    msg: "Hello",
-    sig: "0x181a40c6b45a28b4189a94b783e85136917ca6cc205a2d39838ac0a1d2b3b705541a2cd551c0e4445ddc4a225c9f8b3ea531c869d4e87ef30ef4b75c8339332d1b",
-  };
-  const isValid = verifyEthereumSignature(
-    example.msg,
-    example.sig,
-    example.address
-  );
-  expect(isValid).toBe(true);
-});
-
 test("Create record", async () => {
   const domain = "record-v2";
   const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
-  const recordV2 = RecordV2.new("something", Record.Github);
-  const ix = await createRecordV2Instruction(
-    connection,
+  const ix = createRecordV2Instruction(
     domain,
     Record.Github,
-    recordV2,
+    "bonfida",
     owner,
     owner
   );
@@ -69,16 +54,24 @@ test("Create record", async () => {
 test("Update record", async () => {
   const domain = "record-v2";
   const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
-  const recordV2 = RecordV2.new("test", Record.TXT);
-  const ix = await updateRecordV2Instruction(
-    connection,
+
+  const tx = new Transaction();
+  const ix_1 = createRecordV2Instruction(
     domain,
-    Record.TXT,
-    recordV2,
+    Record.Github,
+    "bonfida",
     owner,
     owner
   );
-  const tx = new Transaction().add(...ix);
+  tx.add(ix_1);
+  const ix_2 = updateRecordV2Instruction(
+    domain,
+    Record.Github,
+    "some text",
+    owner,
+    owner
+  );
+  tx.add(ix_2);
   tx.feePayer = owner;
   tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
@@ -89,8 +82,19 @@ test("Update record", async () => {
 test("Delete record", async () => {
   const domain = "record-v2";
   const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
-  const ix = await deleteRecordV2(domain, Record.TXT, owner, owner);
-  const tx = new Transaction().add(ix);
+
+  const tx = new Transaction();
+  const ix_1 = createRecordV2Instruction(
+    domain,
+    Record.Github,
+    "bonfida",
+    owner,
+    owner
+  );
+  tx.add(ix_1);
+  const ix_2 = deleteRecordV2(domain, Record.Github, owner, owner);
+  tx.add(ix_2);
+
   tx.feePayer = owner;
   tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
@@ -98,22 +102,98 @@ test("Delete record", async () => {
   expect(value.err).toBe(null);
 });
 
-test("Fetch record", async () => {
+// test("Verify", async () => {
+//   const path = "~/Desktop/wallets/cs_wallet_2.json";
+//   const wallet = Keypair.fromSecretKey(
+//     new Uint8Array(JSON.parse(fs.readFileSync(path).toString()))
+//   );
+//   const domain = "fdjgndfsklgdfg";
+
+//   const tx = new Transaction();
+//   const ixCreate = createRecordV2Instruction(
+//     domain,
+//     Record.Github,
+//     "test",
+//     wallet.publicKey,
+//     wallet.publicKey
+//   );
+
+//   const ixVerify = validateRecordV2Content(
+//     true,
+//     domain,
+//     Record.Github,
+//     wallet.publicKey,
+//     wallet.publicKey,
+//     wallet.publicKey
+//   );
+
+//   tx.add(ixCreate).add(ixVerify);
+
+// });
+
+test("Solana Verify", async () => {
   const domain = "record-v2";
-  const record = await RecordV2.retrieve(connection, Record.TXT, domain, {
-    skipGuardianSig: true,
-    skipUserSig: true,
-  });
-  expect(record.deserializeContent(Record.TXT)).toBe("test");
+  const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
+
+  const tx = new Transaction();
+  const ix_1 = createRecordV2Instruction(
+    domain,
+    Record.Github,
+    "bonfida",
+    owner,
+    owner
+  );
+  tx.add(ix_1);
+  const ix_2 = validateRecordV2Content(
+    true,
+    domain,
+    Record.Github,
+    owner,
+    owner,
+    owner
+  );
+  tx.add(ix_2);
+
+  tx.feePayer = owner;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const { value } = await connection.simulateTransaction(tx);
+  expect(value.err).toBe(null);
 });
 
-test("Fetch records", async () => {
+test("ETH Verify", async () => {
   const domain = "record-v2";
-  const [txt, cname] = await RecordV2.retrieveBatch(
-    connection,
-    [Record.TXT, Record.CNAME],
-    domain
+  const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
+  const tx = new Transaction();
+  const ix_1 = createRecordV2Instruction(
+    domain,
+    Record.Github,
+    "Hello",
+    owner,
+    owner
   );
-  expect(txt?.deserializeContent(Record.TXT)).toBe("test");
-  expect(cname?.deserializeContent(Record.CNAME)).toBe("google.com");
+  tx.add(ix_1);
+  const ix_2 = ethValidateRecordV2Content(
+    domain,
+    Record.Github,
+    owner,
+    owner,
+    Buffer.from([
+      28, 47, 226, 190, 20, 146, 215, 159, 168, 224, 242, 186, 225, 81, 69, 206,
+      84, 233, 143, 106, 135, 125, 20, 150, 43, 110, 236, 33, 185, 166, 82, 194,
+      123, 108, 155, 24, 104, 187, 255, 71, 166, 62, 212, 83, 6, 52, 96, 30, 4,
+      135, 171, 97, 80, 76, 154, 100, 222, 91, 85, 146, 190, 143, 32, 108, 28,
+    ]),
+    Buffer.from([
+      75, 251, 253, 30, 1, 143, 159, 39, 238, 183, 136, 22, 5, 121, 218, 247,
+      226, 205, 125, 167,
+    ])
+  );
+  tx.add(ix_2);
+
+  tx.feePayer = owner;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const { value } = await connection.simulateTransaction(tx);
+  expect(value.err).toBe(null);
 });
