@@ -4,13 +4,20 @@ import {
   serializeRecordV2Content,
 } from "../src/record_v2";
 import { Record } from "../src/types/record";
-import { Keypair, Connection, PublicKey, Transaction } from "@solana/web3.js";
+import {
+  Keypair,
+  Connection,
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+} from "@solana/web3.js";
 import {
   createRecordV2Instruction,
   deleteRecordV2,
   ethValidateRecordV2Content,
   updateRecordV2Instruction,
   validateRecordV2Content,
+  writRoaRecordV2,
 } from "../src/bindings";
 
 jest.setTimeout(50_000);
@@ -172,6 +179,29 @@ test("ETH Verify", async () => {
     ])
   );
   tx.add(ix_3);
+
+  tx.feePayer = owner;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const { value } = await connection.simulateTransaction(tx);
+  expect(value.err).toBe(null);
+});
+
+test("RoA record", async () => {
+  const domain = "record-v2";
+  const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
+  const tx = new Transaction();
+  const ix_1 = createRecordV2Instruction(
+    domain,
+    Record.Github,
+    "bonfida",
+    owner,
+    owner
+  );
+  tx.add(ix_1);
+
+  const ix_2 = writRoaRecordV2(domain, Record.Github, owner, owner, owner);
+  tx.add(ix_2);
 
   tx.feePayer = owner;
   tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;

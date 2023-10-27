@@ -16,6 +16,13 @@ import {
 } from "@bonfida/sns-records";
 import { resolve } from "./resolve";
 
+export const GUARDIANS = new Map<Record, PublicKey>([
+  [
+    Record.Backpack,
+    new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3"),
+  ],
+]);
+
 export const verifyStaleness = async (
   connection: Connection,
   record: Record,

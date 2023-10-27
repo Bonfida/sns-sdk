@@ -64,6 +64,7 @@ import {
   validateSolanaSignature,
   validateEthSignature,
   Validation,
+  writeRoa,
 } from "@bonfida/sns-records";
 
 /**
@@ -702,6 +703,33 @@ export const validateRecordV2Content = (
     verifier,
     NAME_PROGRAM_ID,
     staleness,
+    SNS_RECORDS_ID
+  );
+  return ix;
+};
+
+export const writRoaRecordV2 = (
+  domain: string,
+  record: Record,
+  owner: PublicKey,
+  payer: PublicKey,
+  roaId: PublicKey
+) => {
+  const { pubkey, parent } = getDomainKeySync(
+    `${record}.${domain}`,
+    RecordVersion.V2
+  );
+
+  if (!parent) {
+    throw new Error("Invalid parent");
+  }
+  const ix = writeRoa(
+    payer,
+    NAME_PROGRAM_ID,
+    pubkey,
+    parent,
+    owner,
+    roaId,
     SNS_RECORDS_ID
   );
   return ix;
