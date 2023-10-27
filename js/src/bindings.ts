@@ -637,7 +637,7 @@ export const updateRecordV2Instruction = (
     owner,
     NAME_PROGRAM_ID,
     `\x02`.concat(record as string),
-    Buffer.from(content),
+    serializeRecordV2Content(content, record),
     SNS_RECORDS_ID
   );
 
