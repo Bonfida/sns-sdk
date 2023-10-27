@@ -13,6 +13,7 @@ import ipaddr from "ipaddr.js";
 import {
   CENTRAL_STATE_SNS_RECORDS,
   Record as SnsRecord,
+  Validation,
 } from "@bonfida/sns-records";
 import { resolve } from "./resolve";
 
@@ -21,6 +22,7 @@ export const GUARDIANS = new Map<Record, PublicKey>([
     Record.Backpack,
     new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3"),
   ],
+  [Record.Url, new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3")],
 ]);
 
 export const verifyStaleness = async (
@@ -37,7 +39,10 @@ export const verifyStaleness = async (
     return false;
   }
 
-  return owner.equals(new PublicKey(stalenessId));
+  return (
+    owner.equals(new PublicKey(stalenessId)) &&
+    recordObj.header.stalenessValidation === Validation.Solana
+  );
 };
 
 export const verifyRightOfAssociation = async (
