@@ -25,6 +25,12 @@ export const GUARDIANS = new Map<Record, PublicKey>([
   [Record.Url, new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3")],
 ]);
 
+export const ETH_ROA_RECORDS = new Set<Record>([
+  Record.ETH,
+  Record.Injective,
+  Record.BSC,
+]);
+
 export const verifyStaleness = async (
   connection: Connection,
   record: Record,
@@ -35,9 +41,6 @@ export const verifyStaleness = async (
   const recordObj = await SnsRecord.retrieve(connection, recordKey);
 
   const stalenessId = recordObj.getStalenessId();
-  if (stalenessId.length !== 32) {
-    return false;
-  }
 
   return (
     owner.equals(new PublicKey(stalenessId)) &&
@@ -56,7 +59,14 @@ export const verifyRightOfAssociation = async (
 
   const roaId = recordObj.getRoAId();
 
-  return verifier.compare(roaId) === 0;
+  const validation = ETH_ROA_RECORDS.has(record)
+    ? Validation.Ethereum
+    : Validation.Solana;
+
+  return (
+    verifier.compare(roaId) === 0 &&
+    recordObj.header.rightOfAssociationValidation === validation
+  );
 };
 
 /**
