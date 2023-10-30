@@ -404,6 +404,7 @@ mod tests {
     use super::*;
     use crate::derivation::get_domain_key;
     use crate::record::record_v1::deserialize_record;
+    use crate::record::Record;
     use crate::utils::test::generate_random_string;
     use dotenv::dotenv;
     use solana_program::pubkey;

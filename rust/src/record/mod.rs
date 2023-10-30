@@ -2,10 +2,12 @@ use crate::{
     derivation::{derive, get_prefix, trim_tld, Domain, ROOT_DOMAIN_ACCOUNT},
     error::SnsError,
 };
-
+use solana_program::pubkey;
 use {bech32::u5, solana_program::pubkey::Pubkey};
 pub mod record_v1;
 pub mod record_v2;
+
+pub const CENTRAL_STATE_RECORD_V2: Pubkey = pubkey!("2pMnqHvei2N5oDcVGCRdZx48gqti199wr5CsyTTafsbo");
 
 #[derive(Copy, Clone, Debug)]
 pub enum Record {
@@ -125,6 +127,13 @@ impl Record {
     }
 }
 
+pub fn get_record_class(record_version: RecordVersion) -> Option<Pubkey> {
+    match record_version {
+        RecordVersion::V2 => Some(CENTRAL_STATE_RECORD_V2),
+        _ => None,
+    }
+}
+
 pub fn get_record_key(
     domain: &str,
     record: Record,
@@ -134,22 +143,38 @@ pub fn get_record_key(
     let splitted = domain.split('.').collect::<Vec<_>>();
     match splitted.len() {
         1 => {
-            let parent = derive(domain, &ROOT_DOMAIN_ACCOUNT);
+            let parent = derive(domain, &ROOT_DOMAIN_ACCOUNT, None);
             let prefix = get_prefix(Domain::Record(record_version));
-            let key = derive(&format!("{}{}", prefix, record.as_str()), &parent);
+            let key = derive(
+                &format!("{}{}", prefix, record.as_str()),
+                &parent,
+                get_record_class(record_version),
+            );
             Ok(key)
         }
         2 => {
-            let parent = derive(splitted[1], &ROOT_DOMAIN_ACCOUNT);
+            let parent = derive(splitted[1], &ROOT_DOMAIN_ACCOUNT, None);
             let sub_domain = get_prefix(Domain::Sub) + splitted[1];
-            let sub_key = derive(&sub_domain, &parent);
+            let sub_key = derive(&sub_domain, &parent, None);
 
             let record_prefix = get_prefix(Domain::Record(record_version));
-            let key = derive(&format!("{record_prefix}{}", record.as_str()), &sub_key);
+            let key = derive(
+                &format!("{record_prefix}{}", record.as_str()),
+                &sub_key,
+                get_record_class(record_version),
+            );
             Ok(key)
         }
         _ => Err(SnsError::InvalidDomain),
     }
+}
+
+pub fn get_record_v2_key(domain: &str, record: Record) -> Result<Pubkey, SnsError> {
+    get_record_key(domain, record, RecordVersion::V2)
+}
+
+pub fn get_record_v1_key(domain: &str, record: Record) -> Result<Pubkey, SnsError> {
+    get_record_key(domain, record, RecordVersion::V1)
 }
 
 pub fn convert_u5_array(u5_data: &[u5]) -> Vec<u8> {
@@ -179,7 +204,7 @@ mod test {
     #[test]
     fn test_get_record_key() {
         let v1 = pubkey!("3RfzNCvEqEKZeohqVN16Z1oi6rw5TrANwqAo4hMx6njv");
-        let v2 = pubkey!("5vaMyshvmnpmmfzrqYCazUcBrMr6bVw9dqJoRAvzpkdm");
+        let v2 = pubkey!("6xdnfxf7URWom6oP7MMS39bFVEMMfufmFvJXFyd2xwoP");
         let domain = "something.sol";
         assert_eq!(
             get_record_key(domain, Record::CNAME, RecordVersion::V1).unwrap(),

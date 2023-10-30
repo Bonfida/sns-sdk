@@ -1,110 +1,13 @@
+use super::Record;
 use crate::error::SnsError;
-
 use {
     bech32,
     bech32::u5,
     bech32::ToBase32,
-    bonfida_utils::BorshSize,
-    borsh::{BorshDeserialize, BorshSerialize},
     ed25519_dalek,
     solana_program::pubkey::Pubkey,
     std::net::{Ipv4Addr, Ipv6Addr},
 };
-
-#[derive(Copy, Clone, Debug, BorshDeserialize, BorshSerialize)]
-pub enum Record {
-    Ipfs,
-    Arwv,
-    Sol,
-    Eth,
-    Btc,
-    Ltc,
-    Doge,
-    Email,
-    Url,
-    Discord,
-    Github,
-    Reddit,
-    Twitter,
-    Telegram,
-    Pic,
-    Shdw,
-    Point,
-    Bsc,
-    Injective,
-    Backpack,
-    A,
-    AAAA,
-    CNAME,
-    TXT,
-}
-
-impl BorshSize for Record {
-    fn borsh_len(&self) -> usize {
-        1
-    }
-}
-
-impl Record {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Record::Ipfs => "IPFS",
-            Record::Arwv => "ARWV",
-            Record::Sol => "SOL",
-            Record::Eth => "ETH",
-            Record::Btc => "BTC",
-            Record::Ltc => "LTC",
-            Record::Doge => "DOGE",
-            Record::Email => "email",
-            Record::Url => "url",
-            Record::Discord => "discord",
-            Record::Github => "github",
-            Record::Reddit => "reddit",
-            Record::Twitter => "twitter",
-            Record::Telegram => "telegram",
-            Record::Pic => "pic",
-            Record::Shdw => "SHDW",
-            Record::Point => "POINT",
-            Record::Bsc => "BSC",
-            Record::Injective => "INJ",
-            Record::Backpack => "backpack",
-            Record::A => "A",
-            Record::AAAA => "AAAA",
-            Record::CNAME => "CNAME",
-            Record::TXT => "TXT",
-        }
-    }
-
-    pub fn try_from_str(input: &str) -> Result<Record, SnsError> {
-        match input {
-            "IPFS" => Ok(Record::Ipfs),
-            "ARWV" => Ok(Record::Arwv),
-            "SOL" => Ok(Record::Sol),
-            "ETH" => Ok(Record::Eth),
-            "BTC" => Ok(Record::Btc),
-            "LTC" => Ok(Record::Ltc),
-            "DOGE" => Ok(Record::Doge),
-            "email" => Ok(Record::Email),
-            "url" => Ok(Record::Url),
-            "discord" => Ok(Record::Discord),
-            "github" => Ok(Record::Github),
-            "reddit" => Ok(Record::Reddit),
-            "twitter" => Ok(Record::Twitter),
-            "telegram" => Ok(Record::Telegram),
-            "pic" => Ok(Record::Pic),
-            "SHDW" => Ok(Record::Shdw),
-            "POINT" => Ok(Record::Point),
-            "BSC" => Ok(Record::Bsc),
-            "INJ" => Ok(Record::Injective),
-            "backpack" => Ok(Record::Backpack),
-            "A" => Ok(Record::A),
-            "AAAA" => Ok(Record::AAAA),
-            "CNAME" => Ok(Record::CNAME),
-            "TXT" => Ok(Record::TXT),
-            _ => Err(SnsError::UnrecognizedRecord),
-        }
-    }
-}
 
 pub fn check_sol_record(
     record: &[u8],

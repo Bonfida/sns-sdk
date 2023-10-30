@@ -1,5 +1,3 @@
-use std::ops::DerefMut;
-
 use super::{convert_u5_array, get_record_key, Record};
 use crate::{
     error::SnsError,
@@ -7,151 +5,12 @@ use crate::{
 };
 use {
     bech32::ToBase32,
-    bytemuck::{Pod, Zeroable},
-    num_derive::FromPrimitive,
-    num_traits::FromPrimitive,
     solana_client::nonblocking::rpc_client::RpcClient,
     solana_program::pubkey::Pubkey,
     spl_name_service::state::NameRecordHeader,
     std::net::{Ipv4Addr, Ipv6Addr},
     std::str::FromStr,
 };
-
-#[derive(Clone, Copy, Debug, FromPrimitive)]
-#[repr(u16)]
-pub enum GuardianSig {
-    None,
-    Solana,
-    Ethereum,
-    Injective,
-}
-
-#[derive(Clone, Copy, Debug, FromPrimitive)]
-#[repr(u16)]
-pub enum UserSig {
-    None,
-    Solana,
-}
-
-#[derive(Clone, Copy)]
-pub enum SignatureType {
-    User(UserSig),
-    Guardian(GuardianSig),
-}
-
-impl From<SignatureType> for u16 {
-    fn from(sig_type: SignatureType) -> u16 {
-        match sig_type {
-            SignatureType::User(user_sig) => user_sig as u16,
-            SignatureType::Guardian(guardian_sig) => guardian_sig as u16,
-        }
-    }
-}
-
-pub struct Signatrue<'a> {
-    pub sig_type: SignatureType,
-    pub signature: &'a [u8],
-}
-
-pub const EmptyUserSignature: Signatrue<'static> = Signatrue {
-    sig_type: SignatureType::User(UserSig::None),
-    signature: &[],
-};
-
-pub const EmptyGuardianSignature: Signatrue<'static> = Signatrue {
-    sig_type: SignatureType::User(UserSig::None),
-    signature: &[],
-};
-
-#[derive(Clone, Copy, Zeroable, Pod, Debug)]
-#[repr(C)]
-pub struct RecordV2Header {
-    pub user_signature: u16,
-    pub guardian_signature: u16,
-    pub content_length: u32,
-}
-
-impl RecordV2Header {
-    pub const LEN: usize = std::mem::size_of::<RecordV2Header>();
-}
-
-#[derive(Debug)]
-pub struct RecordV2<H: DerefMut<Target = RecordV2Header>, B: DerefMut<Target = [u8]>> {
-    pub header: H,
-    pub buffer: B,
-}
-
-pub type RecordV2Ref<'a> = RecordV2<&'a mut RecordV2Header, &'a mut [u8]>;
-pub type ReccordV2Heaped = RecordV2<Box<RecordV2Header>, Box<[u8]>>;
-
-impl<'a> RecordV2<&'a mut RecordV2Header, &'a mut [u8]> {
-    pub fn from_buffer(buffer: &'a mut [u8]) -> Result<Self, SnsError> {
-        let (hd, buf) = buffer.split_at_mut(RecordV2Header::LEN);
-        let header = bytemuck::try_from_bytes_mut::<RecordV2Header>(hd)?;
-        Ok(Self {
-            header,
-            buffer: buf,
-        })
-    }
-}
-
-impl RecordV2<Box<RecordV2Header>, Box<[u8]>> {
-    pub fn new(
-        content: &str,
-        record: Record,
-        user_sig: Option<Signatrue>,
-        guardian_sig: Option<Signatrue>,
-    ) -> Result<Self, SnsError> {
-        let content = serialize_record_v2_content(content, record)?;
-
-        let header = RecordV2Header {
-            user_signature: user_sig.unwrap_or(EmptyUserSignature).sig_type.into(),
-            guardian_signature: guardian_sig
-                .unwrap_or(EmptyGuardianSignature)
-                .sig_type
-                .into(),
-            content_length: content.len() as u32,
-        };
-
-        Ok(Self {
-            buffer: content.into_boxed_slice(),
-            header: Box::new(header),
-        })
-    }
-}
-
-impl<H: DerefMut<Target = RecordV2Header>, B: DerefMut<Target = [u8]>> RecordV2<H, B> {
-    pub fn get_content(&self) -> Result<&[u8], SnsError> {
-        let g_sig: SignatureType = SignatureType::Guardian(
-            GuardianSig::from_u16(self.header.guardian_signature).ok_or(SnsError::Casting)?,
-        );
-        let u_sig = SignatureType::User(
-            UserSig::from_u16(self.header.user_signature).ok_or(SnsError::Casting)?,
-        );
-        let offset = get_signature_byte_length(g_sig)? + get_signature_byte_length(u_sig)?;
-        let content = &self
-            .buffer
-            .get(offset..offset + self.header.content_length as usize);
-        if let Some(content) = content {
-            Ok(content)
-        } else {
-            Err(SnsError::InvalidRecordData)
-        }
-    }
-
-    pub fn deserialize(&self, record: Record) -> Result<String, SnsError> {
-        deserialize_record_v2_content(self.get_content()?, record)
-    }
-
-    pub fn serialize(&mut self) -> Result<Vec<u8>, SnsError> {
-        let header_bytes =
-            bytemuck::cast_mut::<RecordV2Header, [u8; RecordV2Header::LEN]>(&mut self.header);
-        let mut res = Vec::with_capacity(RecordV2Header::LEN + self.buffer.len());
-        res.extend_from_slice(header_bytes);
-        res.extend_from_slice(&self.buffer);
-        Ok(res)
-    }
-}
 
 pub async fn retrieve_record_v2(
     rpc_client: RpcClient,
@@ -172,32 +31,6 @@ pub async fn retrieve_records_batch_v2(
         .map(|r| get_record_key(domain, *r, super::RecordVersion::V2))
         .collect::<Result<Vec<_>, _>>()?;
     resolve_name_registry_batch(&rpc_client, &pubkeys).await
-}
-
-pub fn verify_solana_signature(
-    message: &[u8],
-    signature: &[u8],
-    public_key: &[u8],
-) -> Result<bool, SnsError> {
-    let key = ed25519_dalek::PublicKey::from_bytes(public_key)?;
-    let sig = ed25519_dalek::Signature::from_bytes(signature)?;
-    let res = key.verify_strict(message, &sig).is_ok();
-    Ok(res)
-}
-
-pub fn get_signature_byte_length(signature_type: SignatureType) -> Result<usize, SnsError> {
-    match signature_type {
-        SignatureType::Guardian(guardian) => match guardian {
-            GuardianSig::None => Ok(0),
-            GuardianSig::Solana => Ok(64),
-            GuardianSig::Ethereum => Ok(65),
-            GuardianSig::Injective => Ok(65),
-        },
-        SignatureType::User(user) => match user {
-            UserSig::None => Ok(0),
-            UserSig::Solana => Ok(64),
-        },
-    }
 }
 
 pub fn deserialize_record_v2_content(content: &[u8], record: Record) -> Result<String, SnsError> {
@@ -323,21 +156,8 @@ pub fn serialize_record_v2_content(content: &str, record: Record) -> Result<Vec<
     }
 }
 
-pub fn get_message_to_sign(
-    content: &str,
-    domain: &str,
-    record: Record,
-) -> Result<Vec<u8>, SnsError> {
-    let buffer = serialize_record_v2_content(content, record)?;
-    let record_key = get_record_key(domain, record, super::RecordVersion::V2)?;
-    let res = [record_key.to_bytes().to_vec(), buffer].concat();
-    Ok(hex::encode(res).as_bytes().to_vec())
-}
-
 #[cfg(test)]
 mod test {
-    use dotenv::dotenv;
-    use solana_sdk::pubkey;
 
     use super::*;
     #[test]
@@ -387,57 +207,5 @@ mod test {
         let ser = serialize_record_v2_content(content, Record::A).unwrap();
         let des = deserialize_record_v2_content(&ser, Record::A).unwrap();
         assert_eq!(content, des);
-    }
-
-    #[tokio::test]
-    async fn test_fetch_record() {
-        dotenv().ok();
-        let domain = "record-v2";
-        let rpc_client = RpcClient::new(std::env::var("RPC_URL").unwrap());
-        let (_, mut data) = retrieve_record_v2(rpc_client, Record::TXT, domain)
-            .await
-            .unwrap()
-            .unwrap();
-        let record_v2 = RecordV2::from_buffer(&mut data).unwrap();
-        let des = record_v2.deserialize(Record::TXT).unwrap();
-        assert_eq!(des, "test")
-    }
-
-    #[tokio::test]
-    async fn test_fetch_records_batch() {
-        dotenv().ok();
-        let domain = "record-v2";
-        let rpc_client = RpcClient::new(std::env::var("RPC_URL").unwrap());
-        let res = retrieve_records_batch_v2(rpc_client, &[Record::TXT, Record::CNAME], domain)
-            .await
-            .unwrap();
-        let (_, mut txt_data) = res[0].as_ref().unwrap().clone();
-        let txt = RecordV2::from_buffer(&mut txt_data).unwrap();
-        assert_eq!(txt.deserialize(Record::TXT).unwrap(), "test");
-
-        // Process CNAME record
-        let (_, mut cname_data) = res[1].as_ref().unwrap().clone();
-        let cname = RecordV2::from_buffer(&mut cname_data).unwrap();
-        assert_eq!(cname.deserialize(Record::CNAME).unwrap(), "google.com");
-    }
-
-    #[tokio::test]
-    async fn test_user_signature() {
-        dotenv().ok();
-        let owner = pubkey!("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
-        let domain = "20220901";
-        let msg = get_message_to_sign("test@email.com1", domain, Record::Email).unwrap();
-        let rpc_client = RpcClient::new(std::env::var("RPC_URL").unwrap());
-        let (_, mut data) = retrieve_record_v2(rpc_client, Record::Email, domain)
-            .await
-            .unwrap()
-            .unwrap();
-        let r = RecordV2::from_buffer(&mut data).unwrap();
-        let sig = r
-            .buffer
-            .get(0..get_signature_byte_length(SignatureType::User(UserSig::Solana)).unwrap())
-            .unwrap();
-        let valid = verify_solana_signature(&msg, sig, &owner.to_bytes()).unwrap();
-        assert!(valid)
     }
 }

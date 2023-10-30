@@ -33,9 +33,14 @@ pub fn get_hashed_name(name: &str) -> Vec<u8> {
         .to_vec()
 }
 
-pub fn derive(domain: &str, parent: &Pubkey) -> Pubkey {
+pub fn derive(domain: &str, parent: &Pubkey, name_class: Option<Pubkey>) -> Pubkey {
     let hashed_name = get_hashed_name(domain);
-    let (key, _) = get_seeds_and_key(&spl_name_service::ID, hashed_name, None, Some(parent));
+    let (key, _) = get_seeds_and_key(
+        &spl_name_service::ID,
+        hashed_name,
+        name_class.as_ref(),
+        Some(parent),
+    );
     key
 }
 
@@ -48,13 +53,13 @@ pub fn get_domain_key(domain: &str) -> Result<Pubkey, SnsError> {
     let splitted = domain.split('.').collect::<Vec<_>>();
     match splitted.len() {
         1 => {
-            let key = derive(domain, &ROOT_DOMAIN_ACCOUNT);
+            let key = derive(domain, &ROOT_DOMAIN_ACCOUNT, None);
             Ok(key)
         }
         2 => {
-            let parent = derive(splitted[1], &ROOT_DOMAIN_ACCOUNT);
+            let parent = derive(splitted[1], &ROOT_DOMAIN_ACCOUNT, None);
             let sub_domain = get_prefix(Domain::Sub) + splitted[0];
-            let key = derive(&sub_domain, &parent);
+            let key = derive(&sub_domain, &parent, None);
             Ok(key)
         }
         // 3 => {
