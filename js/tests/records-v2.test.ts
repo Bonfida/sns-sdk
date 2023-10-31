@@ -4,13 +4,7 @@ import {
   serializeRecordV2Content,
 } from "../src/record_v2";
 import { Record } from "../src/types/record";
-import {
-  Keypair,
-  Connection,
-  PublicKey,
-  Transaction,
-  TransactionInstruction,
-} from "@solana/web3.js";
+import { Keypair, Connection, PublicKey, Transaction } from "@solana/web3.js";
 import {
   createRecordV2Instruction,
   deleteRecordV2,

@@ -23,6 +23,7 @@ export const GUARDIANS = new Map<Record, PublicKey>([
     new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3"),
   ],
   [Record.Url, new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3")],
+  [Record.IPFS, new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3")],
 ]);
 
 export const ETH_ROA_RECORDS = new Set<Record>([
