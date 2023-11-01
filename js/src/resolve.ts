@@ -1,26 +1,10 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { getRecordKeySync, getSolRecord } from "./record";
+import { getRecordKeySync, getSolRecord, checkSolRecord } from "./record";
 import { getDomainKeySync } from "./utils";
 import { NameRegistryState } from "./state";
-import * as tweetnacl from "tweetnacl";
 import { Record } from "./types/record";
 import { Buffer } from "buffer";
 import { ErrorType, SNSError } from "./error";
-
-/**
- * This function can be used to verify the validity of a SOL record
- * @param record The record data to verify
- * @param signedRecord The signed data
- * @param pubkey The public key of the signer
- * @returns
- */
-export const checkSolRecord = (
-  record: Uint8Array,
-  signedRecord: Uint8Array,
-  pubkey: PublicKey
-) => {
-  return tweetnacl.sign.detached.verify(record, signedRecord, pubkey.toBytes());
-};
 
 /**
  * This function can be used to resolve a domain name to transfer funds

@@ -8,6 +8,7 @@ import { Buffer } from "buffer";
 import { ErrorType, SNSError } from "./error";
 import { CENTRAL_STATE_SNS_RECORDS } from "@bonfida/sns-records";
 import { RecordVersion } from "./types/record";
+import { retrieveRecords } from "./nft";
 
 export const getHashedNameSync = (name: string): Buffer => {
   const input = HASH_PREFIX + name;
@@ -261,4 +262,32 @@ export const check = (bool: boolean, errorType: ErrorType) => {
   if (!bool) {
     throw new SNSError(errorType);
   }
+};
+
+/**
+ * This function can be used to retrieve all the tokenized domains of an owner
+ * @param connection The Solana RPC connection object
+ * @param owner The owner of the tokenized domains
+ * @returns
+ */
+export const getTokenizedDomains = async (
+  connection: Connection,
+  owner: PublicKey
+) => {
+  const nftRecords = await retrieveRecords(connection, owner);
+
+  const names = await reverseLookupBatch(
+    connection,
+    nftRecords.map((e) => e.nameAccount)
+  );
+
+  return names
+    .map((e, idx) => {
+      return {
+        key: nftRecords[idx].nameAccount,
+        mint: nftRecords[idx].nftMint,
+        reverse: e,
+      };
+    })
+    .filter((e) => !!e.reverse);
 };

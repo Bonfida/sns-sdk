@@ -4,18 +4,33 @@ import { getDomainKeySync } from "./utils";
 import { NameRegistryState } from "./state";
 import { Buffer } from "buffer";
 import { decode, encode } from "bech32-buffer";
-import { checkSolRecord } from "./resolve";
 import base58 from "bs58";
 import ipaddr from "ipaddr.js";
 import { encode as encodePunycode } from "punycode";
 import { check } from "./utils";
 import { ErrorType, SNSError } from "./error";
+import * as tweetnacl from "tweetnacl";
 
 const trimNullPaddingIdx = (buffer: Buffer): number => {
   const arr = Array.from(buffer);
   const lastNonNull =
     arr.length - 1 - arr.reverse().findIndex((byte) => byte !== 0);
   return lastNonNull + 1;
+};
+
+/**
+ * This function can be used to verify the validity of a SOL record
+ * @param record The record data to verify
+ * @param signedRecord The signed data
+ * @param pubkey The public key of the signer
+ * @returns
+ */
+export const checkSolRecord = (
+  record: Uint8Array,
+  signedRecord: Uint8Array,
+  pubkey: PublicKey
+) => {
+  return tweetnacl.sign.detached.verify(record, signedRecord, pubkey.toBytes());
 };
 
 /**
