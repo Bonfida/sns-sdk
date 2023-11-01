@@ -11,7 +11,7 @@ export const useDomainSuggestions = (domain: string) => {
   const fn = async () => {
     if (!domain || domain === "") return;
 
-    const { data }: { data: string[] } = await (
+    const data: string[] = await (
       await fetch(`${URL}/${domain}`, {
         method: "GET",
       })
