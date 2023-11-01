@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import {
   // ConnectionProvider,
   // useConnection,
@@ -29,13 +29,26 @@ const Content = () => {
   const wallet = useWallet();
   // const { connection } = useConnection();
   const { visible, setVisible } = useWalletModal();
+  const [isDark, toggleDark] = useState(false);
 
   return (
-    <Widget
-      // connection={connection}
-      endpoint={PUBLIC_RPC}
-      passthroughWallet={{ ...wallet, visible, setVisible }}
-    />
+    <>
+      <button
+        style={{
+          backgroundColor: "white",
+          color: "black",
+        }}
+        onClick={() => toggleDark(!isDark)}
+      >
+        Toggle dark
+      </button>
+      <Widget
+        // connection={connection}
+        endpoint={PUBLIC_RPC}
+        passthroughWallet={{ ...wallet, visible, setVisible }}
+        isDark={isDark}
+      />
+    </>
   );
 };
 

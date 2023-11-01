@@ -3,3 +3,34 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  .bonfida-widget-root {
+    /* #5A5DDC */ --theme-primary: 90, 93, 220;
+    /* #E1E2FF */ --theme-secondary: 225, 226, 255;
+    /* #FFFFFF */ --background-primary: 255, 255, 255;
+    /* #FFFFFF */ --background-secondary: 255, 255, 255;
+    /* #F5F7FF */ --background-tertiary: 245, 247, 255;
+    /* #E5E7EB */ --background-skeleton: 229, 231, 235;
+    /* #F6F9FA */ --background-interactive: 246, 249, 250;
+    /* #F3F4F5 */ --interactive-border: 243, 244, 245;
+    /* #D7DDE1 */ --field-border: 215, 221, 225;
+    /* #090A21 */ --text-primary: 9, 10, 33;
+    /* #585858 */ --text-secondary: 88, 88, 88;
+    /* #E7AA71 */ --accent: 231, 170, 113;
+  }
+  .bonfida-widget-root[class~="dark"] {
+    /* #5556C1 */ --theme-primary: 85, 86, 193;
+    /* #B7B9FF */ --theme-secondary: 183, 185, 255;
+    /* #111111 */ --background-primary: 17, 17, 17;
+    /* #333333 */ --background-secondary: 51, 51, 51;
+    /* #30303E */ --background-tertiary: 48, 48, 62;
+    /* #444444 */ --background-skeleton: 68, 68, 68;
+    /* #222222 */ --background-interactive: 34, 34, 34;
+    /* #444444 */ --interactive-border: 68, 68, 68;
+    /* #444444 */ --field-border: 68, 68, 68;
+    /* #D9D9D9 */ --text-primary: 217, 217, 217;
+    /* #CCCCCC */ --text-secondary: 204, 204, 204;
+    /* #FFD700 */ --accent: 255, 215, 0;
+  }
+}

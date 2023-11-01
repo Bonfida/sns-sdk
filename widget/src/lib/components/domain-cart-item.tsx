@@ -21,7 +21,7 @@ export const DomainCartItem = ({ domain, onEdit }: DomainCartItemProps) => {
           <span>Storage: {cartItem.storage / 1_000}kB</span>
           <button
             type="button"
-            className="flex items-center text-theme-primary gap-0.5"
+            className="flex items-center text-theme-primary dark:text-theme-secondary gap-0.5"
             onClick={onEdit}
           >
             Edit
@@ -31,7 +31,7 @@ export const DomainCartItem = ({ domain, onEdit }: DomainCartItemProps) => {
 
         <button
           type="button"
-          className="flex items-center gap-2 text-theme-primary"
+          className="flex items-center gap-2 text-theme-primary dark:text-theme-secondary"
           onClick={() => removeFromCart(domain)}
         >
           Remove

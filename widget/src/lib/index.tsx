@@ -10,13 +10,19 @@ import Widget from "./widget";
 const EntryPoint = ({
   rootWrapperClassNames,
   rootWrapperStyles,
+  isDark,
   ...props
 }: WidgetProps) => {
   const [visible, setVisible] = useState(false);
 
   return (
     <div
-      className={twMerge("fixed bottom-3 right-3 z-1", rootWrapperClassNames)}
+      className={twMerge(
+        "bonfida-widget-root",
+        "fixed bottom-3 right-3 z-1",
+        rootWrapperClassNames,
+        isDark && "dark",
+      )}
       style={rootWrapperStyles}
     >
       <button

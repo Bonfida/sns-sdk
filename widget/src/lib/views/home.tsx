@@ -59,7 +59,7 @@ export const WidgetHome = ({
 
       <div className="flex items-center px-3 pt-3">
         {!isHomeView && (
-          <div className="flex items-center justify-center gap-2 text-sm font-medium text-center text-[#000000]">
+          <div className="flex items-center justify-center gap-2 text-sm font-medium text-center text-text-primary">
             <span className="h-[26px]">
               <FidaLogo />
             </span>
@@ -93,7 +93,7 @@ export const WidgetHome = ({
                 <InputField
                   value={searchInput}
                   placeholder="Search your domain"
-                  className="shadow-3xl"
+                  className="shadow-3xl dark:shadow-none"
                   type="search"
                   onChange={(e) => updateSearchInput(e.target.value)}
                 />
@@ -101,7 +101,7 @@ export const WidgetHome = ({
                 <button
                   className="
                     rounded-[10px] bg-theme-primary h-[56px] w-[56px] p-2
-                    flex items-center justify-center text-background-primary
+                    flex items-center justify-center text-background-primary dark:text-text-primary
                   "
                 >
                   <SearchShort width={24} height={24} />
@@ -178,6 +178,7 @@ export const WidgetHome = ({
               flex items-center mt-auto gap-2.5
               bg-background-tertiary
               text-theme-primary
+              dark:text-text-secondary
               rounded-[10px] py-4 px-2.5
               font-primary
               mx-3 mb-3
@@ -191,7 +192,7 @@ export const WidgetHome = ({
 
       {isHomeView && (
         <div className="p-3">
-          <div className="flex items-center justify-center gap-2 text-sm font-medium text-center text-[#000000]">
+          <div className="flex items-center justify-center gap-2 text-sm font-medium text-center text-text-primary">
             Powered by
             <span className="h-[20px]">
               <FidaLogo />

@@ -43,4 +43,5 @@ interface CommonProps {
   containerStyles?: CSSProperties;
   rootWrapperClassNames?: string;
   rootWrapperStyles?: CSSProperties;
+  isDark?: boolean;
 }

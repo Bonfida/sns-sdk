@@ -208,15 +208,15 @@ export const CartView = ({ backHandler }: CartViewProps) => {
           type="button"
           onClick={goBack}
           disabled={formState === "processing"}
-          className="absolute top-0 p-3 border-0 left-3 text-theme-primary"
+          className="absolute top-0 p-3 border-0 left-3 text-theme-primary dark:text-theme-secondary"
         >
           <ArrowLeft width={24} height={24} />
         </button>
 
-        <div className="w-[175px] h-[5px] rounded-md bg-[#eff3f4] bg-gradient-to-r">
+        <div className="w-[175px] h-[5px] rounded-md bg-[#eff3f4] dark:bg-background-secondary bg-gradient-to-r">
           <div
             className={twMerge(
-              "bg-theme-primary h-full rounded-md transition-[width] duration-500",
+              "bg-theme-primary dark:bg-theme-secondary h-full rounded-md transition-[width] duration-500",
               progressWidth[step],
             )}
           ></div>
@@ -314,7 +314,7 @@ export const CartView = ({ backHandler }: CartViewProps) => {
                   <div>
                     <button
                       type="button"
-                      className="flex w-full items-center gap-4 p-4 border rounded-xl border-[#F3F4F5] bg-[#F6F9FA] cursor-pointer"
+                      className="flex items-center w-full gap-4 p-4 border cursor-pointer rounded-xl border-interactive-border bg-background-interactive"
                       onClick={() => toggleTokenSelector(!isTokenSelectorOpen)}
                     >
                       <img
@@ -328,13 +328,13 @@ export const CartView = ({ backHandler }: CartViewProps) => {
                       <div className="relative w-[25px] h-[25px] flex justify-center items-center ml-auto">
                         <div
                           className={twMerge(
-                            "transition-transform duration-200 absolute w-[8px] h-[2px] bg-theme-primary rounded-sm -rotate-[45deg] ml-[5px]",
+                            "transition-transform duration-200 absolute w-[8px] h-[2px] bg-theme-primary dark:bg-theme-secondary rounded-sm -rotate-[45deg] ml-[5px]",
                             isTokenSelectorOpen && "rotate-[45deg]",
                           )}
                         ></div>
                         <div
                           className={twMerge(
-                            "transition-transform duration-200 absolute w-[8px] h-[2px] bg-theme-primary rounded-sm rotate-[45deg] -ml-[4px]",
+                            "transition-transform duration-200 absolute w-[8px] h-[2px] bg-theme-primary dark:bg-theme-secondary rounded-sm rotate-[45deg] -ml-[4px]",
                             isTokenSelectorOpen && "-rotate-[45deg]",
                           )}
                         ></div>
@@ -345,19 +345,19 @@ export const CartView = ({ backHandler }: CartViewProps) => {
 
                 <div>
                   <p className="mb-3 font-medium font-primary">Order summary</p>
-                  <div className="flex mb-2 justify-between items-start text-sm font-medium leading-6 border-b border-[#F1EEFF]">
+                  <div className="flex mb-2 justify-between items-start text-sm font-medium leading-6 border-b border-[#F1EEFF] dark:border-interactive-border">
                     <div>Total</div>
                     <div className="flex flex-col items-end">
                       <span>
                         {formatPrice(selectedTokenTotal, true)}{" "}
                         {selectedToken.tokenSymbol}
                       </span>
-                      <span className="text-xs leading-6 text-[#797A93]">
+                      <span className="text-xs leading-6 text-[#797A93] dark:text-text-secondary">
                         {formatPrice(totalUsd)}
                       </span>
                     </div>
                   </div>
-                  <div className="flex justify-between items-start text-sm font-medium leading-6 border-b border-[#F1EEFF]">
+                  <div className="flex justify-between items-start text-sm font-medium leading-6 border-b border-[#F1EEFF] dark:border-interactive-border">
                     <div>Discount</div>
                     <div>{isSelectedTokenFIDA ? "5%" : "0%"}</div>
                   </div>

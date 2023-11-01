@@ -13,7 +13,7 @@ export const InputField = ({
       <input
         {...params}
         className={twMerge(
-          "w-full h-full px-3 py-4 text-sm border border-opacity-25 rounded-xl border-field-border bg-background-secondary",
+          "w-full h-full px-3 py-4 text-sm border border-opacity-25 rounded-xl border-field-border dark:border-interactive-border bg-background-secondary",
           className,
         )}
         type={type}
