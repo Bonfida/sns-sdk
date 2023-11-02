@@ -59,7 +59,7 @@ export const DomainSearchResultRow = ({
           <button
             type="button"
             className={twMerge(
-              "flex items-center gap-2 px-3 py-1 text-sm text-[#fff] rounded-lg font-primary bg-theme-primary",
+              "flex items-center gap-2 px-3 py-1 text-sm text-base-button-content rounded-lg font-primary bg-theme-primary",
               isInCart &&
                 showRemoveButton &&
                 "bg-transparent text-theme-primary",

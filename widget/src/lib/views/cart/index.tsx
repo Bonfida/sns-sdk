@@ -154,7 +154,7 @@ export const CartView = ({ backHandler }: CartViewProps) => {
           buyer,
           ata,
           mintKey,
-          // TODO: check why this needed
+          // TODO: define referrer code here
           // referrer ? REFERRERS[referrer] : undefined,
         );
         ixs.push(...ix);
@@ -213,7 +213,7 @@ export const CartView = ({ backHandler }: CartViewProps) => {
           <ArrowLeft width={24} height={24} />
         </button>
 
-        <div className="w-[175px] h-[5px] rounded-md bg-[#eff3f4] dark:bg-background-secondary bg-gradient-to-r">
+        <div className="w-[175px] h-[5px] rounded-md bg-background-interactive dark:bg-background-secondary bg-gradient-to-r">
           <div
             className={twMerge(
               "bg-theme-primary dark:bg-theme-secondary h-full rounded-md transition-[width] duration-500",
@@ -345,19 +345,19 @@ export const CartView = ({ backHandler }: CartViewProps) => {
 
                 <div>
                   <p className="mb-3 font-medium font-primary">Order summary</p>
-                  <div className="flex mb-2 justify-between items-start text-sm font-medium leading-6 border-b border-[#F1EEFF] dark:border-interactive-border">
+                  <div className="flex items-start justify-between mb-2 text-sm font-medium leading-6 border-b border-interactive-border">
                     <div>Total</div>
                     <div className="flex flex-col items-end">
                       <span>
                         {formatPrice(selectedTokenTotal, true)}{" "}
                         {selectedToken.tokenSymbol}
                       </span>
-                      <span className="text-xs leading-6 text-[#797A93] dark:text-text-secondary">
+                      <span className="text-xs leading-6 text-text-primary text-opacity-60 dark:text-text-secondary">
                         {formatPrice(totalUsd)}
                       </span>
                     </div>
                   </div>
-                  <div className="flex justify-between items-start text-sm font-medium leading-6 border-b border-[#F1EEFF] dark:border-interactive-border">
+                  <div className="flex items-start justify-between text-sm font-medium leading-6 border-b border-interactive-border">
                     <div>Discount</div>
                     <div>{isSelectedTokenFIDA ? "5%" : "0%"}</div>
                   </div>
@@ -418,7 +418,7 @@ export const CartView = ({ backHandler }: CartViewProps) => {
                               )}{" "}
                               {item.tokenSymbol}
                             </span>
-                            <span className="tabular-nums text-[#238E1F]">
+                            <span className="tabular-nums text-success">
                               {item.mintAddress === FIDA_MINT && (
                                 <>
                                   {formatPrice(
@@ -445,7 +445,7 @@ export const CartView = ({ backHandler }: CartViewProps) => {
         <div className="absolute flex flex-col gap-2 left-3 right-3 bottom-4">
           <CustomButton
             className={twMerge(
-              "text-[#fff]",
+              "text-base-button-content",
               formState === "error" && "bottom-[70px]",
             )}
             onClick={processStep}

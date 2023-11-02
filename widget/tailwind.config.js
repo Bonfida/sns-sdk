@@ -41,6 +41,12 @@ export default {
       "text-primary": "rgba(var(--text-primary), <alpha-value>)",
       "text-secondary": "rgba(var(--text-secondary), <alpha-value>)",
       accent: "rgba(var(--accent), <alpha-value>)",
+      error: "rgba(var(--error), <alpha-value>)",
+      success: "rgba(var(--success), <alpha-value>)",
+
+      // components
+      "modal-overlay-bg": "rgba(var(--modal-overlay-bg), <alpha-value>)",
+      "base-button-content": "rgba(var(--base-button-content), <alpha-value>)",
     },
   },
   plugins: [],

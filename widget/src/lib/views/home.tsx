@@ -103,7 +103,7 @@ export const WidgetHome = ({
                 <button
                   className="
                     rounded-[10px] bg-theme-primary h-[56px] w-[56px] p-2
-                    flex items-center justify-center text-background-primary dark:text-text-primary
+                    flex items-center justify-center text-base-button-content
                   "
                 >
                   <SearchShort width={24} height={24} />
@@ -156,7 +156,7 @@ export const WidgetHome = ({
                 </div>
                 {!isCartEmpty && (
                   <CustomButton
-                    className="absolute left-3 right-3 bottom-3 text-[#fff]"
+                    className="absolute left-3 right-3 bottom-3 text-base-button-content"
                     disabled={!connected}
                     onClick={() => {
                       if (connected) setCurrentView("cart");

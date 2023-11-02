@@ -18,8 +18,13 @@
     /* #090A21 */ --text-primary: 9, 10, 33;
     /* #585858 */ --text-secondary: 88, 88, 88;
     /* #E7AA71 */ --accent: 231, 170, 113;
+    /* #D64545 */ --error: 214, 69, 69;
+    /* #238E1F */ --success: 35, 142, 31;
+
+    /* #000000 */ --modal-overlay-bg: 0, 0, 0;
+    /* #FFFFFF */ --base-button-content: 255, 255, 255;
   }
-  .bonfida-widget-root[class~="dark"] {
+  .bonfida-widget-root.dark {
     /* #5556C1 */ --theme-primary: 85, 86, 193;
     /* #B7B9FF */ --theme-secondary: 183, 185, 255;
     /* #111111 */ --background-primary: 17, 17, 17;

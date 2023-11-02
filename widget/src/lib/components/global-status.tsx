@@ -23,8 +23,8 @@ export const GlobalStatusCard = ({ status }: { status: GlobalStatus }) => {
       <div
         className={twMerge(
           "absolute top-0 left-0 right-0 h-0.5 animate-width-to-zero",
-          status.status === "error" && "bg-[#D64545]",
-          status.status === "success" && "bg-[#238E1F]",
+          status.status === "error" && "bg-error",
+          status.status === "success" && "bg-success",
         )}
       ></div>
       <button
@@ -39,7 +39,7 @@ export const GlobalStatusCard = ({ status }: { status: GlobalStatus }) => {
         <InformationCircle
           width={20}
           height={20}
-          className="rotate-180 text-[#D64545] mt-0.5 shrink-0"
+          className="rotate-180 text-error mt-0.5 shrink-0"
         />
       )}
       <span className="font-medium font-primary">{status.message}</span>
