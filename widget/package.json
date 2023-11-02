@@ -29,7 +29,7 @@
     "url": "https://github.com/Bonfida/sns-sdk/issues"
   },
   "engines": {
-    "node": "18"
+    "node": ">18"
   },
   "scripts": {
     "dev": "vite",
