@@ -80,11 +80,13 @@ export const WidgetHome = ({
             >
               <h1
                 className={twMerge(
-                  "block max-h-[32px] text-2xl font-medium text-center font-primary transition-all ease-out duration-200",
+                  "block max-h-[32px] text-2xl font-medium text-center font-primary transition-[opacity] ease-out duration-200",
                   isSearchView && "opacity-0 invisible",
                   finished && "max-h-0",
                 )}
-                onTransitionEnd={() => finish(true)}
+                onTransitionEnd={() => {
+                  if (isSearchView) finish(true);
+                }}
               >
                 Secure a custom domain
               </h1>

@@ -11,7 +11,6 @@ export const InputField = ({
   ...params
 }: InputProps = {}) => {
   const input = useRef<HTMLInputElement>(null);
-
   return (
     <div className={twMerge("flex-grow", type === "search" && "relative")}>
       <input
