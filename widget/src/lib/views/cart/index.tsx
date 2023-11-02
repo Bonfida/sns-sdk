@@ -206,6 +206,7 @@ export const CartView = ({ backHandler }: CartViewProps) => {
       <div className="sticky -top-1 bg-background-primary h-[48px] flex justify-center items-center px-3">
         <button
           type="button"
+          tabIndex={0}
           onClick={goBack}
           disabled={formState === "processing"}
           className="absolute top-0 p-3 border-0 left-3 text-theme-primary dark:text-theme-secondary"
@@ -254,6 +255,7 @@ export const CartView = ({ backHandler }: CartViewProps) => {
                         Storage size
                         <button
                           type="button"
+                          tabIndex={0}
                           className="p-1 -mt-3 -mr-3"
                           onClick={() => editStorageForDomain("")}
                         >
@@ -287,6 +289,7 @@ export const CartView = ({ backHandler }: CartViewProps) => {
                           return (
                             <button
                               type="button"
+                              tabIndex={0}
                               key={size.value}
                               className={twMerge(
                                 "border-2 border-solid rounded-lg px-2 py-2 border-theme-primary border-opacity-10 text-sm",
@@ -314,6 +317,7 @@ export const CartView = ({ backHandler }: CartViewProps) => {
                   <div>
                     <button
                       type="button"
+                      tabIndex={0}
                       className="flex items-center w-full gap-4 p-4 border cursor-pointer rounded-xl border-interactive-border bg-background-interactive"
                       onClick={() => toggleTokenSelector(!isTokenSelectorOpen)}
                     >
@@ -377,6 +381,7 @@ export const CartView = ({ backHandler }: CartViewProps) => {
                         <button
                           key={item.tokenSymbol}
                           type="button"
+                          tabIndex={0}
                           disabled={isNotEnoughFunds}
                           className={twMerge(
                             "flex items-center gap-3 px-3 py-1 max-w duration-200",

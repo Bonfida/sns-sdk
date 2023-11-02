@@ -20,6 +20,7 @@ export const CustomButton = ({
       type="button"
       disabled={disabled}
       {...rest}
+      tabIndex={0}
       className={twMerge(
         "flex items-center gap-2 px-3 justify-center text-white font-primary bg-theme-primary",
         size === "full" && "py-2.5 rounded-xl tracking-wide",

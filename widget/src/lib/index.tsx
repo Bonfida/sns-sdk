@@ -31,8 +31,9 @@ const EntryPoint = ({
         type="button"
         aria-label={visible ? "Close SNS widget" : "Open SNS widget"}
         aria-haspopup="true"
+        tabIndex={0}
       >
-        <FidaIcon />
+        <FidaIcon className="w-full h-full" />
       </button>
 
       {visible && <Widget {...props} />}

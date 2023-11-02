@@ -64,6 +64,7 @@ export const DomainSearchResultRow = ({
                 showRemoveButton &&
                 "bg-transparent text-theme-primary",
             )}
+            tabIndex={0}
             onClick={() =>
               isInCart
                 ? remove(domain)

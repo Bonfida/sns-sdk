@@ -30,6 +30,7 @@ export const InputField = ({
           type="button"
           className="absolute p-1 top-3 right-1"
           aria-label="Clear"
+          tabIndex={0}
           onClick={() => {
             if (input.current) {
               input.current.value = "";

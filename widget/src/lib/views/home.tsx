@@ -105,6 +105,7 @@ export const WidgetHome = ({
                     rounded-[10px] bg-theme-primary h-[56px] w-[56px] p-2
                     flex items-center justify-center text-base-button-content
                   "
+                  tabIndex={0}
                 >
                   <SearchShort width={24} height={24} />
                 </button>

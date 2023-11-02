@@ -30,6 +30,7 @@ export const GlobalStatusCard = ({ status }: { status: GlobalStatus }) => {
       <button
         className="absolute flex items-center justify-center w-5 h-5 top-1 right-1"
         type="button"
+        tabIndex={0}
         onClick={() => setStatus(null)}
       >
         <div className="absolute w-4 h-[1px] bg-text-primary rotate-45"></div>

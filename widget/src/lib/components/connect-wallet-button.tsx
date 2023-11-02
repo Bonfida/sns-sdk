@@ -9,6 +9,7 @@ export const ConnectWalletButton = () => {
     <button
       type="button"
       className="flex items-center gap-2 px-3 py-2 ml-auto text-xs tracking-wide rounded-lg bg-theme-secondary font-primary text-theme-primary"
+      tabIndex={0}
       onClick={() => setVisible(!visible)}
     >
       <WalletClose width={16} height={16} />

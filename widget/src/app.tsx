@@ -42,6 +42,7 @@ const Content = () => {
       >
         Toggle dark
       </button>
+
       <Widget
         // connection={connection}
         endpoint={PUBLIC_RPC}
