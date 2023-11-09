@@ -17,21 +17,33 @@ import {
 } from "@bonfida/sns-records";
 import { resolve } from "./resolve";
 
+/**
+ * A map that associates each record type with a public key, known as guardians.
+ */
 export const GUARDIANS = new Map<Record, PublicKey>([
   [
     Record.Backpack,
     new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3"),
   ],
   [Record.Url, new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3")],
-  [Record.IPFS, new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3")],
 ]);
 
+/**
+ * Set of records that utilize secp256k1 for verification purposes
+ */
 export const ETH_ROA_RECORDS = new Set<Record>([
   Record.ETH,
   Record.Injective,
   Record.BSC,
 ]);
 
+/**
+ * This function verifies the staleness of a record.
+ * @param {Connection} connection - The Solana RPC connection object
+ * @param {Record} record - The record to be verified.
+ * @param {string} domain - The domain associated with the record.
+ * @returns {Promise<boolean>} - Returns a promise that resolves to a boolean indicating whether the record is stale.
+ */
 export const verifyStaleness = async (
   connection: Connection,
   record: Record,
@@ -49,6 +61,17 @@ export const verifyStaleness = async (
   );
 };
 
+/**
+ *
+ * This function verifies the right of association of a record.
+ * Note: This function does not verify if the record is stale.
+ * Users must verify staleness in addition to the right of association.
+ * @param {Connection} connection - The Solana RPC connection object
+ * @param {Record} record - The record to be verified.
+ * @param {string} domain - The domain associated with the record.
+ * @param {Buffer} verifier - The verifier to be used in the verification process.
+ * @returns {Promise<boolean>} - Returns a promise that resolves to a boolean indicating whether the record has the right of association.
+ */
 export const verifyRightOfAssociation = async (
   connection: Connection,
   record: Record,
