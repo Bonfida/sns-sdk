@@ -69,14 +69,14 @@ export const verifyStaleness = async (
  * @param {Connection} connection - The Solana RPC connection object
  * @param {Record} record - The record to be verified.
  * @param {string} domain - The domain associated with the record.
- * @param {Buffer} verifier - The verifier to be used in the verification process.
+ * @param {Buffer} verifier - The optional verifier to be used in the verification process.
  * @returns {Promise<boolean>} - Returns a promise that resolves to a boolean indicating whether the record has the right of association.
  */
 export const verifyRightOfAssociation = async (
   connection: Connection,
   record: Record,
   domain: string,
-  verifier: Buffer
+  verifier?: Buffer
 ) => {
   const recordKey = getRecordV2Key(domain, record);
   const recordObj = await SnsRecord.retrieve(connection, recordKey);
@@ -86,6 +86,9 @@ export const verifyRightOfAssociation = async (
   const validation = ETH_ROA_RECORDS.has(record)
     ? Validation.Ethereum
     : Validation.Solana;
+
+  verifier = verifier ?? GUARDIANS.get(record)?.toBuffer();
+  if (!verifier) throw new SNSError(ErrorType.MissingVerifier);
 
   return (
     verifier.compare(roaId) === 0 &&

@@ -27,6 +27,7 @@ export enum ErrorType {
   RecordIsNotSigned = "RecordIsNotSigned",
   UnsupportedSignatureType = "UnsupportedSignatureType",
   InvalidSolRecordV2 = "InvalidSolRecordV2",
+  MissingVerifier = "MissingVerifier",
 }
 
 export class SNSError extends Error {
