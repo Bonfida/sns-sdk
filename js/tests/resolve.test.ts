@@ -4,7 +4,10 @@ import { resolve } from "../src/resolve";
 
 jest.setTimeout(50_000);
 
-const connection = new Connection("https://rpc-public.hellomoon.io");
+// const connection = new Connection("https://rpc-public.hellomoon.io");
+const connection = new Connection(
+  "https://rpc.helius.xyz/?api-key=ecf6c0ad-6565-45ce-8ee4-1edfac443176"
+);
 
 const LIST = [
   {
@@ -46,4 +49,16 @@ test("Resolve domains", async () => {
     const owner = await resolve(connection, x.domain);
     expect(x.owner).toBe(owner.toBase58());
   }
+});
+
+test("Resolve domains record V2", async () => {
+  // 223399 -> J6QDztZCegYTWnGUYtjqVS9d7AZoS43UbEQmMcdGeP5s
+  let owner = await resolve(connection, "223399");
+  expect(owner.toBase58()).toBe("J6QDztZCegYTWnGUYtjqVS9d7AZoS43UbEQmMcdGeP5s");
+  // 10426871 -> 3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1 (RoA unsigned)
+  owner = await resolve(connection, "10426871");
+  expect(owner.toBase58()).toBe("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
+  // 2022222 -> (RoA signed & stale)
+  owner = await resolve(connection, "2022222");
+  expect(owner.toBase58()).toBe("J6QDztZCegYTWnGUYtjqVS9d7AZoS43UbEQmMcdGeP5s");
 });

@@ -1,6 +1,6 @@
 import { test, jest } from "@jest/globals";
 import { PublicKey, Connection } from "@solana/web3.js";
-import { getTokenizedDomains } from "../src/nft";
+import { getTokenizedDomains } from "../src/utils";
 
 jest.setTimeout(10_000);
 const connection = new Connection("https://rpc-public.hellomoon.io");
