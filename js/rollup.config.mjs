@@ -16,7 +16,7 @@ export default {
     },
     { file: "dist/index.cjs", format: "cjs", sourcemap: true },
   ],
-  external: ["@solana/web3.js"],
+
   plugins: [
     typescript(),
     commonjs(),
