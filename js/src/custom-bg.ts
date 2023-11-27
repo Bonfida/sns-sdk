@@ -11,10 +11,6 @@ const RBG_0x00_KEY = new PublicKey(
   "CSWvuDHXExVGEMR9kP8xYAHuNjXogeRck9Cnr312CC9g"
 );
 
-const RBG_0x00_KEY = new PublicKey(
-  "CSWvuDHXExVGEMR9kP8xYAHuNjXogeRck9Cnr312CC9g"
-);
-
 export const getCustomBgKeys = (domain: string, customBg: CustomBg) => {
   const hashedBg = getHashedNameSync(customBg);
   const hashedDomain = getHashedNameSync(domain);
