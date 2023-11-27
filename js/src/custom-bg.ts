@@ -7,6 +7,9 @@ import { ErrorType, SNSError } from "./error";
 const DEGEN_POET_KEY = new PublicKey(
   "ART5dr4bDic2sQVZoFheEmUxwQq5VGSx9he7JxHcXNQD"
 );
+const RBG_0x00_KEY = new PublicKey(
+  "CSWvuDHXExVGEMR9kP8xYAHuNjXogeRck9Cnr312CC9g"
+);
 
 const RBG_0x00_KEY = new PublicKey(
   "CSWvuDHXExVGEMR9kP8xYAHuNjXogeRck9Cnr312CC9g"
