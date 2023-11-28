@@ -11,7 +11,7 @@ import { toDomainKey } from "../../utils/domain-to-key";
  */
 export const useSubdomains = (
   connection: Connection,
-  domain: string | PublicKey | undefined | null
+  domain: string | PublicKey | undefined | null,
 ) => {
   const key = toDomainKey(domain);
   return useAsync(async () => {

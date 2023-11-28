@@ -4,7 +4,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 
 const fn = async (
   connection: Connection,
-  domain: string | null | undefined
+  domain: string | null | undefined,
 ): Promise<PublicKey | undefined> => {
   if (!domain) return;
   const owner = await resolve(connection, domain);
@@ -19,7 +19,7 @@ const fn = async (
  */
 export const useDomainOwner = (
   connection: Connection,
-  domain: string | null | undefined
+  domain: string | null | undefined,
 ) => {
   return useAsync(fn, [connection, domain]);
 };
