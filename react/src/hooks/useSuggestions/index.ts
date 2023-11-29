@@ -35,8 +35,6 @@ export const useDomainSuggestions = ({
 
     const data: string[] = await (await fetch(`${URL}/${domain}`)).json();
 
-    console.log("data", data);
-
     if (!data || data.length < 5) {
       if (!connection) return [];
       const alternatives = generateRandomDomain(domain, 10);
