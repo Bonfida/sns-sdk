@@ -1,4 +1,4 @@
-import { useAsync } from "react-async-hook";
+import { UseAsyncReturn, useAsync } from "react-async-hook";
 import { getDomainKeySync } from "@bonfida/spl-name-service";
 import type { Connection } from "@solana/web3.js";
 import { generateRandomDomain } from "../../utils";
@@ -8,6 +8,19 @@ export interface Result {
   available: boolean;
 }
 
+/**
+ * Asynchronously retrieves domains or/and subdomains availability information.
+ *
+ * @param {Connection} connection - The Solana connection instance
+ * @param {string[]} domains - An array of domain names to check for availability.
+ * @returns {Promise<Result[]>}
+ *
+ * @example
+ * // Example usage
+ * const connection = new Connection(network);
+ * const domains = ['solana', 'main.solana'];
+ * const result = await getDomainsResult(connection, domains);
+ */
 export const getDomainsResult = async (
   connection: Connection,
   domains: string[],
@@ -24,13 +37,27 @@ export const getDomainsResult = async (
   }));
 };
 
+/**
+ * Asynchronously finds domain or subdomain and its availability. Provides basic
+ * alternatives for subdomains.
+ *
+ * @param {Connection} params.connection - The Solana connection instance
+ * @param {string[]} params.domain - Domain name.
+ * @returns {Promise<Result[]>}
+ *
+ * @example
+ * // Example usage
+ * const connection = new Connection(network);
+ * const domain = 'solana';
+ * const result = await useSearch({ connection, domain });
+ */
 export const useSearch = ({
   connection,
   domain,
 }: {
   connection: Connection;
   domain: string;
-}) => {
+}): UseAsyncReturn<Result[]> => {
   const fn = async (): Promise<Result[]> => {
     if (!domain || !connection) return [];
 
