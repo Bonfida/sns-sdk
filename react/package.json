@@ -1,6 +1,6 @@
 {
   "name": "@bonfida/sns-react",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A set of React hooks to interact with the Solana Name Service",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
