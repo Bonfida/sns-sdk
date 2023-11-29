@@ -4,6 +4,7 @@ import {
   useDomainsForOwner,
   useSearch,
   useDomainSuggestions,
+  useTopDomainsSales,
 } from "@bonfida/sns-react";
 import { useState } from "react";
 
@@ -21,6 +22,8 @@ export const Example = () => {
     connection,
     domain: searchQuery,
   });
+
+  const topDomainsSales = useTopDomainsSales();
 
   return (
     <div className="flex flex-col h-full gap-3 px-10">
@@ -73,18 +76,45 @@ export const Example = () => {
         <p>Domain suggestions:</p>
         {domainSuggestions.loading && "Loading..."}
         <table>
-          <tr>
-            <td>Domain name</td>
-            <td>Available?</td>
-          </tr>
-          {domainSuggestions.result?.map((e) => {
-            return (
-              <tr key={e.domain}>
-                <td>{e.domain}</td>
-                <td>{String(e.available)}</td>
-              </tr>
-            );
-          })}
+          <thead>
+            <tr>
+              <td>Domain name</td>
+              <td>Available?</td>
+            </tr>
+          </thead>
+          <tbody>
+            {domainSuggestions.result?.map((e) => {
+              return (
+                <tr key={e.domain}>
+                  <td>{e.domain}</td>
+                  <td>{String(e.available)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="mt-6 text-white">
+        <p>Top sales:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <td>Domain name</td>
+              <td>Price, $</td>
+            </tr>
+          </thead>
+          <tbody>
+            {topDomainsSales.result?.map((e) => {
+              return (
+                <tr key={e.domain}>
+                  <td>{e.domain}.sol</td>
+                  <td>${e.price}</td>
+                </tr>
+              );
+            })}
+          </tbody>
         </table>
       </div>
     </div>
