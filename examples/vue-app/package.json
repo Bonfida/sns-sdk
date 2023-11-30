@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@bonfida/sns-vue": "^1.0.0",
+    "@bonfida/sns-vue": "^1.1.0",
     "@bonfida/spl-name-service": "^1.6.1",
     "@vueuse/core": "^10.6.1",
     "vue": "^3.3.9"
