@@ -9,7 +9,6 @@
         placeholder="Enter value"
       />
     </label>
-    {{ isLoading }}
 
     <div>Result: {{ isLoading ? "Loading..." : result }}</div>
   </UsageExample>
