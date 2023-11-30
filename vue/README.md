@@ -48,6 +48,9 @@ Below is a brief description of the composables available in this library. Detai
 - `useRecords` - allows to retrieve the content of multiple records
 - `useReverseLookup` - allows to retrieve the reverse of domain name from this public key
 - `useSubdomains` - allows to retrieve the subdomains of .sol domain name
+- `useSearch` - enables searching for domains and subdomains. You can use it to look up specific domains and subdomains and see if they have been registered
+- `useDomainSuggestions` - allows to load suggestions for the provided domain. It assists in finding related domains that are not registered
+- `useTopDomainsSales` - displays the top domain sales for the specified period. It provides insight into the most popular domains and their pricing trends
 
 <br />
 <h2 align="center">Contributing</h2>
