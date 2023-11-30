@@ -7,3 +7,4 @@ export * from "./composables/useRecords";
 export * from "./composables/useReverseLookup";
 export * from "./composables/useSubdomains";
 export * from "./composables/useSearch";
+export * from "./composables/useTopDomainsSales";
