@@ -1,9 +1,9 @@
-import { MaybeRef, toRef, unref, computed } from 'vue';
-import { getAllDomains, reverseLookupBatch } from '@bonfida/spl-name-service';
-import { Connection, PublicKey } from '@solana/web3.js';
-import { toKey } from '@/utils/pubkey';
+import { MaybeRef, toRef, unref, computed } from "vue";
+import { getAllDomains, reverseLookupBatch } from "@bonfida/spl-name-service";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { toKey } from "@/utils/pubkey";
 
-import { useLoadingFactory } from '@/utils/use-loading-factory';
+import { useLoadingFactory } from "@/utils/use-loading-factory";
 
 type Result = { pubkey: PublicKey; domain: string }[];
 

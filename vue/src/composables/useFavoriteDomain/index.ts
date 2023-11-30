@@ -1,8 +1,8 @@
-import { computed, MaybeRef, unref } from 'vue';
-import { getFavoriteDomain } from '@bonfida/spl-name-service';
-import { Connection, PublicKey } from '@solana/web3.js';
-import { toKey } from '@/utils/pubkey';
-import { useLoadingFactory } from '@/utils/use-loading-factory';
+import { computed, MaybeRef, unref } from "vue";
+import { getFavoriteDomain } from "@bonfida/spl-name-service";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { toKey } from "@/utils/pubkey";
+import { useLoadingFactory } from "@/utils/use-loading-factory";
 
 /**
  * Returns the favorite domain if it exists.

@@ -1,7 +1,7 @@
-import { MaybeRef, unref } from 'vue';
-import { Connection } from '@solana/web3.js';
-import { Record, getRecords } from '@bonfida/spl-name-service';
-import { useLoadingFactory } from '@/utils/use-loading-factory';
+import { MaybeRef, unref } from "vue";
+import { Connection } from "@solana/web3.js";
+import { Record, getRecords } from "@bonfida/spl-name-service";
+import { useLoadingFactory } from "@/utils/use-loading-factory";
 
 /**
  * Returns the records of the given domain names

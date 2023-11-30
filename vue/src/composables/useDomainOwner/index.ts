@@ -1,8 +1,8 @@
-import { unref, Ref, MaybeRef } from 'vue';
-import { resolve } from '@bonfida/spl-name-service';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { unref, Ref, MaybeRef } from "vue";
+import { resolve } from "@bonfida/spl-name-service";
+import { Connection, PublicKey } from "@solana/web3.js";
 
-import { useLoadingFactory } from '@/utils/use-loading-factory';
+import { useLoadingFactory } from "@/utils/use-loading-factory";
 
 /**
  * @param connection - The Solana RPC connection object
