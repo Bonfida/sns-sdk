@@ -1,8 +1,8 @@
-import { MaybeRef, computed, toRef, unref } from 'vue';
-import { findSubdomains } from '@bonfida/spl-name-service';
-import { Connection, PublicKey } from '@solana/web3.js';
-import { useLoadingFactory } from '@/utils/use-loading-factory';
-import { toDomainKey } from '@/utils/domain-to-key';
+import { MaybeRef, computed, toRef, unref } from "vue";
+import { findSubdomains } from "@bonfida/spl-name-service";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { useLoadingFactory } from "@/utils/use-loading-factory";
+import { toDomainKey } from "@/utils/domain-to-key";
 
 /**
  * Returns the list of all sudomains for a given parent
