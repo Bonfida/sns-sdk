@@ -9,6 +9,7 @@ import { ErrorType, SNSError } from "./error";
 import { CENTRAL_STATE_SNS_RECORDS } from "@bonfida/sns-records";
 import { RecordVersion } from "./types/record";
 import { retrieveRecords } from "./nft";
+import splitGraphemes from "graphemesplit";
 
 export const getHashedNameSync = (name: string): Buffer => {
   const input = HASH_PREFIX + name;
@@ -19,7 +20,7 @@ export const getHashedNameSync = (name: string): Buffer => {
 export const getNameAccountKeySync = (
   hashed_name: Buffer,
   nameClass?: PublicKey,
-  nameParent?: PublicKey
+  nameParent?: PublicKey,
 ): PublicKey => {
   const seeds = [hashed_name];
   if (nameClass) {
@@ -34,7 +35,7 @@ export const getNameAccountKeySync = (
   }
   const [nameAccountKey] = PublicKey.findProgramAddressSync(
     seeds,
-    NAME_PROGRAM_ID
+    NAME_PROGRAM_ID,
   );
   return nameAccountKey;
 };
@@ -47,17 +48,17 @@ export const getNameAccountKeySync = (
  */
 export async function reverseLookup(
   connection: Connection,
-  nameAccount: PublicKey
+  nameAccount: PublicKey,
 ): Promise<string> {
   const hashedReverseLookup = getHashedNameSync(nameAccount.toBase58());
   const reverseLookupAccount = getNameAccountKeySync(
     hashedReverseLookup,
-    REVERSE_LOOKUP_CLASS
+    REVERSE_LOOKUP_CLASS,
   );
 
   const { registry } = await NameRegistryState.retrieve(
     connection,
-    reverseLookupAccount
+    reverseLookupAccount,
   );
   if (!registry.data) {
     throw new SNSError(ErrorType.NoAccountData);
@@ -74,21 +75,21 @@ export async function reverseLookup(
  */
 export async function reverseLookupBatch(
   connection: Connection,
-  nameAccounts: PublicKey[]
+  nameAccounts: PublicKey[],
 ): Promise<(string | undefined)[]> {
   let reverseLookupAccounts: PublicKey[] = [];
   for (let nameAccount of nameAccounts) {
     const hashedReverseLookup = getHashedNameSync(nameAccount.toBase58());
     const reverseLookupAccount = getNameAccountKeySync(
       hashedReverseLookup,
-      REVERSE_LOOKUP_CLASS
+      REVERSE_LOOKUP_CLASS,
     );
     reverseLookupAccounts.push(reverseLookupAccount);
   }
 
   let names = await NameRegistryState.retrieveBatch(
     connection,
-    reverseLookupAccounts
+    reverseLookupAccounts,
   );
 
   return names.map((name) => {
@@ -108,7 +109,7 @@ export async function reverseLookupBatch(
  */
 export const findSubdomains = async (
   connection: Connection,
-  parentKey: PublicKey
+  parentKey: PublicKey,
 ): Promise<string[]> => {
   // Fetch reverse accounts
   const filtersReverse: MemcmpFilter[] = [
@@ -130,8 +131,8 @@ export const findSubdomains = async (
   });
 
   const parent = await reverseLookup(connection, parentKey);
-  const subs = reverse.map((e) =>
-    e.account.data.slice(97).toString("utf-8")?.split("\0").join("")
+  const subs = reverse.map(
+    (e) => e.account.data.slice(97).toString("utf-8")?.split("\0").join(""),
   );
 
   const keys = subs.map((e) => getDomainKeySync(e + "." + parent).pubkey);
@@ -143,7 +144,7 @@ export const findSubdomains = async (
 const _deriveSync = (
   name: string,
   parent: PublicKey = ROOT_DOMAIN_ACCOUNT,
-  classKey?: PublicKey
+  classKey?: PublicKey,
 ) => {
   let hashed = getHashedNameSync(name);
   let pubkey = getNameAccountKeySync(hashed, classKey, parent);
@@ -168,7 +169,7 @@ export const getDomainKeySync = (domain: string, record?: RecordVersion) => {
     const result = _deriveSync(
       sub,
       parentKey,
-      record === RecordVersion.V2 ? CENTRAL_STATE_SNS_RECORDS : undefined
+      record === RecordVersion.V2 ? CENTRAL_STATE_SNS_RECORDS : undefined,
     );
     return { ...result, isSub: true, parent: parentKey };
   } else if (splitted.length === 3 && !!record) {
@@ -195,7 +196,7 @@ export const getDomainKeySync = (domain: string, record?: RecordVersion) => {
  */
 export async function getAllDomains(
   connection: Connection,
-  wallet: PublicKey
+  wallet: PublicKey,
 ): Promise<PublicKey[]> {
   const filters = [
     {
@@ -225,7 +226,7 @@ export async function getAllDomains(
  */
 export async function getDomainKeysWithReverses(
   connection: Connection,
-  wallet: PublicKey
+  wallet: PublicKey,
 ) {
   const encodedNameArr = await getAllDomains(connection, wallet);
   const names = await reverseLookupBatch(connection, encodedNameArr);
@@ -272,7 +273,7 @@ export const getReverseKeySync = (domain: string, isSub?: boolean) => {
   const reverseLookupAccount = getNameAccountKeySync(
     hashedReverseLookup,
     REVERSE_LOOKUP_CLASS,
-    isSub ? parent : undefined
+    isSub ? parent : undefined,
   );
   return reverseLookupAccount;
 };
@@ -291,13 +292,13 @@ export const check = (bool: boolean, errorType: ErrorType) => {
  */
 export const getTokenizedDomains = async (
   connection: Connection,
-  owner: PublicKey
+  owner: PublicKey,
 ) => {
   const nftRecords = await retrieveRecords(connection, owner);
 
   const names = await reverseLookupBatch(
     connection,
-    nftRecords.map((e) => e.nameAccount)
+    nftRecords.map((e) => e.nameAccount),
   );
 
   return names
@@ -309,4 +310,26 @@ export const getTokenizedDomains = async (
       };
     })
     .filter((e) => !!e.reverse);
+};
+
+/**
+ * This function can be used to retrieve the domain price from its name
+ * @param name - Domain name
+ * @returns price
+ */
+export const getDomainPriceFromName = (name: string) => {
+  const split = splitGraphemes(name);
+
+  switch (split.length) {
+    case 1:
+      return 750;
+    case 2:
+      return 700;
+    case 3:
+      return 640;
+    case 4:
+      return 160;
+    default:
+      return 20;
+  }
 };

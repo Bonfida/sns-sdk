@@ -73,6 +73,7 @@
     "bn.js": "^5.2.1",
     "borsh": "^0.7.0",
     "buffer": "^6.0.3",
+    "graphemesplit": "^2.4.4",
     "ipaddr.js": "^2.1.0",
     "punycode": "^2.3.1",
     "tweetnacl": "^1.0.3"
