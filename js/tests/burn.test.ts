@@ -1,10 +1,11 @@
+require("dotenv").config();
 import { test, jest } from "@jest/globals";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { burnDomain } from "../src/bindings";
 
 jest.setTimeout(20_000);
 
-const connection = new Connection("https://rpc-public.hellomoon.io");
+const connection = new Connection(process.env.RPC_URL!);
 
 const OWNER = new PublicKey("3Wnd5Df69KitZfUoPYZU438eFRNwGHkhLnSAWL65PxJX");
 

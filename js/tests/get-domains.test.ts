@@ -1,3 +1,4 @@
+require("dotenv").config();
 import { test, expect, jest } from "@jest/globals";
 import { getAllDomains } from "../src/utils";
 import { PublicKey, Connection } from "@solana/web3.js";
@@ -14,7 +15,7 @@ const items = [
   },
 ];
 
-const connection = new Connection("https://rpc-public.hellomoon.io");
+const connection = new Connection(process.env.RPC_URL!);
 
 test("Get domains", async () => {
   for (let item of items) {

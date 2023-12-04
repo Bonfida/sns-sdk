@@ -1,13 +1,11 @@
+require("dotenv").config();
 import { test, jest, expect } from "@jest/globals";
 import { Connection } from "@solana/web3.js";
 import { resolve } from "../src/resolve";
 
 jest.setTimeout(50_000);
 
-// const connection = new Connection("https://rpc-public.hellomoon.io");
-const connection = new Connection(
-  "https://rpc.helius.xyz/?api-key=ecf6c0ad-6565-45ce-8ee4-1edfac443176"
-);
+const connection = new Connection(process.env.RPC_URL!);
 
 const LIST = [
   {

@@ -1,8 +1,9 @@
+require("dotenv").config();
 import { test, jest } from "@jest/globals";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { registerDomainName, registerWithNft } from "../src/bindings";
 import { randomBytes } from "crypto";
-import { REFERRERS, USDC_MINT } from "../src/constants";
+import { REFERRERS, USDC_MINT, VAULT_OWNER } from "../src/constants";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { getDomainKeySync, getReverseKeySync } from "../src/utils";
 import { Metaplex } from "@metaplex-foundation/js";
@@ -10,11 +11,7 @@ import { Metaplex } from "@metaplex-foundation/js";
 jest.setTimeout(20_000);
 const FIDA_MINT = new PublicKey("EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp");
 
-const connection = new Connection("https://rpc-public.hellomoon.io");
-
-const VAULT_OWNER = new PublicKey(
-  "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM"
-);
+const connection = new Connection(process.env.RPC_URL!);
 
 test("Registration", async () => {
   const tx = new Transaction();

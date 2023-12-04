@@ -1,3 +1,4 @@
+require("dotenv").config();
 import { test, expect, jest } from "@jest/globals";
 import { getDomainKeysWithReverses } from "../src/utils";
 import { PublicKey, Connection } from "@solana/web3.js";
@@ -13,11 +14,11 @@ const item = {
   domain: ["wallet-guide-3", "wallet-guide-4"],
 };
 
-const connection = new Connection("https://rpc-public.hellomoon.io");
+const connection = new Connection(process.env.RPC_URL!);
 
 test("Get reversed domains", async () => {
   const domains = await getDomainKeysWithReverses(connection, item.user);
-  domains.sort();
+  domains.sort((a, b) => a.domain!.localeCompare(b.domain!));
 
   for (let i = 0; i < domains.length; i++) {
     expect(domains[i].domain).toEqual(item.domain[i]);

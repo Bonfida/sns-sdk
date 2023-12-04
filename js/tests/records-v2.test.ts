@@ -1,3 +1,4 @@
+require("dotenv").config();
 import { test, expect } from "@jest/globals";
 import {
   deserializeRecordV2Content,
@@ -16,7 +17,7 @@ import {
 
 jest.setTimeout(50_000);
 
-const connection = new Connection("https://rpc-public.hellomoon.io");
+const connection = new Connection(process.env.RPC_URL!);
 
 test("Records V2 des/ser", () => {
   let content = "this is a test";
