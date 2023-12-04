@@ -1,9 +1,10 @@
+require("dotenv").config();
 import { test, jest } from "@jest/globals";
 import { PublicKey, Connection } from "@solana/web3.js";
-import { getTokenizedDomains } from "../src/nft";
+import { getTokenizedDomains } from "../src/utils";
 
 jest.setTimeout(10_000);
-const connection = new Connection("https://rpc-public.hellomoon.io");
+const connection = new Connection(process.env.RPC_URL!);
 
 const items = [
   {
@@ -36,8 +37,7 @@ test("Get tokenized domains", async () => {
       reverse: e.reverse,
     };
   });
-  domains.sort();
-
+  domains.sort((a, b) => b.reverse!.localeCompare(a.reverse!));
   for (let item of items) {
     expect(domains).toEqual(item.domains);
   }

@@ -1,3 +1,4 @@
+require("dotenv").config();
 import { test, jest, expect } from "@jest/globals";
 import { Connection, Transaction } from "@solana/web3.js";
 import { createSubdomain } from "../src/bindings";
@@ -6,7 +7,7 @@ import { resolve } from "../src/resolve";
 
 jest.setTimeout(5_000);
 
-const connection = new Connection("https://rpc-public.hellomoon.io");
+const connection = new Connection(process.env.RPC_URL!);
 
 test("Create sub", async () => {
   const sub = "gvbhnjklmjnhb";

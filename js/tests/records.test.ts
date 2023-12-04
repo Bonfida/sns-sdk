@@ -1,3 +1,4 @@
+require("dotenv").config();
 import { test, jest, expect } from "@jest/globals";
 import * as record from "../src/record";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
@@ -6,7 +7,7 @@ import { createRecordInstruction } from "../src/bindings";
 
 jest.setTimeout(20_000);
 
-const connection = new Connection("https://rpc-public.hellomoon.io");
+const connection = new Connection(process.env.RPC_URL!);
 
 test("Records", async () => {
   const domain = "🍍";

@@ -14,3 +14,4 @@ export * from "./resolve";
 export * from "./deprecated/utils";
 export * from "./error";
 export * from "./custom-bg";
+export * from "./record_v2";

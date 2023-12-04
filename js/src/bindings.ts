@@ -54,7 +54,18 @@ import {
 } from "@solana/spl-token";
 import { ErrorType, SNSError } from "./error";
 import { serializeRecord, serializeSolRecord } from "./record";
-import { Record } from "./types/record";
+import { Record, RecordVersion } from "./types/record";
+import { serializeRecordV2Content } from "./record_v2";
+import {
+  editRecord,
+  allocateAndPostRecord,
+  SNS_RECORDS_ID,
+  deleteRecord,
+  validateSolanaSignature,
+  validateEthSignature,
+  Validation,
+  writeRoa,
+} from "@bonfida/sns-records";
 
 /**
  * Creates a name account with the given rent budget, allocated space, owner and class.
@@ -468,7 +479,7 @@ export const createSubdomain = async (
 };
 
 /**
- * This function can be used be create a record, it handles the serialization of the record data
+ * This function can be used be create a record V1, it handles the serialization of the record data
  * To create a SOL record use `createSolRecordInstruction`
  * @param connection The Solana RPC connection object
  * @param domain The .sol domain name
@@ -489,7 +500,7 @@ export const createRecordInstruction = async (
   check(record !== Record.SOL, ErrorType.UnsupportedRecord);
   const { pubkey, hashed, parent } = getDomainKeySync(
     `${record}.${domain}`,
-    true
+    RecordVersion.V1
   );
 
   const serialized = serializeRecord(data, record);
@@ -515,6 +526,44 @@ export const createRecordInstruction = async (
   return ix;
 };
 
+/**
+ * This function can be used be create a record V2, it handles the serialization of the record data following SNS-IP 1 guidelines
+ * @param domain The .sol domain name
+ * @param record The record enum object
+ * @param recordV2 The `RecordV2` object that will be serialized into the record via the update instruction
+ * @param owner The owner of the domain
+ * @param payer The fee payer of the transaction
+ * @returns
+ */
+export const createRecordV2Instruction = (
+  domain: string,
+  record: Record,
+  content: string,
+  owner: PublicKey,
+  payer: PublicKey
+) => {
+  const { pubkey, parent } = getDomainKeySync(
+    `${record}.${domain}`,
+    RecordVersion.V2
+  );
+
+  if (!parent) {
+    throw new Error("Invalid parent");
+  }
+
+  const ix = allocateAndPostRecord(
+    payer,
+    pubkey,
+    parent,
+    owner,
+    NAME_PROGRAM_ID,
+    `\x02`.concat(record as string),
+    serializeRecordV2Content(content, record),
+    SNS_RECORDS_ID
+  );
+  return ix;
+};
+
 export const updateRecordInstruction = async (
   connection: Connection,
   domain: string,
@@ -524,7 +573,7 @@ export const updateRecordInstruction = async (
   payer: PublicKey
 ) => {
   check(record !== Record.SOL, ErrorType.UnsupportedRecord);
-  const { pubkey } = getDomainKeySync(`${record}.${domain}`, true);
+  const { pubkey } = getDomainKeySync(`${record}.${domain}`, RecordVersion.V1);
 
   const info = await connection.getAccountInfo(pubkey);
   check(!!info?.data, ErrorType.AccountDoesNotExist);
@@ -557,7 +606,168 @@ export const updateRecordInstruction = async (
 };
 
 /**
- * This function can be used to create a SOL record
+ * This function updates the content of a record V2. The data serialization follows the SNS-IP 1 guidelines
+ * @param connection The Solana RPC connection object
+ * @param domain The .sol domain name
+ * @param record The record enum object
+ * @param recordV2 The `RecordV2` object to serialize into the record
+ * @param owner The owner of the record/domain
+ * @param payer The fee payer of the transaction
+ * @returns The update record instructions
+ */
+export const updateRecordV2Instruction = (
+  domain: string,
+  record: Record,
+  content: string,
+  owner: PublicKey,
+  payer: PublicKey
+) => {
+  const { pubkey, parent } = getDomainKeySync(
+    `${record}.${domain}`,
+    RecordVersion.V2
+  );
+  if (!parent) {
+    throw new Error("Invalid parent");
+  }
+
+  const ix = editRecord(
+    payer,
+    pubkey,
+    parent,
+    owner,
+    NAME_PROGRAM_ID,
+    `\x02`.concat(record as string),
+    serializeRecordV2Content(content, record),
+    SNS_RECORDS_ID
+  );
+
+  return ix;
+};
+
+/**
+ * This function deletes a record v2 and returns the rent to the fee payer
+ * @param domain The .sol domain name
+ * @param record  The record type enum
+ * @param owner The owner of the record to delete
+ * @param payer The fee payer of the transaction
+ * @returns The delete transaction instruction
+ */
+export const deleteRecordV2 = (
+  domain: string,
+  record: Record,
+  owner: PublicKey,
+  payer: PublicKey
+) => {
+  const { pubkey, parent } = getDomainKeySync(
+    `${record}.${domain}`,
+    RecordVersion.V2
+  );
+
+  if (!parent) {
+    throw new Error("Invalid parent");
+  }
+
+  const ix = deleteRecord(
+    payer,
+    parent,
+    owner,
+    pubkey,
+    NAME_PROGRAM_ID,
+    SNS_RECORDS_ID
+  );
+  return ix;
+};
+
+export const validateRecordV2Content = (
+  staleness: boolean,
+  domain: string,
+  record: Record,
+  owner: PublicKey,
+  payer: PublicKey,
+  verifier: PublicKey
+) => {
+  const { pubkey, parent } = getDomainKeySync(
+    `${record}.${domain}`,
+    RecordVersion.V2
+  );
+
+  if (!parent) {
+    throw new Error("Invalid parent");
+  }
+
+  const ix = validateSolanaSignature(
+    payer,
+    pubkey,
+    parent,
+    owner,
+    verifier,
+    NAME_PROGRAM_ID,
+    staleness,
+    SNS_RECORDS_ID
+  );
+  return ix;
+};
+
+export const writRoaRecordV2 = (
+  domain: string,
+  record: Record,
+  owner: PublicKey,
+  payer: PublicKey,
+  roaId: PublicKey
+) => {
+  const { pubkey, parent } = getDomainKeySync(
+    `${record}.${domain}`,
+    RecordVersion.V2
+  );
+
+  if (!parent) {
+    throw new Error("Invalid parent");
+  }
+  const ix = writeRoa(
+    payer,
+    NAME_PROGRAM_ID,
+    pubkey,
+    parent,
+    owner,
+    roaId,
+    SNS_RECORDS_ID
+  );
+  return ix;
+};
+
+export const ethValidateRecordV2Content = (
+  domain: string,
+  record: Record,
+  owner: PublicKey,
+  payer: PublicKey,
+  signature: Buffer,
+  expectedPubkey: Buffer
+) => {
+  const { pubkey, parent } = getDomainKeySync(
+    `${record}.${domain}`,
+    RecordVersion.V2
+  );
+
+  if (!parent) {
+    throw new Error("Invalid parent");
+  }
+
+  const ix = validateEthSignature(
+    payer,
+    pubkey,
+    parent,
+    owner,
+    NAME_PROGRAM_ID,
+    Validation.Ethereum,
+    signature,
+    expectedPubkey,
+    SNS_RECORDS_ID
+  );
+  return ix;
+};
+
+/**
+ * This function can be used to create a SOL record (V1)
  * @param connection The Solana RPC connection object
  * @param domain The .sol domain name
  * @param content The content of the SOL record i.e the public key to store as destination of the domain
@@ -576,7 +786,7 @@ export const createSolRecordInstruction = async (
 ) => {
   const { pubkey, hashed, parent } = getDomainKeySync(
     `${Record.SOL}.${domain}`,
-    true
+    RecordVersion.V1
   );
   const serialized = serializeSolRecord(content, pubkey, signer, signature);
   const space = serialized.length;
@@ -609,7 +819,10 @@ export const updateSolRecordInstruction = async (
   signature: Uint8Array,
   payer: PublicKey
 ) => {
-  const { pubkey } = getDomainKeySync(`${Record.SOL}.${domain}`, true);
+  const { pubkey } = getDomainKeySync(
+    `${Record.SOL}.${domain}`,
+    RecordVersion.V1
+  );
 
   const info = await connection.getAccountInfo(pubkey);
   check(!!info?.data, ErrorType.AccountDoesNotExist);

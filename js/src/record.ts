@@ -1,15 +1,15 @@
-import { RECORD_V1_SIZE, Record } from "./types/record";
+import { RECORD_V1_SIZE, Record, RecordVersion } from "./types/record";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { getDomainKeySync } from "./utils";
 import { NameRegistryState } from "./state";
 import { Buffer } from "buffer";
 import { decode, encode } from "bech32-buffer";
-import { checkSolRecord } from "./resolve";
 import base58 from "bs58";
 import ipaddr from "ipaddr.js";
 import { encode as encodePunycode } from "punycode";
 import { check } from "./utils";
 import { ErrorType, SNSError } from "./error";
+import * as tweetnacl from "tweetnacl";
 
 const trimNullPaddingIdx = (buffer: Buffer): number => {
   const arr = Array.from(buffer);
@@ -19,13 +19,28 @@ const trimNullPaddingIdx = (buffer: Buffer): number => {
 };
 
 /**
+ * This function can be used to verify the validity of a SOL record
+ * @param record The record data to verify
+ * @param signedRecord The signed data
+ * @param pubkey The public key of the signer
+ * @returns
+ */
+export const checkSolRecord = (
+  record: Uint8Array,
+  signedRecord: Uint8Array,
+  pubkey: PublicKey
+) => {
+  return tweetnacl.sign.detached.verify(record, signedRecord, pubkey.toBytes());
+};
+
+/**
  * This function can be used to derive a record key
  * @param domain The .sol domain name
  * @param record The record to derive the key for
  * @returns
  */
 export const getRecordKeySync = (domain: string, record: Record) => {
-  const { pubkey } = getDomainKeySync(record + "." + domain, true);
+  const { pubkey } = getDomainKeySync(record + "." + domain, RecordVersion.V1);
   return pubkey;
 };
 
