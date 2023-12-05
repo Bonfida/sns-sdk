@@ -30,6 +30,7 @@
     "lint:fix": "yarn pretty:fix && eslint . --fix",
     "pretty": "prettier --check 'src/*.[jt]s'",
     "pretty:fix": "prettier --write 'src/*.[jt]s'",
+    "test": "jest ./tests",
     "doc": "yarn typedoc src/index.ts"
   },
   "devDependencies": {
@@ -77,5 +78,8 @@
   },
   "peerDependencies": {
     "@solana/web3.js": "^1.87.3"
+  },
+  "volta": {
+    "node": "20.10.0"
   }
 }
