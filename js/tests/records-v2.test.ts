@@ -33,8 +33,8 @@ test("Records V2 des/ser", () => {
 });
 
 test("Create record", async () => {
-  const domain = "record-v2";
-  const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
+  const domain = "wallet-guide-9";
+  const owner = new PublicKey("Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8");
   const ix = createRecordV2Instruction(
     domain,
     Record.Github,
@@ -51,8 +51,8 @@ test("Create record", async () => {
 });
 
 test("Update record", async () => {
-  const domain = "record-v2";
-  const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
+  const domain = "wallet-guide-9";
+  const owner = new PublicKey("Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8");
 
   const tx = new Transaction();
   const ix_1 = createRecordV2Instruction(
@@ -79,8 +79,8 @@ test("Update record", async () => {
 });
 
 test("Delete record", async () => {
-  const domain = "record-v2";
-  const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
+  const domain = "wallet-guide-9";
+  const owner = new PublicKey("Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8");
 
   const tx = new Transaction();
   const ix_1 = createRecordV2Instruction(
@@ -102,8 +102,8 @@ test("Delete record", async () => {
 });
 
 test("Solana Verify", async () => {
-  const domain = "record-v2";
-  const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
+  const domain = "wallet-guide-9";
+  const owner = new PublicKey("Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8");
 
   const tx = new Transaction();
   const ix_1 = createRecordV2Instruction(
@@ -132,14 +132,14 @@ test("Solana Verify", async () => {
 });
 
 test("ETH Verify", async () => {
-  const domain = "record-v2";
-  const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
-  // Record key: 5o7jXJuQ6k5RZQQEixJWv7DMm2yr23hNnSpGJsYzPxD2
+  const domain = "wallet-guide-9";
+  const owner = new PublicKey("Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8");
+  // Record key: E4MZzSfkf59UVFYVux5WEufghvWxUktf6e5EaUuDExAc
   const tx = new Transaction();
   const ix_1 = createRecordV2Instruction(
     domain,
-    Record.Github,
-    "Hello",
+    Record.ETH,
+    "0x4bfbfd1e018f9f27eeb788160579daf7e2cd7da7",
     owner,
     owner
   );
@@ -149,7 +149,7 @@ test("ETH Verify", async () => {
   const ix_2 = validateRecordV2Content(
     true,
     domain,
-    Record.Github,
+    Record.ETH,
     owner,
     owner,
     owner
@@ -158,15 +158,14 @@ test("ETH Verify", async () => {
 
   const ix_3 = ethValidateRecordV2Content(
     domain,
-    Record.Github,
+    Record.ETH,
     owner,
     owner,
     Buffer.from([
-      70, 1, 125, 86, 85, 208, 173, 211, 211, 232, 180, 49, 254, 41, 240, 59,
-      145, 27, 213, 251, 253, 93, 63, 232, 64, 246, 178, 93, 146, 115, 145, 188,
-      51, 89, 192, 230, 99, 53, 111, 61, 241, 130, 199, 229, 236, 81, 46, 185,
-      230, 126, 95, 64, 99, 118, 168, 106, 185, 192, 55, 4, 170, 138, 96, 91,
-      27,
+      78, 235, 200, 2, 51, 5, 225, 127, 83, 156, 25, 226, 53, 239, 196, 189,
+      196, 197, 121, 2, 91, 2, 99, 11, 31, 179, 5, 233, 52, 246, 137, 252, 72,
+      27, 67, 15, 86, 42, 62, 117, 140, 223, 159, 142, 86, 227, 233, 185, 149,
+      111, 92, 122, 147, 23, 217, 1, 66, 72, 63, 150, 27, 219, 152, 10, 28,
     ]),
     Buffer.from([
       75, 251, 253, 30, 1, 143, 159, 39, 238, 183, 136, 22, 5, 121, 218, 247,
@@ -183,8 +182,8 @@ test("ETH Verify", async () => {
 });
 
 test("RoA record", async () => {
-  const domain = "record-v2";
-  const owner = new PublicKey("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
+  const domain = "wallet-guide-9";
+  const owner = new PublicKey("Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8");
   const tx = new Transaction();
   const ix_1 = createRecordV2Instruction(
     domain,

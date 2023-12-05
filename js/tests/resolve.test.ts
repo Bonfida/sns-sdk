@@ -40,6 +40,20 @@ const LIST = [
     domain: "sub-1.wallet-guide-3.sol",
     owner: "Hf4daCT4tC2Vy9RCe9q8avT68yAsNJ1dQe6xiQqyGuqZ",
   },
+
+  // Record V2
+  {
+    domain: "wallet-guide-6",
+    owner: "Hf4daCT4tC2Vy9RCe9q8avT68yAsNJ1dQe6xiQqyGuqZ",
+  },
+  {
+    domain: "wallet-guide-7",
+    owner: "Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8",
+  },
+  {
+    domain: "wallet-guide-8",
+    owner: "36Dn3RWhB8x4c83W6ebQ2C2eH9sh5bQX2nMdkP2cWaA4",
+  },
 ];
 
 test("Resolve domains", async () => {
@@ -47,16 +61,4 @@ test("Resolve domains", async () => {
     const owner = await resolve(connection, x.domain);
     expect(x.owner).toBe(owner.toBase58());
   }
-});
-
-test("Resolve domains record V2", async () => {
-  // 223399 -> J6QDztZCegYTWnGUYtjqVS9d7AZoS43UbEQmMcdGeP5s
-  let owner = await resolve(connection, "223399");
-  expect(owner.toBase58()).toBe("J6QDztZCegYTWnGUYtjqVS9d7AZoS43UbEQmMcdGeP5s");
-  // 10426871 -> 3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1 (RoA unsigned)
-  owner = await resolve(connection, "10426871");
-  expect(owner.toBase58()).toBe("3ogYncmMM5CmytsGCqKHydmXmKUZ6sGWvizkzqwT7zb1");
-  // 2022222 -> (RoA signed & stale)
-  owner = await resolve(connection, "2022222");
-  expect(owner.toBase58()).toBe("J6QDztZCegYTWnGUYtjqVS9d7AZoS43UbEQmMcdGeP5s");
 });
