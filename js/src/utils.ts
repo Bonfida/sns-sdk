@@ -313,7 +313,8 @@ export const getTokenizedDomains = async (
 };
 
 /**
- * This function can be used to retrieve the domain price from its name
+ * This function can be used to retrieve the registration cost of a domain
+ * from its name
  * @param name - Domain name
  * @returns price
  */
