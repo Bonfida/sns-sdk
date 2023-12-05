@@ -1,0 +1,55 @@
+name: Check spl-name-service
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'js/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'js/**'
+
+defaults:
+  run:
+    working-directory: ./js
+
+jobs:
+  prepare-dependencies:
+    name: Prepare local deps
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - id: prepare-env
+        uses: ./.github/actions/prepare-spl-name-service-env
+      - name: Use cache or install dependencies
+        if: steps.prepare-env.outputs.cache-hit != 'true'
+        run: npm ci
+
+  test:
+    name: Test source code
+    needs: prepare-dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - uses: ./.github/actions/prepare-spl-name-service-env
+      - name: Make envfile
+        run: |
+          rm .env || true;
+          touch .env;
+          echo "RPC_URL=${{ secrets.RPC_URL }}" >> .env;
+      - name: Test source code
+        run: npm run test
+
+  build:
+    name: Build source code
+    needs: prepare-dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - uses: ./.github/actions/prepare-spl-name-service-env
+      - name: Build source code
+        run: npm run build
