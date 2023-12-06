@@ -221,3 +221,45 @@ test("Create record for sub", async () => {
   const { value } = await connection.simulateTransaction(tx);
   expect(value.err).toBe(null);
 });
+
+test("Create record for sub & update & verify staleness & delete", async () => {
+  const domain = "sub-0.wallet-guide-9";
+  const owner = new PublicKey("Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8");
+  const tx = new Transaction();
+  const ix_create = createRecordV2Instruction(
+    domain,
+    Record.Github,
+    "bonfida",
+    owner,
+    owner,
+  );
+  tx.add(ix_create);
+
+  const ix_update = updateRecordV2Instruction(
+    domain,
+    Record.Github,
+    "somethingelse",
+    owner,
+    owner,
+  );
+  tx.add(ix_update);
+
+  const ix_verify = validateRecordV2Content(
+    true,
+    domain,
+    Record.Github,
+    owner,
+    owner,
+    owner,
+  );
+  tx.add(ix_verify);
+
+  const ix_delete = deleteRecordV2(domain, Record.Github, owner, owner);
+  tx.add(ix_delete);
+
+  tx.feePayer = owner;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const { value } = await connection.simulateTransaction(tx);
+  expect(value.err).toBe(null);
+});

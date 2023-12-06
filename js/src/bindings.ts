@@ -626,10 +626,15 @@ export const updateRecordV2Instruction = (
   owner: PublicKey,
   payer: PublicKey,
 ) => {
-  const { pubkey, parent } = getDomainKeySync(
+  let { pubkey, parent, isSub } = getDomainKeySync(
     `${record}.${domain}`,
     RecordVersion.V2,
   );
+
+  if (isSub) {
+    parent = getDomainKeySync(domain).pubkey;
+  }
+
   if (!parent) {
     throw new Error("Invalid parent");
   }
@@ -662,10 +667,14 @@ export const deleteRecordV2 = (
   owner: PublicKey,
   payer: PublicKey,
 ) => {
-  const { pubkey, parent } = getDomainKeySync(
+  let { pubkey, parent, isSub } = getDomainKeySync(
     `${record}.${domain}`,
     RecordVersion.V2,
   );
+
+  if (isSub) {
+    parent = getDomainKeySync(domain).pubkey;
+  }
 
   if (!parent) {
     throw new Error("Invalid parent");
@@ -690,10 +699,14 @@ export const validateRecordV2Content = (
   payer: PublicKey,
   verifier: PublicKey,
 ) => {
-  const { pubkey, parent } = getDomainKeySync(
+  let { pubkey, parent, isSub } = getDomainKeySync(
     `${record}.${domain}`,
     RecordVersion.V2,
   );
+
+  if (isSub) {
+    parent = getDomainKeySync(domain).pubkey;
+  }
 
   if (!parent) {
     throw new Error("Invalid parent");
@@ -719,10 +732,14 @@ export const writRoaRecordV2 = (
   payer: PublicKey,
   roaId: PublicKey,
 ) => {
-  const { pubkey, parent } = getDomainKeySync(
+  let { pubkey, parent, isSub } = getDomainKeySync(
     `${record}.${domain}`,
     RecordVersion.V2,
   );
+
+  if (isSub) {
+    parent = getDomainKeySync(domain).pubkey;
+  }
 
   if (!parent) {
     throw new Error("Invalid parent");
@@ -747,10 +764,14 @@ export const ethValidateRecordV2Content = (
   signature: Buffer,
   expectedPubkey: Buffer,
 ) => {
-  const { pubkey, parent } = getDomainKeySync(
+  let { pubkey, parent, isSub } = getDomainKeySync(
     `${record}.${domain}`,
     RecordVersion.V2,
   );
+
+  if (isSub) {
+    parent = getDomainKeySync(domain).pubkey;
+  }
 
   if (!parent) {
     throw new Error("Invalid parent");
