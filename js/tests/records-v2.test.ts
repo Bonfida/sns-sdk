@@ -40,7 +40,7 @@ test("Create record", async () => {
     Record.Github,
     "bonfida",
     owner,
-    owner
+    owner,
   );
   const tx = new Transaction().add(ix);
   tx.feePayer = owner;
@@ -60,7 +60,7 @@ test("Update record", async () => {
     Record.Github,
     "bonfida",
     owner,
-    owner
+    owner,
   );
   tx.add(ix_1);
   const ix_2 = updateRecordV2Instruction(
@@ -68,7 +68,7 @@ test("Update record", async () => {
     Record.Github,
     "some text",
     owner,
-    owner
+    owner,
   );
   tx.add(ix_2);
   tx.feePayer = owner;
@@ -88,7 +88,7 @@ test("Delete record", async () => {
     Record.Github,
     "bonfida",
     owner,
-    owner
+    owner,
   );
   tx.add(ix_1);
   const ix_2 = deleteRecordV2(domain, Record.Github, owner, owner);
@@ -111,7 +111,7 @@ test("Solana Verify", async () => {
     Record.Github,
     "bonfida",
     owner,
-    owner
+    owner,
   );
   tx.add(ix_1);
   const ix_2 = validateRecordV2Content(
@@ -120,7 +120,7 @@ test("Solana Verify", async () => {
     Record.Github,
     owner,
     owner,
-    owner
+    owner,
   );
   tx.add(ix_2);
 
@@ -141,7 +141,7 @@ test("ETH Verify", async () => {
     Record.ETH,
     "0x4bfbfd1e018f9f27eeb788160579daf7e2cd7da7",
     owner,
-    owner
+    owner,
   );
 
   tx.add(ix_1);
@@ -152,7 +152,7 @@ test("ETH Verify", async () => {
     Record.ETH,
     owner,
     owner,
-    owner
+    owner,
   );
   tx.add(ix_2);
 
@@ -170,7 +170,7 @@ test("ETH Verify", async () => {
     Buffer.from([
       75, 251, 253, 30, 1, 143, 159, 39, 238, 183, 136, 22, 5, 121, 218, 247,
       226, 205, 125, 167,
-    ])
+    ]),
   );
   tx.add(ix_3);
 
@@ -190,13 +190,31 @@ test("RoA record", async () => {
     Record.Github,
     "bonfida",
     owner,
-    owner
+    owner,
   );
   tx.add(ix_1);
 
   const ix_2 = writRoaRecordV2(domain, Record.Github, owner, owner, owner);
   tx.add(ix_2);
 
+  tx.feePayer = owner;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const { value } = await connection.simulateTransaction(tx);
+  expect(value.err).toBe(null);
+});
+
+test("Create record for sub", async () => {
+  const domain = "sub-0.wallet-guide-9";
+  const owner = new PublicKey("Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8");
+  const ix = createRecordV2Instruction(
+    domain,
+    Record.Github,
+    "bonfida",
+    owner,
+    owner,
+  );
+  const tx = new Transaction().add(ix);
   tx.feePayer = owner;
   tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 

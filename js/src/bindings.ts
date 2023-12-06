@@ -88,13 +88,13 @@ export async function createNameRegistry(
   nameOwner: PublicKey,
   lamports?: number,
   nameClass?: PublicKey,
-  parentName?: PublicKey
+  parentName?: PublicKey,
 ): Promise<TransactionInstruction> {
   const hashed_name = await getHashedName(name);
   const nameAccountKey = await getNameAccountKey(
     hashed_name,
     nameClass,
-    parentName
+    parentName,
   );
 
   const balance = lamports
@@ -105,7 +105,7 @@ export async function createNameRegistry(
   if (parentName) {
     const { registry: parentAccount } = await getNameOwner(
       connection,
-      parentName
+      parentName,
     );
     nameParentOwner = parentAccount.owner;
   }
@@ -123,7 +123,7 @@ export async function createNameRegistry(
     new Numberu32(space),
     nameClass,
     parentName,
-    nameParentOwner
+    nameParentOwner,
   );
 
   return createNameInstr;
@@ -145,13 +145,13 @@ export async function updateNameRegistryData(
   offset: number,
   input_data: Buffer,
   nameClass?: PublicKey,
-  nameParent?: PublicKey
+  nameParent?: PublicKey,
 ): Promise<TransactionInstruction> {
   const hashed_name = await getHashedName(name);
   const nameAccountKey = await getNameAccountKey(
     hashed_name,
     nameClass,
-    nameParent
+    nameParent,
   );
 
   let signer: PublicKey;
@@ -168,7 +168,7 @@ export async function updateNameRegistryData(
     //@ts-ignore
     new Numberu32(offset),
     input_data,
-    signer
+    signer,
   );
 
   return updateInstr;
@@ -191,13 +191,13 @@ export async function transferNameOwnership(
   newOwner: PublicKey,
   nameClass?: PublicKey,
   nameParent?: PublicKey,
-  parentOwner?: PublicKey
+  parentOwner?: PublicKey,
 ): Promise<TransactionInstruction> {
   const hashed_name = await getHashedName(name);
   const nameAccountKey = await getNameAccountKey(
     hashed_name,
     nameClass,
-    nameParent
+    nameParent,
   );
 
   let curentNameOwner: PublicKey;
@@ -216,7 +216,7 @@ export async function transferNameOwnership(
     curentNameOwner,
     nameClass,
     nameParent,
-    parentOwner
+    parentOwner,
   );
 
   return transferInstr;
@@ -237,13 +237,13 @@ export async function deleteNameRegistry(
   name: string,
   refundTargetKey: PublicKey,
   nameClass?: PublicKey,
-  nameParent?: PublicKey
+  nameParent?: PublicKey,
 ): Promise<TransactionInstruction> {
   const hashed_name = await getHashedName(name);
   const nameAccountKey = await getNameAccountKey(
     hashed_name,
     nameClass,
-    nameParent
+    nameParent,
   );
 
   let nameOwner: PublicKey;
@@ -258,7 +258,7 @@ export async function deleteNameRegistry(
     NAME_PROGRAM_ID,
     nameAccountKey,
     refundTargetKey,
-    nameOwner
+    nameOwner,
   );
 
   return changeAuthoritiesInstr;
@@ -282,7 +282,7 @@ export const registerDomainName = async (
   buyer: PublicKey,
   buyerTokenAccount: PublicKey,
   mint = USDC_MINT,
-  referrerKey?: PublicKey
+  referrerKey?: PublicKey,
 ) => {
   // Basic validation
   if (name.includes(".") || name.trim().toLowerCase() !== name) {
@@ -290,14 +290,14 @@ export const registerDomainName = async (
   }
   const [cs] = PublicKey.findProgramAddressSync(
     [REGISTER_PROGRAM_ID.toBuffer()],
-    REGISTER_PROGRAM_ID
+    REGISTER_PROGRAM_ID,
   );
 
   const hashed = getHashedNameSync(name);
   const nameAccount = getNameAccountKeySync(
     hashed,
     undefined,
-    ROOT_DOMAIN_ACCOUNT
+    ROOT_DOMAIN_ACCOUNT,
   );
 
   const hashedReverseLookup = getHashedNameSync(nameAccount.toBase58());
@@ -305,7 +305,7 @@ export const registerDomainName = async (
 
   const [derived_state] = PublicKey.findProgramAddressSync(
     [nameAccount.toBuffer()],
-    REGISTER_PROGRAM_ID
+    REGISTER_PROGRAM_ID,
   );
 
   const refIdx = REFERRERS.findIndex((e) => referrerKey?.equals(e));
@@ -321,7 +321,7 @@ export const registerDomainName = async (
         buyer,
         refTokenAccount,
         referrerKey,
-        mint
+        mint,
       );
       ixs.push(ix);
     }
@@ -329,7 +329,7 @@ export const registerDomainName = async (
 
   const pythConnection = new PythHttpClient(
     connection,
-    getPythProgramKeyForCluster("mainnet-beta")
+    getPythProgramKeyForCluster("mainnet-beta"),
   );
   const data = await pythConnection.getData();
 
@@ -338,7 +338,7 @@ export const registerDomainName = async (
   if (!symbol) {
     throw new SNSError(
       ErrorType.SymbolNotFound,
-      `No symbol found for mint ${mint.toBase58()}`
+      `No symbol found for mint ${mint.toBase58()}`,
     );
   }
 
@@ -368,7 +368,7 @@ export const registerDomainName = async (
     TOKEN_PROGRAM_ID,
     SYSVAR_RENT_PUBKEY,
     derived_state,
-    refTokenAccount
+    refTokenAccount,
   );
   ixs.push(ix);
 
@@ -389,18 +389,18 @@ export const createReverseName = async (
   name: string,
   feePayer: PublicKey,
   parentName?: PublicKey,
-  parentNameOwner?: PublicKey
+  parentNameOwner?: PublicKey,
 ) => {
   let [centralState] = await PublicKey.findProgramAddress(
     [REGISTER_PROGRAM_ID.toBuffer()],
-    REGISTER_PROGRAM_ID
+    REGISTER_PROGRAM_ID,
   );
 
   let hashedReverseLookup = await getHashedName(nameAccount.toBase58());
   let reverseLookupAccount = await getNameAccountKey(
     hashedReverseLookup,
     centralState,
-    parentName
+    parentName,
   );
 
   let initCentralStateInstruction = new createReverseInstruction({
@@ -415,7 +415,7 @@ export const createReverseName = async (
     feePayer,
     SYSVAR_RENT_PUBKEY,
     parentName,
-    parentNameOwner
+    parentNameOwner,
   );
 
   let instructions = [initCentralStateInstruction];
@@ -434,7 +434,7 @@ export const createSubdomain = async (
   connection: Connection,
   subdomain: string,
   owner: PublicKey,
-  space = 2_000
+  space = 2_000,
 ) => {
   const ixs: TransactionInstruction[] = [];
   const sub = subdomain.split(".")[0];
@@ -446,7 +446,7 @@ export const createSubdomain = async (
 
   // Space allocated to the subdomains
   const lamports = await connection.getMinimumBalanceForRentExemption(
-    space + NameRegistryState.HEADER_LEN
+    space + NameRegistryState.HEADER_LEN,
   );
 
   const ix_create = await createNameRegistry(
@@ -457,7 +457,7 @@ export const createSubdomain = async (
     owner,
     lamports,
     undefined,
-    parent
+    parent,
   );
   ixs.push(ix_create);
 
@@ -470,7 +470,7 @@ export const createSubdomain = async (
       "\0".concat(sub),
       owner,
       parent,
-      owner
+      owner,
     );
     ixs.push(...ix_reverse);
   }
@@ -495,18 +495,18 @@ export const createRecordInstruction = async (
   record: Record,
   data: string,
   owner: PublicKey,
-  payer: PublicKey
+  payer: PublicKey,
 ) => {
   check(record !== Record.SOL, ErrorType.UnsupportedRecord);
   const { pubkey, hashed, parent } = getDomainKeySync(
     `${record}.${domain}`,
-    RecordVersion.V1
+    RecordVersion.V1,
   );
 
   const serialized = serializeRecord(data, record);
   const space = serialized.length;
   const lamports = await connection.getMinimumBalanceForRentExemption(
-    space + NameRegistryState.HEADER_LEN
+    space + NameRegistryState.HEADER_LEN,
   );
 
   const ix = createInstruction(
@@ -520,7 +520,7 @@ export const createRecordInstruction = async (
     new Numberu32(space),
     undefined,
     parent,
-    owner
+    owner,
   );
 
   return ix;
@@ -540,12 +540,16 @@ export const createRecordV2Instruction = (
   record: Record,
   content: string,
   owner: PublicKey,
-  payer: PublicKey
+  payer: PublicKey,
 ) => {
-  const { pubkey, parent } = getDomainKeySync(
+  let { pubkey, parent, isSub } = getDomainKeySync(
     `${record}.${domain}`,
-    RecordVersion.V2
+    RecordVersion.V2,
   );
+
+  if (isSub) {
+    parent = getDomainKeySync(domain).pubkey;
+  }
 
   if (!parent) {
     throw new Error("Invalid parent");
@@ -559,7 +563,7 @@ export const createRecordV2Instruction = (
     NAME_PROGRAM_ID,
     `\x02`.concat(record as string),
     serializeRecordV2Content(content, record),
-    SNS_RECORDS_ID
+    SNS_RECORDS_ID,
   );
   return ix;
 };
@@ -570,7 +574,7 @@ export const updateRecordInstruction = async (
   record: Record,
   data: string,
   owner: PublicKey,
-  payer: PublicKey
+  payer: PublicKey,
 ) => {
   check(record !== Record.SOL, ErrorType.UnsupportedRecord);
   const { pubkey } = getDomainKeySync(`${record}.${domain}`, RecordVersion.V1);
@@ -589,7 +593,7 @@ export const updateRecordInstruction = async (
         record,
         data,
         owner,
-        payer
+        payer,
       ),
     ];
   }
@@ -599,7 +603,7 @@ export const updateRecordInstruction = async (
     pubkey,
     new Numberu32(0),
     serialized,
-    owner
+    owner,
   );
 
   return [ix];
@@ -620,11 +624,11 @@ export const updateRecordV2Instruction = (
   record: Record,
   content: string,
   owner: PublicKey,
-  payer: PublicKey
+  payer: PublicKey,
 ) => {
   const { pubkey, parent } = getDomainKeySync(
     `${record}.${domain}`,
-    RecordVersion.V2
+    RecordVersion.V2,
   );
   if (!parent) {
     throw new Error("Invalid parent");
@@ -638,7 +642,7 @@ export const updateRecordV2Instruction = (
     NAME_PROGRAM_ID,
     `\x02`.concat(record as string),
     serializeRecordV2Content(content, record),
-    SNS_RECORDS_ID
+    SNS_RECORDS_ID,
   );
 
   return ix;
@@ -656,11 +660,11 @@ export const deleteRecordV2 = (
   domain: string,
   record: Record,
   owner: PublicKey,
-  payer: PublicKey
+  payer: PublicKey,
 ) => {
   const { pubkey, parent } = getDomainKeySync(
     `${record}.${domain}`,
-    RecordVersion.V2
+    RecordVersion.V2,
   );
 
   if (!parent) {
@@ -673,7 +677,7 @@ export const deleteRecordV2 = (
     owner,
     pubkey,
     NAME_PROGRAM_ID,
-    SNS_RECORDS_ID
+    SNS_RECORDS_ID,
   );
   return ix;
 };
@@ -684,11 +688,11 @@ export const validateRecordV2Content = (
   record: Record,
   owner: PublicKey,
   payer: PublicKey,
-  verifier: PublicKey
+  verifier: PublicKey,
 ) => {
   const { pubkey, parent } = getDomainKeySync(
     `${record}.${domain}`,
-    RecordVersion.V2
+    RecordVersion.V2,
   );
 
   if (!parent) {
@@ -703,7 +707,7 @@ export const validateRecordV2Content = (
     verifier,
     NAME_PROGRAM_ID,
     staleness,
-    SNS_RECORDS_ID
+    SNS_RECORDS_ID,
   );
   return ix;
 };
@@ -713,11 +717,11 @@ export const writRoaRecordV2 = (
   record: Record,
   owner: PublicKey,
   payer: PublicKey,
-  roaId: PublicKey
+  roaId: PublicKey,
 ) => {
   const { pubkey, parent } = getDomainKeySync(
     `${record}.${domain}`,
-    RecordVersion.V2
+    RecordVersion.V2,
   );
 
   if (!parent) {
@@ -730,7 +734,7 @@ export const writRoaRecordV2 = (
     parent,
     owner,
     roaId,
-    SNS_RECORDS_ID
+    SNS_RECORDS_ID,
   );
   return ix;
 };
@@ -741,11 +745,11 @@ export const ethValidateRecordV2Content = (
   owner: PublicKey,
   payer: PublicKey,
   signature: Buffer,
-  expectedPubkey: Buffer
+  expectedPubkey: Buffer,
 ) => {
   const { pubkey, parent } = getDomainKeySync(
     `${record}.${domain}`,
-    RecordVersion.V2
+    RecordVersion.V2,
   );
 
   if (!parent) {
@@ -761,7 +765,7 @@ export const ethValidateRecordV2Content = (
     Validation.Ethereum,
     signature,
     expectedPubkey,
-    SNS_RECORDS_ID
+    SNS_RECORDS_ID,
   );
   return ix;
 };
@@ -782,16 +786,16 @@ export const createSolRecordInstruction = async (
   content: PublicKey,
   signer: PublicKey,
   signature: Uint8Array,
-  payer: PublicKey
+  payer: PublicKey,
 ) => {
   const { pubkey, hashed, parent } = getDomainKeySync(
     `${Record.SOL}.${domain}`,
-    RecordVersion.V1
+    RecordVersion.V1,
   );
   const serialized = serializeSolRecord(content, pubkey, signer, signature);
   const space = serialized.length;
   const lamports = await connection.getMinimumBalanceForRentExemption(
-    space + NameRegistryState.HEADER_LEN
+    space + NameRegistryState.HEADER_LEN,
   );
 
   const ix = createInstruction(
@@ -805,7 +809,7 @@ export const createSolRecordInstruction = async (
     new Numberu32(space),
     undefined,
     parent,
-    signer
+    signer,
   );
 
   return [ix];
@@ -817,11 +821,11 @@ export const updateSolRecordInstruction = async (
   content: PublicKey,
   signer: PublicKey,
   signature: Uint8Array,
-  payer: PublicKey
+  payer: PublicKey,
 ) => {
   const { pubkey } = getDomainKeySync(
     `${Record.SOL}.${domain}`,
-    RecordVersion.V1
+    RecordVersion.V1,
   );
 
   const info = await connection.getAccountInfo(pubkey);
@@ -836,7 +840,7 @@ export const updateSolRecordInstruction = async (
         content,
         signer,
         signature,
-        payer
+        payer,
       ),
     ];
   }
@@ -847,7 +851,7 @@ export const updateSolRecordInstruction = async (
     pubkey,
     new Numberu32(0),
     serialized,
-    signer
+    signer,
   );
 
   return [ix];
@@ -856,16 +860,16 @@ export const updateSolRecordInstruction = async (
 export const burnDomain = (
   domain: string,
   owner: PublicKey,
-  target: PublicKey
+  target: PublicKey,
 ) => {
   const { pubkey } = getDomainKeySync(domain);
   const [state] = PublicKey.findProgramAddressSync(
     [pubkey.toBuffer()],
-    REGISTER_PROGRAM_ID
+    REGISTER_PROGRAM_ID,
   );
   const [resellingState] = PublicKey.findProgramAddressSync(
     [pubkey.toBuffer(), Uint8Array.from([1, 1])],
-    REGISTER_PROGRAM_ID
+    REGISTER_PROGRAM_ID,
   );
 
   const ix = new burnInstruction().getInstruction(
@@ -878,7 +882,7 @@ export const burnDomain = (
     state,
     REVERSE_LOOKUP_CLASS,
     owner,
-    target
+    target,
   );
   return ix;
 };
@@ -892,11 +896,11 @@ export const registerWithNft = (
   nftSource: PublicKey,
   nftMetadata: PublicKey,
   nftMint: PublicKey,
-  masterEdition: PublicKey
+  masterEdition: PublicKey,
 ) => {
   const [state] = PublicKey.findProgramAddressSync(
     [nameAccount.toBuffer()],
-    REGISTER_PROGRAM_ID
+    REGISTER_PROGRAM_ID,
   );
   const ix = new createWithNftInstruction({ space, name }).getInstruction(
     REGISTER_PROGRAM_ID,
@@ -915,7 +919,7 @@ export const registerWithNft = (
     TOKEN_PROGRAM_ID,
     SYSVAR_RENT_PUBKEY,
     state,
-    METAPLEX_ID
+    METAPLEX_ID,
   );
   return ix;
 };
@@ -936,7 +940,7 @@ export const transferSubdomain = async (
   subdomain: string,
   newOwner: PublicKey,
   isParentOwnerSigner?: boolean,
-  owner?: PublicKey
+  owner?: PublicKey,
 ): Promise<TransactionInstruction> => {
   const { pubkey, isSub, parent } = getDomainKeySync(subdomain);
 
@@ -965,7 +969,7 @@ export const transferSubdomain = async (
     owner,
     undefined,
     nameParent,
-    nameParentOwner
+    nameParentOwner,
   );
 
   return ix;
