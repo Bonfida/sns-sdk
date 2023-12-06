@@ -161,16 +161,14 @@ export const getDomainKeySync = (domain: string, record?: RecordVersion) => {
   if (domain.endsWith(".sol")) {
     domain = domain.slice(0, -4);
   }
+  const recordClass =
+    record === RecordVersion.V2 ? CENTRAL_STATE_SNS_RECORDS : undefined;
   const splitted = domain.split(".");
   if (splitted.length === 2) {
     const prefix = Buffer.from([record ? record : 0]).toString();
     const sub = prefix.concat(splitted[0]);
     const { pubkey: parentKey } = _deriveSync(splitted[1]);
-    const result = _deriveSync(
-      sub,
-      parentKey,
-      record === RecordVersion.V2 ? CENTRAL_STATE_SNS_RECORDS : undefined,
-    );
+    const result = _deriveSync(sub, parentKey, recordClass);
     return { ...result, isSub: true, parent: parentKey };
   } else if (splitted.length === 3 && !!record) {
     // Parent key
@@ -178,8 +176,12 @@ export const getDomainKeySync = (domain: string, record?: RecordVersion) => {
     // Sub domain
     const { pubkey: subKey } = _deriveSync("\0".concat(splitted[1]), parentKey);
     // Sub record
-    const recordPrefix = Buffer.from([1]).toString();
-    const result = _deriveSync(recordPrefix.concat(splitted[0]), subKey);
+    const recordPrefix = record === RecordVersion.V2 ? `\x02` : `\x01`;
+    const result = _deriveSync(
+      recordPrefix.concat(splitted[0]),
+      subKey,
+      recordClass,
+    );
     return { ...result, isSub: true, parent: parentKey, isSubRecord: true };
   } else if (splitted.length >= 3) {
     throw new SNSError(ErrorType.InvalidInput);
