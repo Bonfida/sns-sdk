@@ -1,3 +1,4 @@
+require("dotenv").config();
 import { test, expect, jest } from "@jest/globals";
 import { getFavoriteDomain } from "../src/favorite-domain";
 import { PublicKey, clusterApiUrl, Connection } from "@solana/web3.js";
@@ -14,7 +15,7 @@ const items = [
   },
 ];
 
-const connection = new Connection(clusterApiUrl("mainnet-beta"));
+const connection = new Connection(process.env.RPC_URL!);
 
 test("Favorite domain", async () => {
   for (let item of items) {

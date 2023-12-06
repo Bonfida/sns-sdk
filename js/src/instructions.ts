@@ -7,7 +7,6 @@ import {
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Numberu32, Numberu64 } from "./int";
 import { Schema, serialize } from "borsh";
-import { ErrorType, SNSError } from "./error";
 
 export interface AccountKey {
   pubkey: PublicKey;
@@ -794,4 +793,45 @@ export class burnInstruction {
       data,
     });
   }
+}
+
+export function reallocInstruction(
+  nameProgramId: PublicKey,
+  systemProgramId: PublicKey,
+  payerKey: PublicKey,
+  nameAccountKey: PublicKey,
+  nameOwnerKey: PublicKey,
+  space: Numberu32
+): TransactionInstruction {
+  const buffers = [Buffer.from(Int8Array.from([4])), space.toBuffer()];
+
+  const data = Buffer.concat(buffers);
+  const keys = [
+    {
+      pubkey: systemProgramId,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: payerKey,
+      isSigner: true,
+      isWritable: true,
+    },
+    {
+      pubkey: nameAccountKey,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: nameOwnerKey,
+      isSigner: true,
+      isWritable: false,
+    },
+  ];
+
+  return new TransactionInstruction({
+    keys,
+    programId: nameProgramId,
+    data,
+  });
 }

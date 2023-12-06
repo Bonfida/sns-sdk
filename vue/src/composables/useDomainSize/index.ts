@@ -1,8 +1,8 @@
-import { unref, computed, MaybeRef, toRef } from 'vue';
-import { Connection, PublicKey } from '@solana/web3.js';
-import { NameRegistryState } from '@bonfida/spl-name-service';
-import { toDomainKey } from '@/utils/domain-to-key';
-import { useLoadingFactory } from '@/utils/use-loading-factory';
+import { unref, computed, MaybeRef, toRef } from "vue";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { NameRegistryState } from "@bonfida/spl-name-service";
+import { toDomainKey } from "@/utils/domain-to-key";
+import { useLoadingFactory } from "@/utils/use-loading-factory";
 
 /**
  * Returns the size in kB of a domain name

@@ -1,7 +1,7 @@
-import { MaybeRef, unref } from 'vue';
-import { reverseLookup } from '@bonfida/spl-name-service';
-import { Connection, PublicKey } from '@solana/web3.js';
-import { useLoadingFactory } from '@/utils/use-loading-factory';
+import { MaybeRef, unref } from "vue";
+import { reverseLookup } from "@bonfida/spl-name-service";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { useLoadingFactory } from "@/utils/use-loading-factory";
 
 /**
  * Returns the human readable name given the public key of domain

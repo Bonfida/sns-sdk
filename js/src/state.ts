@@ -1,5 +1,5 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { deserializeUnchecked, Schema, serialize } from "borsh";
+import { deserializeUnchecked, Schema } from "borsh";
 import { retrieveNftOwner } from "./nft";
 import { Buffer } from "buffer";
 import { ErrorType, SNSError } from "./error";

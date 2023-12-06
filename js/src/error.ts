@@ -22,6 +22,12 @@ export enum ErrorType {
   InvalidInput = "InvalidInput",
   InvalidDomain = "InvalidDomain",
   InvalidCustomBg = "InvalidCustomBackground",
+  UnsupportedSignature = "UnsupportedSignature",
+  RecordDoestNotSupportGuardianSig = "RecordDoestNotSupportGuardianSig",
+  RecordIsNotSigned = "RecordIsNotSigned",
+  UnsupportedSignatureType = "UnsupportedSignatureType",
+  InvalidSolRecordV2 = "InvalidSolRecordV2",
+  MissingVerifier = "MissingVerifier",
 }
 
 export class SNSError extends Error {

@@ -1,3 +1,5 @@
+use std::array::TryFromSliceError;
+
 use {
     derive_more::{Display, Error},
     ed25519_dalek::ed25519,
@@ -30,6 +32,8 @@ pub enum SnsError {
     InvalidIpv6,
     SolRecordNotSupported,
     NftRecordDoesNotExist,
+    Casting,
+    TryFromSlice(std::array::TryFromSliceError),
 }
 
 impl From<ClientError> for SnsError {
@@ -71,5 +75,17 @@ impl From<bech32::Error> for SnsError {
 impl From<hex::FromHexError> for SnsError {
     fn from(e: hex::FromHexError) -> Self {
         Self::Hex(e)
+    }
+}
+
+impl From<bytemuck::PodCastError> for SnsError {
+    fn from(_: bytemuck::PodCastError) -> Self {
+        Self::Casting
+    }
+}
+
+impl From<TryFromSliceError> for SnsError {
+    fn from(e: std::array::TryFromSliceError) -> Self {
+        Self::TryFromSlice(e)
     }
 }

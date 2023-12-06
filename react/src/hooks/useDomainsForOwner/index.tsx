@@ -13,7 +13,7 @@ type Result = { pubkey: PublicKey; domain: string }[];
  */
 export const useDomainsForOwner = (
   connection: Connection,
-  owner: string | PublicKey | null | undefined
+  owner: string | PublicKey | null | undefined,
 ) => {
   const key = toKey(owner);
   return useAsync(async () => {
@@ -26,7 +26,7 @@ export const useDomainsForOwner = (
       })
       .filter((e) => !!e.domain)
       .sort((a, b) =>
-        (a.domain as string).localeCompare(b.domain as string)
+        (a.domain as string).localeCompare(b.domain as string),
       ) as Result;
     return result;
   }, [key?.toBase58()]);

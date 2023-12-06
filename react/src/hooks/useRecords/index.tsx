@@ -12,7 +12,7 @@ import { Record, getRecords } from "@bonfida/spl-name-service";
 export const useRecords = (
   connection: Connection,
   domain: string,
-  records: Record[]
+  records: Record[],
 ) => {
   return useAsync(async () => {
     const res = await getRecords(connection, domain, records, false);
@@ -30,7 +30,7 @@ export const useRecords = (
 export const useDeserializedRecords = (
   connection: Connection,
   domain: string,
-  records: Record[]
+  records: Record[],
 ) => {
   return useAsync(async () => {
     const res = await getRecords(connection, domain, records, true);

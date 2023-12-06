@@ -11,7 +11,7 @@ import { toKey } from "../../utils/pubkey";
  */
 export const useFavoriteDomain = (
   connection: Connection,
-  owner: string | PublicKey | null | undefined
+  owner: string | PublicKey | null | undefined,
 ) => {
   const key = toKey(owner);
   return useAsync(async () => {

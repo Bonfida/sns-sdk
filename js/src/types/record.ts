@@ -38,3 +38,8 @@ export const RECORD_V1_SIZE: Map<Record, number> = new Map([
   [Record.AAAA, 16],
   [Record.Background, 32],
 ]);
+
+export enum RecordVersion {
+  V1 = 1,
+  V2 = 2,
+}

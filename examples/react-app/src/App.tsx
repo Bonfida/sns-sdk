@@ -3,12 +3,7 @@ import {
   ConnectionProvider,
   WalletProvider,
 } from "@solana/wallet-adapter-react";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
-import {
-  PhantomWalletAdapter,
-  BackpackWalletAdapter,
-  SolflareWalletAdapter,
-} from "@solana/wallet-adapter-wallets";
+import { SolflareWalletAdapter } from "@solana/wallet-adapter-wallets";
 import {
   WalletModalProvider,
   WalletDisconnectButton,
@@ -22,21 +17,13 @@ import "@solana/wallet-adapter-react-ui/styles.css";
 export const RPC_URL = import.meta.env.VITE_RPC as string;
 
 function App() {
-  const wallets = useMemo(
-    () => [
-      new PhantomWalletAdapter(),
-      new BackpackWalletAdapter(),
-      new SolflareWalletAdapter(),
-    ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
+  const wallets = useMemo(() => [new SolflareWalletAdapter()], []);
   return (
-    <div className="bg-zinc-400 min-h-screen">
+    <div className="min-h-screen bg-[#333]">
       <ConnectionProvider endpoint={RPC_URL}>
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>
-            <div className="flex space-x-3 px-10 py-20">
+            <div className="flex px-10 py-20 space-x-3">
               <WalletMultiButton />
               <WalletDisconnectButton />
             </div>

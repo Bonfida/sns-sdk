@@ -10,7 +10,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
  */
 export const useReverseLookup = (
   connection: Connection,
-  pubkey: PublicKey | null | undefined
+  pubkey: PublicKey | null | undefined,
 ) => {
   return useAsync(async () => {
     if (!pubkey) return;

@@ -24,7 +24,7 @@ pub async fn register_domain_name(
 ) -> Result<Transaction, SnsError> {
     let central_state =
         Pubkey::find_program_address(&[REGISTER_PROGRAM_ID.as_ref()], &REGISTER_PROGRAM_ID).0;
-    let name_account = get_domain_key(name, false)?;
+    let name_account = get_domain_key(name)?;
     let reverse_lookup_account = get_reverse_key(name)?;
     let derived_state =
         Pubkey::find_program_address(&[name_account.as_ref()], &REGISTER_PROGRAM_ID).0;

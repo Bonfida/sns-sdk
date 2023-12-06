@@ -1,3 +1,4 @@
+require("dotenv").config();
 import { test, jest } from "@jest/globals";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { createSubdomain, transferSubdomain } from "../src/bindings";
@@ -6,7 +7,7 @@ import { VAULT_OWNER } from "../src/constants";
 
 jest.setTimeout(20_000);
 
-const connection = new Connection("https://rpc-public.hellomoon.io");
+const connection = new Connection(process.env.RPC_URL!);
 
 test("Create sub", async () => {
   const tx = new Transaction();

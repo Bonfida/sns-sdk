@@ -11,7 +11,7 @@ import { NameRegistryState } from "@bonfida/spl-name-service";
  */
 export const useDomainSize = (
   connection: Connection,
-  domain: string | PublicKey
+  domain: string | PublicKey,
 ) => {
   const key = toDomainKey(domain);
   return useAsync(async () => {
