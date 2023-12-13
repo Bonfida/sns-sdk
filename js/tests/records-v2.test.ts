@@ -2,6 +2,8 @@ require("dotenv").config();
 import { test, expect } from "@jest/globals";
 import {
   deserializeRecordV2Content,
+  getMultipleRecordsV2,
+  getRecordV2,
   serializeRecordV2Content,
 } from "../src/record_v2";
 import { Record } from "../src/types/record";
@@ -262,4 +264,40 @@ test("Create record for sub & update & verify staleness & delete", async () => {
 
   const { value } = await connection.simulateTransaction(tx);
   expect(value.err).toBe(null);
+});
+
+test("getRecordV2", async () => {
+  const domain = "wallet-guide-9.sol";
+  const items = [
+    { record: Record.IPFS, value: "ipfs://test" },
+    { record: Record.Email, value: "test@gmail.com" },
+    { record: Record.Url, value: "https://google.com" },
+  ];
+  for (let item of items) {
+    const res = await getRecordV2(connection, domain, item.record, {
+      deserialize: true,
+    });
+    expect(res.deserializedContent).toBe(item.value);
+  }
+});
+
+test("getMultipleRecordsV2", async () => {
+  const domain = "wallet-guide-9.sol";
+  const items = [
+    { record: Record.IPFS, value: "ipfs://test" },
+    { record: Record.Email, value: "test@gmail.com" },
+    { record: Record.Url, value: "https://google.com" },
+  ];
+  const res = await getMultipleRecordsV2(
+    connection,
+    domain,
+    items.map((e) => e.record),
+    {
+      deserialize: true,
+    },
+  );
+  for (let i = 0; i < items.length; i++) {
+    expect(items[i].value).toBe(res[i]?.deserializedContent);
+    expect(items[i].record).toBe(res[i]?.record);
+  }
 });
