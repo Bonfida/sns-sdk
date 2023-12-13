@@ -47,7 +47,7 @@ export const ETH_ROA_RECORDS = new Set<Record>([
 export const verifyStaleness = async (
   connection: Connection,
   record: Record,
-  domain: string
+  domain: string,
 ) => {
   const recordKey = getRecordV2Key(domain, record);
   const owner = await resolve(connection, domain);
@@ -76,7 +76,7 @@ export const verifyRightOfAssociation = async (
   connection: Connection,
   record: Record,
   domain: string,
-  verifier?: Buffer
+  verifier?: Buffer,
 ) => {
   const recordKey = getRecordV2Key(domain, record);
   const recordObj = await SnsRecord.retrieve(connection, recordKey);
@@ -139,7 +139,7 @@ export const SELF_SIGNED = new Set<Record>([
  */
 export const deserializeRecordV2Content = (
   content: Buffer,
-  record: Record
+  record: Record,
 ): string => {
   const utf8Encoded = UTF8_ENCODED.has(record);
 
@@ -171,7 +171,7 @@ export const deserializeRecordV2Content = (
  */
 export const serializeRecordV2Content = (
   content: string,
-  record: Record
+  record: Record,
 ): Buffer => {
   const utf8Encoded = UTF8_ENCODED.has(record);
   if (utf8Encoded) {
@@ -213,3 +213,83 @@ export const getRecordV2Key = (domain: string, record: Record): PublicKey => {
   const hashed = getHashedNameSync(`\x02`.concat(record as string));
   return getNameAccountKeySync(hashed, CENTRAL_STATE_SNS_RECORDS, pubkey);
 };
+
+export interface GetRecordV2Options {
+  deserialize?: boolean;
+}
+
+export interface RecordResult {
+  retrievedRecord: SnsRecord;
+  record: Record;
+  deserializedContent?: string;
+}
+
+export type SingleRecordResult = Omit<RecordResult, "record">;
+
+/**
+ * This function can be used to retrieve a specified record V2 for the given domain name
+ * @param connection The Solana RPC connection object
+ * @param domain The .sol domain name
+ * @param record The record to search for
+ * @returns
+ */
+export async function getRecordV2(
+  connection: Connection,
+  domain: string,
+  record: Record,
+  options: GetRecordV2Options = {},
+): Promise<SingleRecordResult> {
+  const pubkey = getRecordV2Key(domain, record);
+  const retrievedRecord = await SnsRecord.retrieve(connection, pubkey);
+
+  if (options.deserialize) {
+    return {
+      retrievedRecord,
+      deserializedContent: deserializeRecordV2Content(
+        retrievedRecord.getContent(),
+        record,
+      ),
+    };
+  }
+
+  return { retrievedRecord };
+}
+
+/**
+ * This function can be used to retrieve multiple records V2 for a given domain
+ * @param connection The Solana RPC connection object
+ * @param domain The .sol domain name
+ * @param record The record to search for
+ * @returns
+ */
+export async function getMultipleRecordsV2(
+  connection: Connection,
+  domain: string,
+  records: Record[],
+  options: GetRecordV2Options = {},
+): Promise<(RecordResult | undefined)[]> {
+  const pubkeys = records.map((record) => getRecordV2Key(domain, record));
+  const retrievedRecords = await SnsRecord.retrieveBatch(connection, pubkeys);
+
+  if (options.deserialize) {
+    return retrievedRecords.map((e, idx) => {
+      if (!e) return undefined;
+      return {
+        retrievedRecord: e,
+        record: records[idx],
+        deserializedContent: deserializeRecordV2Content(
+          e.getContent(),
+          records[idx],
+        ),
+      };
+    });
+  }
+
+  return retrievedRecords.map((e, idx) => {
+    if (!e) return undefined;
+    return {
+      retrievedRecord: e,
+      record: records[idx],
+    };
+  });
+}
