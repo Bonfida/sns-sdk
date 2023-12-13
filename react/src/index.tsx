@@ -6,6 +6,7 @@ export { useReverseLookup } from "./hooks/useReverseLookup";
 export { useRecords, useDeserializedRecords } from "./hooks/useRecords";
 export { useProfilePic } from "./hooks/useProfilePic";
 export { useFavoriteDomain } from "./hooks/useFavoriteDomain";
+export { useRecordsV2 } from "./hooks/useRecordsV2";
 export * from "./hooks/useSearch";
 export * from "./hooks/useSuggestions";
 export * from "./hooks/useTopDomainsSales";
