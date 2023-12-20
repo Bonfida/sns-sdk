@@ -9,7 +9,7 @@ edition = "2021"
 clap = { version = "4.1.8", features = ["derive"] }
 tokio = { version = "1.14.1", features = ["macros", "rt-multi-thread"] }
 solana-sdk = "<1.16.0"
-solana-client = "<1.16.0"
+solana-client = "~1.14.1"
 spl-name-service = {version = "0.2.0", features = ["no-entrypoint"]}
 solana-program = "<1.16.0"
 prettytable-rs = "0.10.0"
@@ -23,3 +23,4 @@ anyhow = "1.0.69"
 console = "0.15.5"
 sns-sdk = { path = "../rust" }
 walkdir = "2.3.3"
+borsh = "0.9"
