@@ -1,5 +1,7 @@
 use std::{fs::File, time::Duration};
 
+use sns_sdk::record;
+
 use {
     anyhow::anyhow,
     base64::Engine,
@@ -14,7 +16,7 @@ use {
     sns_sdk::non_blocking::resolve,
     sns_sdk::{
         derivation::{get_domain_key, get_hashed_name},
-        record::{deserialize_record, Record},
+        record::Record,
     },
     solana_client::nonblocking::rpc_client::RpcClient,
     solana_program::instruction::{AccountMeta, Instruction},
@@ -312,7 +314,7 @@ async fn process_burn(
     table.add_row(row!["Domain", "Transaction", "Explorer"]);
     let pb = progress_bar(domains.len());
     for (idx, domain) in domains.into_iter().enumerate() {
-        let domain_key = sns_sdk::derivation::get_domain_key(&domain, false)?;
+        let domain_key = sns_sdk::derivation::get_domain_key(&domain)?;
         let keypair = read_keypair_file(keypair_path)?;
         let ix = spl_name_service::instruction::delete(
             spl_name_service::ID,
@@ -349,7 +351,7 @@ async fn process_transfer(
     table.add_row(row!["Domain", "Transaction", "Explorer"]);
     let pb = progress_bar(domains.len());
     for (idx, domain) in domains.into_iter().enumerate() {
-        let domain_key = sns_sdk::derivation::get_domain_key(&domain, false)?;
+        let domain_key = sns_sdk::derivation::get_domain_key(&domain)?;
         let keypair = read_keypair_file(owner_keypair)?;
         let ix = spl_name_service::instruction::transfer(
             spl_name_service::ID,
@@ -381,7 +383,7 @@ async fn process_lookup(rpc_client: &RpcClient, domains: Vec<String>) -> CliResu
     table.add_row(row!["Domain", "Domain key", "Parent", "Owner", "Data"]);
     let pb = progress_bar(domains.len());
     for (idx, domain) in domains.into_iter().enumerate() {
-        let domain_key = sns_sdk::derivation::get_domain_key(&domain, false)?;
+        let domain_key = sns_sdk::derivation::get_domain_key(&domain)?;
         let row = match resolve::resolve_name_registry(rpc_client, &domain_key).await? {
             Some((header, data)) => {
                 let data = String::from_utf8(data)?;
@@ -520,10 +522,14 @@ async fn process_record_set(
 
     let record = Record::try_from_str(record_str)?;
     let keypair = read_keypair_file(keypair_path)?;
-    let data = sns_sdk::record::serialize_record(content, record)?;
-    let key = get_domain_key(&format!("{record_str}.{domain}"), true)?;
+    let data = sns_sdk::record::record_v1::serialize_record(content, record)?;
+    let key = record::get_record_key(
+        domain,
+        Record::try_from_str(record_str)?,
+        record::RecordVersion::V1,
+    )?;
     let hashed_name = get_hashed_name(&format!("\x01{record_str}"));
-    let parent = get_domain_key(domain, false)?;
+    let parent = get_domain_key(domain)?;
 
     let lamports = rpc_client
         .get_minimum_balance_for_rent_exemption(data.len() + NameRecordHeader::LEN)
@@ -622,10 +628,15 @@ async fn process_record_set(
 
 async fn process_record_get(rpc_client: &RpcClient, domain: &str, record_str: &str) -> CliResult {
     let record = Record::try_from_str(record_str)?;
-    let key = get_domain_key(&format!("{record_str}.{domain}"), true)?;
+
+    let key = record::get_record_key(
+        domain,
+        Record::try_from_str(record_str)?,
+        record::RecordVersion::V1,
+    )?;
     let mut table = Table::new();
     if let Some((_, data)) = resolve::resolve_name_registry(rpc_client, &key).await? {
-        let des = deserialize_record(&data, record, &key)?;
+        let des = record::record_v1::deserialize_record(&data, record, &key)?;
 
         table.add_row(row!["Domain", "Record", "Content"]);
         table.add_row(row![format_domain(domain), record_str, des]);
