@@ -743,11 +743,7 @@ async fn main() {
         Commands::ReverseLookup { key, url } => {
             process_reverse_lookup(&get_rpc_client(url), &key).await
         }
-        Commands::Bridge {
-            target_chain,
-            domain,
-            keypair_path,
-        } => unimplemented!(),
+        Commands::Bridge { .. } => unimplemented!(),
         Commands::Register {
             domains,
             keypair_path,

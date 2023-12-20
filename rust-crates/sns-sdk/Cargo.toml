@@ -3,6 +3,8 @@ name = "sns-sdk"
 version = "1.3.1"
 edition = "2021"
 description = "The Rust SDK provides everything you need for resolving domain ownership and records within the Solana Name Service (SNS)"
+homepage = "https://www.sns.id/"
+repository = "https://github.com/Bonfida/sns-sdk"
 license = "MIT"
 authors = ["Bonfida <contact@bonfida.com>"]
 
