@@ -1,11 +1,12 @@
 import { Buffer } from "buffer";
 import { deserialize, Schema } from "borsh";
-import { reverseLookup } from "./utils";
+import { getReverseKeySync, reverseLookup } from "./utils";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { ErrorType, SNSError } from "./error";
+import { resolve } from "./resolve";
 
 export const NAME_OFFERS_ID = new PublicKey(
-  "85iDfUvr3HJyLM2zcq5BXSiDvUWfw6cSE1FfNBo8Ap29"
+  "85iDfUvr3HJyLM2zcq5BXSiDvUWfw6cSE1FfNBo8Ap29",
 );
 
 export class FavouriteDomain {
@@ -62,7 +63,7 @@ export class FavouriteDomain {
   static async getKey(programId: PublicKey, owner: PublicKey) {
     return await PublicKey.findProgramAddress(
       [Buffer.from("favourite_domain"), owner.toBuffer()],
-      programId
+      programId,
     );
   }
 
@@ -75,7 +76,7 @@ export class FavouriteDomain {
   static getKeySync(programId: PublicKey, owner: PublicKey) {
     return PublicKey.findProgramAddressSync(
       [Buffer.from("favourite_domain"), owner.toBuffer()],
-      programId
+      programId,
     );
   }
 }
@@ -88,16 +89,21 @@ export class FavouriteDomain {
  */
 export const getFavoriteDomain = async (
   connection: Connection,
-  owner: PublicKey
+  owner: PublicKey,
 ) => {
   const [favKey] = FavouriteDomain.getKeySync(
     NAME_OFFERS_ID,
-    new PublicKey(owner)
+    new PublicKey(owner),
   );
 
   const favorite = await FavouriteDomain.retrieve(connection, favKey);
 
   const reverse = await reverseLookup(connection, favorite.nameAccount);
+  const domainOwner = await resolve(connection, reverse);
 
-  return { domain: favorite.nameAccount, reverse };
+  return {
+    domain: favorite.nameAccount,
+    reverse,
+    stale: !owner.equals(domainOwner),
+  };
 };
