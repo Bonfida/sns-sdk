@@ -82,6 +82,7 @@ export const REFERRERS: PublicKey[] = [
   new PublicKey("5oDWj8vr3vbcq9JZTtwXqrkCMZggMsDzNietvbr1BNfe"), // Solscan
   new PublicKey("8kJqxAbqbPLGLMgB6FhLcnw2SiUEavx2aEGM3WQGhtJF"), // Domain Labs
   new PublicKey("HemvJzwxvVpWBjPETpaseAH395WAxb2G73MeUfjVkK1u"), // Solflare
+  new PublicKey("7hMiiUtkH4StMPJxyAtvzXTUjecTniQ8czkCPusf5eSW"), // Solnames
 ];
 
 export const TOKENS_SYM_MINT = new Map<string, string>([
