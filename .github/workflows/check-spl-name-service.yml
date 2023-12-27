@@ -4,11 +4,11 @@ on:
   push:
     branches: [main]
     paths:
-      - 'js/**'
+      - "js/**"
   pull_request:
     branches: [main]
     paths:
-      - 'js/**'
+      - "js/**"
 
 defaults:
   run:
@@ -40,6 +40,7 @@ jobs:
           rm .env || true;
           touch .env;
           echo "RPC_URL=${{ secrets.RPC_URL }}" >> .env;
+          echo "RPC_URL_DEVNET=${{ secrets.RPC_URL_DEVNET }}" >> .env;
       - name: Test source code
         run: npm run test
 
