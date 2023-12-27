@@ -90,14 +90,12 @@ export const TOKENS_SYM_MINT = new Map<string, string>([
   ["Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", "USDT"],
   ["So11111111111111111111111111111111111111112", "SOL"],
   ["EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp", "FIDA"],
-  ["FeGn77dhg1KXRRFeSwwMiykZnZPw5JXW6naf2aQgZDQf", "ETH"],
-  ["7i5KKsX2weiTkry7jA4ZwSuXGhs5eJBEjY8vVxR4pfRx", "GMT"],
-  ["AFbX8oGjGpmVFywbVouvhQSRmiW2aR1mohfahi4Y2AdB", "GST"],
   ["mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So", "MSOL"],
   ["DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263", "BONK"],
   ["EPeUFDgHRxs9xxEPVaL6kfGQvCon7jmAWKVUHuux1Tpz", "BAT"],
   ["HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3", "PYTH"],
   ["bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1", "BSOL"],
+  ["6McPRfPV6bY1e9hLxWyG54W9i9Epq75QBvXg2oetBVTB", "INJ"],
 ]);
 
 export const PYTH_MAPPING_ACC = new PublicKey(
