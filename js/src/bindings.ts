@@ -50,7 +50,7 @@ import {
 import {
   TOKEN_PROGRAM_ID,
   getAssociatedTokenAddressSync,
-  createAssociatedTokenAccountInstruction,
+  createAssociatedTokenAccountIdempotentInstruction,
 } from "@solana/spl-token";
 import { ErrorType, SNSError } from "./error";
 import { serializeRecord, serializeSolRecord } from "./record";
@@ -317,7 +317,7 @@ export const registerDomainName = async (
     refTokenAccount = getAssociatedTokenAddressSync(mint, referrerKey, true);
     const acc = await connection.getAccountInfo(refTokenAccount);
     if (!acc?.data) {
-      const ix = createAssociatedTokenAccountInstruction(
+      const ix = createAssociatedTokenAccountIdempotentInstruction(
         buyer,
         refTokenAccount,
         referrerKey,
