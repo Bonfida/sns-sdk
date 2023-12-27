@@ -10,11 +10,12 @@ import { Metaplex } from "@metaplex-foundation/js";
 
 jest.setTimeout(20_000);
 const FIDA_MINT = new PublicKey("EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp");
+const PYTH_MINT = new PublicKey("HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3");
 
 const connection = new Connection(process.env.RPC_URL!);
 
 const VAULT_OWNER = new PublicKey(
-  "5D2zKog251d6KPCyFyLMt3KroWwXXPWSgTPyhV22K2gR"
+  "5D2zKog251d6KPCyFyLMt3KroWwXXPWSgTPyhV22K2gR",
 );
 
 test("Registration", async () => {
@@ -25,7 +26,7 @@ test("Registration", async () => {
     1_000,
     VAULT_OWNER,
     getAssociatedTokenAddressSync(USDC_MINT, VAULT_OWNER, true),
-    USDC_MINT
+    USDC_MINT,
   );
   tx.add(...ix);
   const { blockhash } = await connection.getLatestBlockhash();
@@ -44,7 +45,7 @@ test("Registration with ref", async () => {
     VAULT_OWNER,
     getAssociatedTokenAddressSync(FIDA_MINT, VAULT_OWNER, true),
     FIDA_MINT,
-    REFERRERS[1]
+    REFERRERS[1],
   );
   tx.add(...ix);
   const { blockhash } = await connection.getLatestBlockhash();
@@ -76,9 +77,30 @@ test("Register with NFT", async () => {
     source,
     nftMetadata,
     nftMint,
-    masterEdition
+    masterEdition,
   );
   tx.add(ix);
+  const { blockhash } = await connection.getLatestBlockhash();
+  tx.recentBlockhash = blockhash;
+  tx.feePayer = VAULT_OWNER;
+  const res = await connection.simulateTransaction(tx);
+  expect(res.value.err).toBe(null);
+});
+
+test("Indempotent ATA creation ref", async () => {
+  const tx = new Transaction();
+  for (let i = 0; i < 3; i++) {
+    const [, ix] = await registerDomainName(
+      connection,
+      randomBytes(10).toString("hex"),
+      1_000,
+      VAULT_OWNER,
+      getAssociatedTokenAddressSync(PYTH_MINT, VAULT_OWNER, true),
+      PYTH_MINT,
+      REFERRERS[0],
+    );
+    tx.add(...ix);
+  }
   const { blockhash } = await connection.getLatestBlockhash();
   tx.recentBlockhash = blockhash;
   tx.feePayer = VAULT_OWNER;
