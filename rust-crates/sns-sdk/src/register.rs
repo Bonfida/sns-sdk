@@ -25,8 +25,9 @@ mod constants {
     pub const BAT_MINT: Pubkey = pubkey!("EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp");
     pub const PYTH_PROGRAM_ID: Pubkey = pubkey!("FsJ3A3u2vn5cTVofAjvy6y5kwABJAqYWpe4975bi2epH");
     pub const PYTH_MAPPING_ACC: Pubkey = pubkey!("AHtgzX45WTKfkPG53L6WYhGEXwQkN1BVknET3sVsLL8J");
+    pub const INJ_MINT: Pubkey = pubkey!("6McPRfPV6bY1e9hLxWyG54W9i9Epq75QBvXg2oetBVTB");
 
-    pub const PYTH_PRICE_PRODUCT_ACCOUNTS: [(Pubkey, Pubkey, Pubkey); 7] = [
+    pub const PYTH_PRICE_PRODUCT_ACCOUNTS: [(Pubkey, Pubkey, Pubkey); 8] = [
         (
             USDC_MINT,
             pubkey!("Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD"),
@@ -61,6 +62,11 @@ mod constants {
             BONK_MINT,
             pubkey!("AbMTYZ82Xfv9PtTQ5e1fJXemXjzqEEFHP3oDLRTae6yz"),
             pubkey!("8xTEctXKo6Xo3EzNhSNp4TUe8mgfwWFbDUXJhuubvrKx"),
+        ),
+        (
+            INJ_MINT,
+            pubkey!("9EdtbaivHQYA4Nh3XzGR6DwRaoorqXYnmpfsnFhvwuVj"),
+            pubkey!("5Q5kyCVzssrGMd2BniSdVeRwjNWrGGrFhMrgGt4zURyA"),
         ),
     ];
 
