@@ -4,23 +4,53 @@ on:
   push:
     branches: [main]
     paths:
-      - "js/**"
-  pull_request:
+      - 'js/**'
+  pull_request_target:
     branches: [main]
     paths:
-      - "js/**"
+      - 'js/**'
 
 defaults:
   run:
     working-directory: ./js
 
 jobs:
+  # We're using "pull_request_target" to allow running CI with secrets against PRs
+  # from forked repositories. Since it's dangerous in combination with "actions/checkout"
+  # we need to check user's write permissions at the very beginning so only
+  # maintainers can actually run CI checks
+  # More info here: https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+  check-permissions:
+    name: Check permission
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get User Permission
+        id: checkAccess
+        uses: actions-cool/check-user-permission@v2
+        with:
+          require: write
+          username: ${{ github.triggering_actor }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check User Permission
+        if: steps.checkAccess.outputs.require-result == 'false'
+        run: |
+          echo "${{ github.triggering_actor }} does not have "write" permissions on this repo."
+          echo "Current permission level is ${{ steps.checkAccess.outputs.user-permission }}."
+          echo "Job originally triggered by ${{ github.actor }}."
+          exit 1
+
   prepare-dependencies:
     name: Prepare local deps
+    needs: check-permissions
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          # Important for forked repositories
+          # This is dangerous without the "check-permissions" job
+          ref: ${{ github.event.pull_request.head.sha }}
       - id: prepare-env
         uses: ./.github/actions/prepare-spl-name-service-env
       - name: Use cache or install dependencies
@@ -32,15 +62,17 @@ jobs:
     needs: prepare-dependencies
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+        with:
+          # Important for forked repositories
+          # This is dangerous without the "check-permissions" job
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: ./.github/actions/prepare-spl-name-service-env
       - name: Make envfile
         run: |
           rm .env || true;
           touch .env;
           echo "RPC_URL=${{ secrets.RPC_URL }}" >> .env;
-          echo "RPC_URL_DEVNET=${{ secrets.RPC_URL_DEVNET }}" >> .env;
       - name: Test source code
         run: npm run test
 
@@ -49,8 +81,11 @@ jobs:
     needs: prepare-dependencies
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+        with:
+          # Important for forked repositories
+          # This is dangerous without the "check-permissions" job
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: ./.github/actions/prepare-spl-name-service-env
       - name: Build source code
         run: npm run build

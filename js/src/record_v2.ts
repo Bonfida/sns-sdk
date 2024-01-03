@@ -21,10 +21,6 @@ import { resolve } from "./resolve";
  * A map that associates each record type with a public key, known as guardians.
  */
 export const GUARDIANS = new Map<Record, PublicKey>([
-  [
-    Record.Backpack,
-    new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3"),
-  ],
   [Record.Url, new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3")],
 ]);
 

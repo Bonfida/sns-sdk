@@ -125,7 +125,7 @@ The SDK proxy is deployed at: https://sns-sdk-proxy.bonfida.workers.dev/
 The CLI can be installed with:
 
 ```
-cargo install --git https://github.com/Bonfida/sns-sdk.git sns
+cargo install sns-cli
 ```
 
 The CLI has the following commands:
