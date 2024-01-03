@@ -8,7 +8,9 @@ import { NameRegistryState } from "../src/state";
 jest.setTimeout(20_000);
 
 // Use custom devnet rpc if rate limited
-const connection = new Connection("https://api.devnet.solana.com");
+const connection = new Connection(
+  process.env.RPC_URL_DEVNET || "https://api.devnet.solana.com",
+);
 
 const OWNER = new PublicKey("3f9fRjLaDSDVxd26xMEm4WuSXv62cGt5qVfEVGwMfTz6");
 const OWNER2 = new PublicKey("DjXsn34uz8hnC4KLiSkEVNmzqX5ZFP2Q7aErTBH8LWxe");
