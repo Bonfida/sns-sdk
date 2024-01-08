@@ -15,4 +15,5 @@ export * from "./deprecated/utils";
 export * from "./error";
 export * from "./custom-bg";
 export * from "./record_v2";
+export * from "./record_v2/utils";
 export * from "./devnet";
