@@ -1,9 +1,18 @@
 import { Buffer } from "buffer";
 import { deserialize, Schema } from "borsh";
-import { getReverseKeySync, reverseLookup } from "./utils";
+import {
+  deserializeReverse,
+  getReverseKeyFromDomainKey,
+  reverseLookup,
+} from "./utils";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { ErrorType, SNSError } from "./error";
 import { resolve } from "./resolve";
+import { getDomainMint } from "./nft/name-tokenizer";
+import {
+  AccountLayout,
+  getAssociatedTokenAddressSync,
+} from "@solana/spl-token";
 
 export const NAME_OFFERS_ID = new PublicKey(
   "85iDfUvr3HJyLM2zcq5BXSiDvUWfw6cSE1FfNBo8Ap29",
@@ -106,4 +115,78 @@ export const getFavoriteDomain = async (
     reverse,
     stale: !owner.equals(domainOwner),
   };
+};
+
+/**
+ * This function can be used to retrieve the favorite domains for multiple wallets, up to a maximum of 100.
+ * If a wallet does not have a favorite domain, the result will be 'undefined' instead of the human readable domain as a string.
+ * This function is optimized for network efficiency, making only four RPC calls, three of which are executed in parallel using Promise.all, thereby reducing the overall execution time.
+ * @param connection The Solana RPC connection object
+ * @param wallets An array of PublicKeys representing the wallets
+ * @returns A promise that resolves to an array of strings or undefined, representing the favorite domains or lack thereof for each wallet
+ */
+export const getMultipleFavoriteDomains = async (
+  connection: Connection,
+  wallets: PublicKey[],
+): Promise<(string | undefined)[]> => {
+  const result: (string | undefined)[] = [];
+
+  const favKeys = wallets.map(
+    (e) => FavouriteDomain.getKeySync(NAME_OFFERS_ID, e)[0],
+  );
+  const favDomains = (await connection.getMultipleAccountsInfo(favKeys)).map(
+    (e) => {
+      if (!!e?.data) {
+        return FavouriteDomain.deserialize(e?.data).nameAccount;
+      }
+      return PublicKey.default;
+    },
+  );
+  const revKeys = favDomains.map((e) => getReverseKeyFromDomainKey(e));
+  const atas = favDomains.map((e, idx) => {
+    const mint = getDomainMint(e);
+    const ata = getAssociatedTokenAddressSync(mint, wallets[idx], true);
+    return ata;
+  });
+
+  const [domainInfos, revs, tokenAccs] = await Promise.all([
+    connection.getMultipleAccountsInfo(favDomains),
+    connection.getMultipleAccountsInfo(revKeys),
+    connection.getMultipleAccountsInfo(atas),
+  ]);
+
+  for (let i = 0; i < wallets.length; i++) {
+    const domainInfo = domainInfos[i];
+    const rev = revs[i];
+    const tokenAcc = tokenAccs[i];
+
+    if (!domainInfo || !rev) {
+      result.push(undefined);
+      continue;
+    }
+
+    const nativeOwner = new PublicKey(domainInfo?.data.slice(32, 64));
+
+    if (nativeOwner.equals(wallets[i])) {
+      result.push(deserializeReverse(rev?.data.slice(96)));
+      continue;
+    }
+    // Either tokenized or stale
+    if (!tokenAcc) {
+      result.push(undefined);
+      continue;
+    }
+
+    const decoded = AccountLayout.decode(tokenAcc.data);
+    // Tokenized
+    if (Number(decoded.amount) === 1) {
+      result.push(deserializeReverse(rev?.data.slice(96)));
+      continue;
+    }
+
+    // Stale
+    result.push(undefined);
+  }
+
+  return result;
 };
