@@ -3,10 +3,18 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { Buffer } from "buffer";
 
 export const NAME_TOKENIZER_ID = new PublicKey(
-  "nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk"
+  "nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk",
 );
 
 export const MINT_PREFIX = Buffer.from("tokenized_name");
+
+export const getDomainMint = (domain: PublicKey) => {
+  const [mint] = PublicKey.findProgramAddressSync(
+    [MINT_PREFIX, domain.toBuffer()],
+    NAME_TOKENIZER_ID,
+  );
+  return mint;
+};
 
 export enum Tag {
   Uninitialized = 0,
@@ -66,7 +74,7 @@ export class NftRecord {
   static async findKey(nameAccount: PublicKey, programId: PublicKey) {
     return await PublicKey.findProgramAddress(
       [Buffer.from("nft_record"), nameAccount.toBuffer()],
-      programId
+      programId,
     );
   }
 }
@@ -80,7 +88,7 @@ export class NftRecord {
  */
 export const getRecordFromMint = async (
   connection: Connection,
-  mint: PublicKey
+  mint: PublicKey,
 ) => {
   const filters = [
     {

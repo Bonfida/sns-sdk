@@ -280,6 +280,25 @@ export const getReverseKeySync = (domain: string, isSub?: boolean) => {
   return reverseLookupAccount;
 };
 
+/**
+ * This function can be used to get the reverse key from a domain key
+ * @param domainKey The domain key to compute the reverse for
+ * @param parent The parent public key
+ * @returns The public key of the reverse account
+ */
+export const getReverseKeyFromDomainKey = (
+  domainKey: PublicKey,
+  parent?: PublicKey,
+) => {
+  const hashedReverseLookup = getHashedNameSync(domainKey.toBase58());
+  const reverseLookupAccount = getNameAccountKeySync(
+    hashedReverseLookup,
+    REVERSE_LOOKUP_CLASS,
+    parent,
+  );
+  return reverseLookupAccount;
+};
+
 export const check = (bool: boolean, errorType: ErrorType) => {
   if (!bool) {
     throw new SNSError(errorType);
@@ -335,4 +354,10 @@ export const getDomainPriceFromName = (name: string) => {
     default:
       return 20;
   }
+};
+
+export const deserializeReverse = (data: Buffer | undefined) => {
+  if (!data) return undefined;
+  const nameLength = new BN(data.slice(0, 4), "le").toNumber();
+  return data.slice(4, 4 + nameLength).toString();
 };

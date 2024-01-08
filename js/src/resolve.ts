@@ -19,7 +19,7 @@ export const resolve = async (connection: Connection, domain: string) => {
 
   const { registry, nftOwner } = await NameRegistryState.retrieve(
     connection,
-    pubkey
+    pubkey,
   );
 
   if (nftOwner) {
@@ -33,7 +33,7 @@ export const resolve = async (connection: Connection, domain: string) => {
     const solV2Owner = await resolveSolRecordV2(
       connection,
       registry.owner,
-      domain
+      domain,
     );
     if (solV2Owner !== undefined) {
       return solV2Owner;
@@ -45,7 +45,7 @@ export const resolve = async (connection: Connection, domain: string) => {
     const solV1Owner = await resolveSolRecordV1(
       connection,
       registry.owner,
-      domain
+      domain,
     );
 
     return solV1Owner;
@@ -63,7 +63,7 @@ export const resolve = async (connection: Connection, domain: string) => {
 const resolveSolRecordV1 = async (
   connection: Connection,
   owner: PublicKey,
-  domain: string
+  domain: string,
 ) => {
   const recordKey = getRecordKeySync(domain, Record.SOL);
   const solRecord = await getSolRecord(connection, domain);
@@ -90,7 +90,7 @@ const resolveSolRecordV1 = async (
 const resolveSolRecordV2 = async (
   connection: Connection,
   owner: PublicKey,
-  domain: string
+  domain: string,
 ) => {
   try {
     const recordV2Key = getRecordV2Key(domain, Record.SOL);

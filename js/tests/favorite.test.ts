@@ -1,32 +1,34 @@
 require("dotenv").config();
 import { test, expect, jest } from "@jest/globals";
-import { getFavoriteDomain } from "../src/favorite-domain";
-import { PublicKey, Connection } from "@solana/web3.js";
+import {
+  getFavoriteDomain,
+  getMultipleFavoriteDomains,
+} from "../src/favorite-domain";
+import { PublicKey, Connection, Keypair } from "@solana/web3.js";
 
 jest.setTimeout(10_000);
-
-const items = [
-  {
-    user: new PublicKey("FidaeBkZkvDqi1GXNEwB8uWmj9Ngx2HXSS5nyGRuVFcZ"),
-    favorite: {
-      domain: new PublicKey("Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb"),
-      reverse: "bonfida",
-      stale: true,
-    },
-  },
-  {
-    user: new PublicKey("HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA"),
-    favorite: {
-      domain: new PublicKey("Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb"),
-      reverse: "bonfida",
-      stale: false,
-    },
-  },
-];
 
 const connection = new Connection(process.env.RPC_URL!);
 
 test("Favorite domain", async () => {
+  const items = [
+    {
+      user: new PublicKey("FidaeBkZkvDqi1GXNEwB8uWmj9Ngx2HXSS5nyGRuVFcZ"),
+      favorite: {
+        domain: new PublicKey("Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb"),
+        reverse: "bonfida",
+        stale: true,
+      },
+    },
+    {
+      user: new PublicKey("HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA"),
+      favorite: {
+        domain: new PublicKey("Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb"),
+        reverse: "bonfida",
+        stale: false,
+      },
+    },
+  ];
   for (let item of items) {
     const fav = await getFavoriteDomain(connection, item.user);
 
@@ -34,4 +36,31 @@ test("Favorite domain", async () => {
     expect(fav.reverse).toBe(item.favorite.reverse);
     expect(fav.stale).toBe(item.favorite.stale);
   }
+});
+
+test("Multiple favorite domains", async () => {
+  const items = [
+    // Non tokenized
+    {
+      wallet: new PublicKey("HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA"),
+      domain: "bonfida",
+    },
+    // Stale non tokenized
+    {
+      wallet: new PublicKey("FidaeBkZkvDqi1GXNEwB8uWmj9Ngx2HXSS5nyGRuVFcZ"),
+      domain: undefined,
+    },
+    // Random pubkey
+    { wallet: Keypair.generate().publicKey, domain: undefined },
+    // Tokenized
+    {
+      wallet: new PublicKey("36Dn3RWhB8x4c83W6ebQ2C2eH9sh5bQX2nMdkP2cWaA4"),
+      domain: "fav-tokenized",
+    },
+  ];
+  const result = await getMultipleFavoriteDomains(
+    connection,
+    items.map((e) => e.wallet),
+  );
+  result.forEach((x, idx) => expect(x).toBe(items[idx].domain));
 });
