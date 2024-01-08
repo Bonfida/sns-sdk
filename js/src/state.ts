@@ -34,9 +34,20 @@ export class NameRegistryState {
     this.class = new PublicKey(obj.class);
   }
 
+  static deserialize(data: Buffer) {
+    let res: NameRegistryState = deserializeUnchecked(
+      this.schema,
+      NameRegistryState,
+      data,
+    );
+
+    res.data = data?.slice(this.HEADER_LEN);
+    return res;
+  }
+
   public static async retrieve(
     connection: Connection,
-    nameAccountKey: PublicKey
+    nameAccountKey: PublicKey,
   ) {
     const nameAccount = await connection.getAccountInfo(nameAccountKey);
     if (!nameAccount) {
@@ -46,7 +57,7 @@ export class NameRegistryState {
     let res: NameRegistryState = deserializeUnchecked(
       this.schema,
       NameRegistryState,
-      nameAccount.data
+      nameAccount.data,
     );
 
     res.data = nameAccount.data?.slice(this.HEADER_LEN);
@@ -58,17 +69,16 @@ export class NameRegistryState {
 
   static async _retrieveBatch(
     connection: Connection,
-    nameAccountKeys: PublicKey[]
+    nameAccountKeys: PublicKey[],
   ) {
-    const nameAccounts = await connection.getMultipleAccountsInfo(
-      nameAccountKeys
-    );
+    const nameAccounts =
+      await connection.getMultipleAccountsInfo(nameAccountKeys);
     const fn = (data: Buffer | undefined) => {
       if (!data) return undefined;
       const res: NameRegistryState = deserializeUnchecked(
         this.schema,
         NameRegistryState,
-        data
+        data,
       );
       res.data = data?.slice(this.HEADER_LEN);
       return res;
@@ -78,13 +88,13 @@ export class NameRegistryState {
 
   public static async retrieveBatch(
     connection: Connection,
-    nameAccountKeys: PublicKey[]
+    nameAccountKeys: PublicKey[],
   ) {
     let result: (NameRegistryState | undefined)[] = [];
     const keys = [...nameAccountKeys];
     while (keys.length > 0) {
       result.push(
-        ...(await this._retrieveBatch(connection, keys.splice(0, 100)))
+        ...(await this._retrieveBatch(connection, keys.splice(0, 100))),
       );
     }
     return result;
