@@ -112,7 +112,7 @@ export const findSubdomains = async (
   parentKey: PublicKey,
 ): Promise<string[]> => {
   // Fetch reverse accounts
-  const filtersReverse: MemcmpFilter[] = [
+  const filtersRevs: MemcmpFilter[] = [
     {
       memcmp: {
         offset: 0,
@@ -126,19 +126,40 @@ export const findSubdomains = async (
       },
     },
   ];
-  const reverse = await connection.getProgramAccounts(NAME_PROGRAM_ID, {
-    filters: filtersReverse,
+  const reverses = await connection.getProgramAccounts(NAME_PROGRAM_ID, {
+    filters: filtersRevs,
   });
 
-  const parent = await reverseLookup(connection, parentKey);
-  const subs = reverse.map(
-    (e) => e.account.data.slice(97).toString("utf-8")?.split("\0").join(""),
+  const filtersSubs: MemcmpFilter[] = [
+    {
+      memcmp: {
+        offset: 0,
+        bytes: parentKey.toBase58(),
+      },
+    },
+  ];
+  const subs = await connection.getProgramAccounts(NAME_PROGRAM_ID, {
+    filters: filtersSubs,
+    dataSlice: { offset: 0, length: 0 },
+  });
+
+  const map = new Map<string, string | undefined>(
+    reverses.map((e) => [
+      e.pubkey.toBase58(),
+      deserializeReverse(e.account.data.slice(96)),
+    ]),
   );
 
-  const keys = subs.map((e) => getDomainKeySync(e + "." + parent).pubkey);
-  const subsAcc = await connection.getMultipleAccountsInfo(keys);
+  const result: string[] = [];
+  subs.forEach((e) => {
+    const revKey = getReverseKeyFromDomainKey(e.pubkey, parentKey).toBase58();
+    const rev = map.get(revKey);
+    if (!!rev) {
+      result.push(rev.replace("\0", ""));
+    }
+  });
 
-  return subs.filter((_, idx) => !!subsAcc[idx]);
+  return result;
 };
 
 const _deriveSync = (

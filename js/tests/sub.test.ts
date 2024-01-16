@@ -4,6 +4,7 @@ import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { createSubdomain, transferSubdomain } from "../src/bindings";
 import { randomBytes } from "crypto";
 import { VAULT_OWNER } from "../src/constants";
+import { findSubdomains, getDomainKeySync } from "../src/utils";
 
 jest.setTimeout(20_000);
 
@@ -15,7 +16,7 @@ test("Create sub", async () => {
     connection,
     randomBytes(10).toString("hex") + ".bonfida",
     new PublicKey("HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA"),
-    2_000
+    2_000,
   );
   tx.add(...ix);
   const { blockhash } = await connection.getLatestBlockhash();
@@ -29,13 +30,13 @@ test("Transfer sub", async () => {
   let tx = new Transaction();
   const owner = new PublicKey("J6QDztZCegYTWnGUYtjqVS9d7AZoS43UbEQmMcdGeP5s");
   const parentOwner = new PublicKey(
-    "J6QDztZCegYTWnGUYtjqVS9d7AZoS43UbEQmMcdGeP5s"
+    "J6QDztZCegYTWnGUYtjqVS9d7AZoS43UbEQmMcdGeP5s",
   );
   let ix = await transferSubdomain(
     connection,
     "test.0x33.sol",
     PublicKey.default,
-    false
+    false,
   );
   tx.add(ix);
   let blockhash = (await connection.getLatestBlockhash()).blockhash;
@@ -49,7 +50,7 @@ test("Transfer sub", async () => {
     connection,
     "test.0x33.sol",
     PublicKey.default,
-    true
+    true,
   );
   tx.add(ix);
   blockhash = (await connection.getLatestBlockhash()).blockhash;
@@ -57,4 +58,13 @@ test("Transfer sub", async () => {
   tx.feePayer = parentOwner;
   res = await connection.simulateTransaction(tx);
   expect(res.value.err).toBe(null);
+});
+
+test("Find sub domain", async () => {
+  const subs = await findSubdomains(
+    connection,
+    getDomainKeySync("bonfida").pubkey,
+  );
+  const expectedSub = ["dex", "naming", "test"];
+  subs.sort().forEach((e, idx) => expect(e).toBe(expectedSub[idx]));
 });
