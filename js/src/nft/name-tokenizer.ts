@@ -30,21 +30,15 @@ export class NftRecord {
   owner: PublicKey;
   nftMint: PublicKey;
 
-  static schema: Schema = new Map([
-    [
-      NftRecord,
-      {
-        kind: "struct",
-        fields: [
-          ["tag", "u8"],
-          ["nonce", "u8"],
-          ["nameAccount", [32]],
-          ["owner", [32]],
-          ["nftMint", [32]],
-        ],
-      },
-    ],
-  ]);
+  static schema = {
+    struct: {
+      tag: "u8",
+      nonce: "u8",
+      nameAccount: { array: { type: "u8", len: 32 } },
+      owner: { array: { type: "u8", len: 32 } },
+      nftMint: { array: { type: "u8", len: 32 } },
+    },
+  };
 
   constructor(obj: {
     tag: number;
@@ -61,7 +55,7 @@ export class NftRecord {
   }
 
   static deserialize(data: Buffer): NftRecord {
-    return deserialize(this.schema, NftRecord, data);
+    return new NftRecord(deserialize(this.schema, data) as any);
   }
 
   static async retrieve(connection: Connection, key: PublicKey) {

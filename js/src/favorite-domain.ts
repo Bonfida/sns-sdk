@@ -21,19 +21,12 @@ export const NAME_OFFERS_ID = new PublicKey(
 export class FavouriteDomain {
   tag: number;
   nameAccount: PublicKey;
-
-  static schema: Schema = new Map([
-    [
-      FavouriteDomain,
-      {
-        kind: "struct",
-        fields: [
-          ["tag", "u8"],
-          ["nameAccount", [32]],
-        ],
-      },
-    ],
-  ]);
+  static schema = {
+    struct: {
+      tag: "u8",
+      nameAccount: { array: { type: "u8", len: 32 } },
+    },
+  };
 
   constructor(obj: { tag: number; nameAccount: Uint8Array }) {
     this.tag = obj.tag;
@@ -46,7 +39,7 @@ export class FavouriteDomain {
    * @returns
    */
   static deserialize(data: Buffer) {
-    return deserialize(this.schema, FavouriteDomain, data);
+    return new FavouriteDomain(deserialize(this.schema, data) as any);
   }
 
   /**
