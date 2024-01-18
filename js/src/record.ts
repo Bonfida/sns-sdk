@@ -480,7 +480,7 @@ export const serializeRecord = (str: string, record: Record): Buffer => {
     const decoded = bech32.decodeToBytes(str);
     check(decoded.prefix === "inj", ErrorType.InvalidInjectiveAddress);
     check(decoded.bytes.length === 20, ErrorType.InvalidInjectiveAddress);
-    return Buffer.from(decoded.words);
+    return Buffer.from(decoded.bytes);
   } else if (record === Record.A) {
     const array = parseIp(str).toByteArray();
     check(array.length === 4, ErrorType.InvalidARecord);
