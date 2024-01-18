@@ -29,7 +29,7 @@ export function createInstruction(
 ): TransactionInstruction {
   const buffers = [
     Buffer.from(Int8Array.from([0])),
-    new Numberu32(BigInt(hashed_name.length)).toBuffer(),
+    new Numberu32(hashed_name.length).toBuffer(),
     hashed_name,
     lamports.toBuffer(),
     space.toBuffer(),
@@ -111,7 +111,7 @@ export function updateInstruction(
   const buffers = [
     Buffer.from(Int8Array.from([1])),
     offset.toBuffer(),
-    new Numberu32(BigInt(input_data.length)).toBuffer(),
+    new Numberu32(input_data.length).toBuffer(),
     input_data,
   ];
 

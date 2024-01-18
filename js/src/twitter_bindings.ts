@@ -54,8 +54,8 @@ export async function createVerifiedTwitterRegistry(
       verifiedPubkey,
       payerKey,
       hashedTwitterHandle,
-      new Numberu64(BigInt(lamports)),
-      new Numberu32(BigInt(space)),
+      new Numberu64(lamports),
+      new Numberu32(space),
       undefined,
       TWITTER_ROOT_PARENT_REGISTRY_KEY,
       TWITTER_VERIFICATION_AUTHORITY, // Twitter authority acts as owner of the parent for all user-facing registries
@@ -94,7 +94,7 @@ export async function changeTwitterRegistryData(
     updateInstruction(
       NAME_PROGRAM_ID,
       twitterHandleRegistryKey,
-      new Numberu32(BigInt(offset)),
+      new Numberu32(offset),
       input_data,
       verifiedPubkey,
     ),
@@ -400,14 +400,11 @@ export async function createReverseTwitterRegistry(
       payerKey,
       hashedVerifiedPubkey,
       new Numberu64(
-        BigInt(
-          await connection.getMinimumBalanceForRentExemption(
-            reverseTwitterRegistryStateBuff.length +
-              NameRegistryState.HEADER_LEN,
-          ),
+        await connection.getMinimumBalanceForRentExemption(
+          reverseTwitterRegistryStateBuff.length + NameRegistryState.HEADER_LEN,
         ),
       ),
-      new Numberu32(BigInt(reverseTwitterRegistryStateBuff.length)),
+      new Numberu32(reverseTwitterRegistryStateBuff.length),
       TWITTER_VERIFICATION_AUTHORITY, // Twitter authority acts as class for all reverse-lookup registries
       TWITTER_ROOT_PARENT_REGISTRY_KEY, // Reverse registries are also children of the root
       TWITTER_VERIFICATION_AUTHORITY,
@@ -415,7 +412,7 @@ export async function createReverseTwitterRegistry(
     updateInstruction(
       NAME_PROGRAM_ID,
       reverseRegistryKey,
-      new Numberu32(BigInt(0)),
+      new Numberu32(0),
       Buffer.from(reverseTwitterRegistryStateBuff),
       TWITTER_VERIFICATION_AUTHORITY,
     ),

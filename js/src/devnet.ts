@@ -250,8 +250,8 @@ async function createNameRegistry(
     nameOwner,
     payerKey,
     hashed_name,
-    new Numberu64(BigInt(balance)),
-    new Numberu32(BigInt(space)),
+    new Numberu64(balance),
+    new Numberu32(space),
     nameClass,
     parentName,
     nameParentOwner,
@@ -296,7 +296,7 @@ async function updateNameRegistryData(
   const updateInstr = updateInstruction(
     constants.NAME_PROGRAM_ID,
     nameAccountKey,
-    new Numberu32(BigInt(offset)),
+    new Numberu32(offset),
     input_data,
     signer,
   );
