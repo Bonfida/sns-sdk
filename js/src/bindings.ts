@@ -109,8 +109,8 @@ export async function createNameRegistry(
     nameOwner,
     payerKey,
     hashed_name,
-    new Numberu64(BigInt(balance)),
-    new Numberu32(BigInt(space)),
+    new Numberu64(balance),
+    new Numberu32(space),
     nameClass,
     parentName,
     nameParentOwner,
@@ -155,7 +155,7 @@ export async function updateNameRegistryData(
   const updateInstr = updateInstruction(
     NAME_PROGRAM_ID,
     nameAccountKey,
-    new Numberu32(BigInt(offset)),
+    new Numberu32(offset),
     input_data,
     signer,
   );
@@ -492,8 +492,8 @@ export const createRecordInstruction = async (
     owner,
     payer,
     hashed,
-    new Numberu64(BigInt(lamports)),
-    new Numberu32(BigInt(space)),
+    new Numberu64(lamports),
+    new Numberu32(space),
     undefined,
     parent,
     owner,
@@ -577,7 +577,7 @@ export const updateRecordInstruction = async (
   const ix = updateInstruction(
     NAME_PROGRAM_ID,
     pubkey,
-    new Numberu32(BigInt(0)),
+    new Numberu32(0),
     serialized,
     owner,
   );
@@ -802,8 +802,8 @@ export const createSolRecordInstruction = async (
     signer,
     payer,
     hashed,
-    new Numberu64(BigInt(lamports)),
-    new Numberu32(BigInt(space)),
+    new Numberu64(lamports),
+    new Numberu32(space),
     undefined,
     parent,
     signer,
@@ -846,7 +846,7 @@ export const updateSolRecordInstruction = async (
   const ix = updateInstruction(
     NAME_PROGRAM_ID,
     pubkey,
-    new Numberu32(BigInt(0)),
+    new Numberu32(0),
     serialized,
     signer,
   );

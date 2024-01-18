@@ -3,8 +3,8 @@ import { ErrorType, SNSError } from "./error";
 export class Numberu32 {
   value: bigint;
 
-  constructor(value: bigint) {
-    this.value = value;
+  constructor(value: number | string | bigint) {
+    this.value = BigInt(value);
   }
 
   /**
@@ -43,8 +43,8 @@ export class Numberu32 {
 export class Numberu64 {
   value: bigint;
 
-  constructor(value: bigint) {
-    this.value = value;
+  constructor(value: number | string | bigint) {
+    this.value = BigInt(value);
   }
 
   /**
