@@ -8,8 +8,8 @@ import {
   getHashedNameSync,
   getNameAccountKeySync,
 } from "../utils";
-import { decode, encode } from "bech32-buffer";
-import ipaddr from "ipaddr.js";
+import { bech32 } from "@scure/base";
+import { fromByteArray as ipFromByteArray, parse as parseIp } from "ipaddr.js";
 import {
   CENTRAL_STATE_SNS_RECORDS,
   Record as SnsRecord,
@@ -125,9 +125,9 @@ export const deserializeRecordV2Content = (
   } else if (record === Record.ETH || record === Record.BSC) {
     return "0x" + content.toString("hex");
   } else if (record === Record.Injective) {
-    return encode("inj", content, "bech32");
+    return bech32.encode("inj", bech32.toWords(content));
   } else if (record === Record.A || record === Record.AAAA) {
-    return ipaddr.fromByteArray([...content]).toString();
+    return ipFromByteArray([...content]).toString();
   } else {
     throw new SNSError(ErrorType.InvalidARecord);
   }
@@ -156,16 +156,16 @@ export const serializeRecordV2Content = (
     check(content.slice(0, 2) === "0x", ErrorType.InvalidEvmAddress);
     return Buffer.from(content.slice(2), "hex");
   } else if (record === Record.Injective) {
-    const decoded = decode(content);
+    const decoded = bech32.decodeToBytes(content);
     check(decoded.prefix === "inj", ErrorType.InvalidInjectiveAddress);
-    check(decoded.data.length === 20, ErrorType.InvalidInjectiveAddress);
-    return Buffer.from(decoded.data);
+    check(decoded.bytes.length === 20, ErrorType.InvalidInjectiveAddress);
+    return Buffer.from(decoded.bytes);
   } else if (record === Record.A) {
-    const array = ipaddr.parse(content).toByteArray();
+    const array = parseIp(content).toByteArray();
     check(array.length === 4, ErrorType.InvalidARecord);
     return Buffer.from(array);
   } else if (record === Record.AAAA) {
-    const array = ipaddr.parse(content).toByteArray();
+    const array = parseIp(content).toByteArray();
     check(array.length === 16, ErrorType.InvalidAAAARecord);
     return Buffer.from(array);
   } else {

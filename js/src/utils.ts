@@ -1,6 +1,5 @@
 import { Connection, PublicKey, MemcmpFilter } from "@solana/web3.js";
-import BN from "bn.js";
-import { sha256 } from "@ethersproject/sha2";
+import { sha256 } from "@noble/hashes/sha256";
 import { HASH_PREFIX, NAME_PROGRAM_ID, ROOT_DOMAIN_ACCOUNT } from "./constants";
 import { NameRegistryState } from "./state";
 import { REVERSE_LOOKUP_CLASS } from "./constants";
@@ -13,8 +12,8 @@ import splitGraphemes from "graphemesplit";
 
 export const getHashedNameSync = (name: string): Buffer => {
   const input = HASH_PREFIX + name;
-  const str = sha256(Buffer.from(input, "utf8")).slice(2);
-  return Buffer.from(str, "hex");
+  const hashed = sha256(Buffer.from(input, "utf8"));
+  return Buffer.from(hashed);
 };
 
 export const getNameAccountKeySync = (
@@ -63,8 +62,8 @@ export async function reverseLookup(
   if (!registry.data) {
     throw new SNSError(ErrorType.NoAccountData);
   }
-  const nameLength = new BN(registry.data.slice(0, 4), "le").toNumber();
-  return registry.data.slice(4, 4 + nameLength).toString();
+
+  return deserializeReverse(registry.data);
 }
 
 /**
@@ -96,8 +95,7 @@ export async function reverseLookupBatch(
     if (name === undefined || name.data === undefined) {
       return undefined;
     }
-    let nameLength = new BN(name.data.slice(0, 4), "le").toNumber();
-    return name.data.slice(4, 4 + nameLength).toString();
+    return deserializeReverse(name.data);
   });
 }
 
@@ -377,8 +375,13 @@ export const getDomainPriceFromName = (name: string) => {
   }
 };
 
-export const deserializeReverse = (data: Buffer | undefined) => {
+export function deserializeReverse(data: Buffer): string;
+export function deserializeReverse(data: undefined): undefined;
+
+export function deserializeReverse(
+  data: Buffer | undefined,
+): string | undefined {
   if (!data) return undefined;
-  const nameLength = new BN(data.slice(0, 4), "le").toNumber();
+  const nameLength = data.slice(0, 4).readUInt32LE(0);
   return data.slice(4, 4 + nameLength).toString();
-};
+}

@@ -19,17 +19,12 @@ import { NameRegistryState } from "./state";
 import { Numberu64, Numberu32 } from "./int";
 import { getHashedName, getNameOwner } from "./deprecated/utils";
 import {
-  getPythProgramKeyForCluster,
-  PythHttpClient,
-} from "@pythnetwork/client";
-import {
   TOKEN_PROGRAM_ID,
   getAssociatedTokenAddressSync,
   createAssociatedTokenAccountIdempotentInstruction,
 } from "@solana/spl-token";
 import { ErrorType, SNSError } from "./error";
-import { getHashedNameSync } from "./utils";
-import { BN } from "bn.js";
+import { deserializeReverse, getHashedNameSync } from "./utils";
 
 const constants = {
   /**
@@ -75,6 +70,44 @@ const constants = {
     ["So11111111111111111111111111111111111111112", "SOL"],
     ["fidaWCioBQjieRrUQDxxS5Uxmq1CLi2VuVRyv4dEBey", "FIDA"],
     ["DL4ivZm3NVHWk9ZvtcqTchxoKArDK4rT3vbDx2gYVr7P", "INJ"],
+  ]),
+
+  PYTH_FEEDS: new Map<string, { price: string; product: string }>([
+    [
+      "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+      {
+        price: "5SSkXsEKQepHHAewytPVwdej4epN1nxgLVM84L4KXgy7",
+        product: "6NpdXrQEpmDZ3jZKmM2rhdmkd3H6QAk23j2x8bkXcHKA",
+      },
+    ],
+    [
+      "EJwZgeZrdC8TXTQbQBoL6bfuAnFUUy1PVCMB4DYPzVaS",
+      {
+        price: "38xoQ4oeJCBrcVvca2cGk7iV1dAfrmTR1kmhSCJQ8Jto",
+        product: "C5wDxND9E61RZ1wZhaSTWkoA8udumaHnoQY6BBsiaVpn",
+      },
+    ],
+    [
+      "So11111111111111111111111111111111111111112",
+      {
+        price: "J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix",
+        product: "3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E",
+      },
+    ],
+    [
+      "EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp",
+      {
+        price: "7teETxN9Y8VK6uJxsctHEwST75mKLLwPH1jaFdvTQCpD",
+        product: "5kWV4bhHeZANzg5MWaYCQYEEKHjur5uz1mu5vuLHwiLB",
+      },
+    ],
+    [
+      "DL4ivZm3NVHWk9ZvtcqTchxoKArDK4rT3vbDx2gYVr7P",
+      {
+        price: "44uRsNnT35kjkscSu59MxRr9CfkLZWf6gny8bWqUbVxE",
+        product: "7UHB783Nh4avW3Yw9yoktf2KjxipU56KPahA51RnCCYE",
+      },
+    ],
   ]),
 
   PYTH_MAPPING_ACC: new PublicKey(
@@ -124,8 +157,7 @@ const reverseLookup = async (
   if (!registry.data) {
     throw new SNSError(ErrorType.NoAccountData);
   }
-  const nameLength = new BN(registry.data.slice(0, 4), "le").toNumber();
-  return registry.data.slice(4, 4 + nameLength).toString();
+  return deserializeReverse(registry.data);
 };
 
 const _deriveSync = (
@@ -218,10 +250,8 @@ async function createNameRegistry(
     nameOwner,
     payerKey,
     hashed_name,
-    //@ts-ignore
-    new Numberu64(balance),
-    //@ts-ignore
-    new Numberu32(space),
+    new Numberu64(BigInt(balance)),
+    new Numberu32(BigInt(space)),
     nameClass,
     parentName,
     nameParentOwner,
@@ -266,8 +296,7 @@ async function updateNameRegistryData(
   const updateInstr = updateInstruction(
     constants.NAME_PROGRAM_ID,
     nameAccountKey,
-    //@ts-ignore
-    new Numberu32(offset),
+    new Numberu32(BigInt(offset)),
     input_data,
     signer,
   );
@@ -428,25 +457,12 @@ const registerDomainName = async (
     }
   }
 
-  const pythConnection = new PythHttpClient(
-    connection,
-    getPythProgramKeyForCluster("devnet"),
-  );
-  const data = await pythConnection.getData();
-
-  const symbol = constants.TOKENS_SYM_MINT.get(mint.toBase58());
-
-  if (!symbol) {
-    throw new SNSError(
-      ErrorType.SymbolNotFound,
-      `No symbol found for mint ${mint.toBase58()}`,
-    );
-  }
-
-  const priceData = data.productPrice.get("Crypto." + symbol + "/USD")!;
-  const productData = data.productFromSymbol.get("Crypto." + symbol + "/USD")!;
-
   const vault = getAssociatedTokenAddressSync(mint, constants.VAULT_OWNER);
+  const pythFeed = devnet.constants.PYTH_FEEDS.get(mint.toBase58());
+
+  if (!pythFeed) {
+    throw new SNSError(ErrorType.PythFeedNotFound);
+  }
 
   const ix = new createInstructionV3({
     name,
@@ -463,8 +479,8 @@ const registerDomainName = async (
     buyer,
     buyerTokenAccount,
     constants.PYTH_MAPPING_ACC,
-    priceData.productAccountKey,
-    new PublicKey(productData.price_account),
+    new PublicKey(pythFeed.product),
+    new PublicKey(pythFeed.price),
     vault,
     TOKEN_PROGRAM_ID,
     SYSVAR_RENT_PUBKEY,

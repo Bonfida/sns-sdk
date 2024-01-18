@@ -179,3 +179,5 @@ target
 
 .wrangler
 .DS_Store
+js/stats.html
+*.tgz
