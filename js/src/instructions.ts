@@ -6,7 +6,7 @@ import {
 } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Numberu32, Numberu64 } from "./int";
-import { Schema, serialize } from "borsh";
+import { serialize } from "borsh";
 
 export interface AccountKey {
   pubkey: PublicKey;
@@ -231,19 +231,13 @@ export class createV2Instruction {
   name: string;
   space: number;
 
-  static schema: Schema = new Map([
-    [
-      createV2Instruction,
-      {
-        kind: "struct",
-        fields: [
-          ["tag", "u8"],
-          ["name", "string"],
-          ["space", "u32"],
-        ],
-      },
-    ],
-  ]);
+  static schema = {
+    struct: {
+      tag: "u8",
+      name: "string",
+      space: "u32",
+    },
+  };
 
   constructor(obj: { name: string; space: number }) {
     this.tag = 9;
@@ -343,18 +337,13 @@ export class createV2Instruction {
 export class createReverseInstruction {
   tag: number;
   name: string;
-  static schema: Schema = new Map([
-    [
-      createReverseInstruction,
-      {
-        kind: "struct",
-        fields: [
-          ["tag", "u8"],
-          ["name", "string"],
-        ],
-      },
-    ],
-  ]);
+  static schema = {
+    struct: {
+      tag: "u8",
+      name: "string",
+    },
+  };
+
   constructor(obj: { name: string }) {
     this.tag = 12;
     this.name = obj.name;
@@ -437,20 +426,15 @@ export class createInstructionV3 {
   name: string;
   space: number;
   referrerIdxOpt: number | null;
-  static schema: Schema = new Map([
-    [
-      createInstructionV3,
-      {
-        kind: "struct",
-        fields: [
-          ["tag", "u8"],
-          ["name", "string"],
-          ["space", "u32"],
-          ["referrerIdxOpt", { kind: "option", type: "u16" }],
-        ],
-      },
-    ],
-  ]);
+  static schema = {
+    struct: {
+      tag: "u8",
+      name: "string",
+      space: "u32",
+      referrerIdxOpt: { option: "u16" },
+    },
+  };
+
   constructor(obj: {
     name: string;
     space: number;
@@ -579,19 +563,14 @@ export class createWithNftInstruction {
   tag: number;
   name: string;
   space: number;
-  static schema: Schema = new Map([
-    [
-      createWithNftInstruction,
-      {
-        kind: "struct",
-        fields: [
-          ["tag", "u8"],
-          ["name", "string"],
-          ["space", "u32"],
-        ],
-      },
-    ],
-  ]);
+  static schema = {
+    struct: {
+      tag: "u8",
+      name: "string",
+      space: "u32",
+    },
+  };
+
   constructor(obj: { name: string; space: number }) {
     this.tag = 17;
     this.name = obj.name;
@@ -711,15 +690,12 @@ export class createWithNftInstruction {
 
 export class burnInstruction {
   tag: number;
-  static schema: Schema = new Map([
-    [
-      burnInstruction,
-      {
-        kind: "struct",
-        fields: [["tag", "u8"]],
-      },
-    ],
-  ]);
+  static schema = {
+    struct: {
+      tag: "u8",
+    },
+  };
+
   constructor() {
     this.tag = 16;
   }

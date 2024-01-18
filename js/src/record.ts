@@ -3,7 +3,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { getDomainKeySync } from "./utils";
 import { NameRegistryState } from "./state";
 import { Buffer } from "buffer";
-import base58 from "bs58";
+import { encode as bs58Encode } from "bs58";
 import {
   isValid as isValidIp,
   fromByteArray as ipFromByteArray,
@@ -413,7 +413,7 @@ export const deserializeRecord = (
       registry.owner,
     );
     if (valid) {
-      return base58.encode(buffer.slice(0, 32));
+      return bs58Encode(buffer.slice(0, 32));
     }
   }
 

@@ -19,7 +19,7 @@ import {
 import { NameRegistryState } from "./state";
 import { getHashedNameSync, getNameAccountKeySync } from "./utils";
 import { Numberu32, Numberu64 } from "./int";
-import { deserializeUnchecked, Schema, serialize } from "borsh";
+import { deserialize, serialize } from "borsh";
 import { Buffer } from "buffer";
 import { ErrorType, SNSError } from "./error";
 
@@ -279,11 +279,9 @@ export async function getTwitterHandleandRegistryKeyViaFilters(
 
   for (const f of filteredAccounts) {
     if (f.account.data.length > NameRegistryState.HEADER_LEN + 32) {
-      let data = f.account.data.slice(NameRegistryState.HEADER_LEN);
-      let state: ReverseTwitterRegistryState = deserializeUnchecked(
-        ReverseTwitterRegistryState.schema,
-        ReverseTwitterRegistryState,
-        data,
+      const data = f.account.data.slice(NameRegistryState.HEADER_LEN);
+      const state = new ReverseTwitterRegistryState(
+        deserialize(ReverseTwitterRegistryState.schema, data) as any,
       );
       return [state.twitterHandle, new PublicKey(state.twitterRegistryKey)];
     }
@@ -337,18 +335,13 @@ export class ReverseTwitterRegistryState {
   twitterRegistryKey: Uint8Array;
   twitterHandle: string;
 
-  static schema: Schema = new Map([
-    [
-      ReverseTwitterRegistryState,
-      {
-        kind: "struct",
-        fields: [
-          ["twitterRegistryKey", [32]],
-          ["twitterHandle", "string"],
-        ],
-      },
-    ],
-  ]);
+  static schema = {
+    struct: {
+      twitterRegistryKey: { array: { type: "u8", len: 32 } },
+      twitterHandle: "string",
+    },
+  };
+
   constructor(obj: { twitterRegistryKey: Uint8Array; twitterHandle: string }) {
     this.twitterRegistryKey = obj.twitterRegistryKey;
     this.twitterHandle = obj.twitterHandle;
@@ -366,10 +359,11 @@ export class ReverseTwitterRegistryState {
       throw new SNSError(ErrorType.InvalidReverseTwitter);
     }
 
-    let res: ReverseTwitterRegistryState = deserializeUnchecked(
-      this.schema,
-      ReverseTwitterRegistryState,
-      reverseTwitterAccount.data.slice(NameRegistryState.HEADER_LEN),
+    const res = new ReverseTwitterRegistryState(
+      deserialize(
+        ReverseTwitterRegistryState.schema,
+        reverseTwitterAccount.data.slice(NameRegistryState.HEADER_LEN),
+      ) as any,
     );
 
     return res;
