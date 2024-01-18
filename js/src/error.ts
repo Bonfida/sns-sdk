@@ -28,6 +28,7 @@ export enum ErrorType {
   UnsupportedSignatureType = "UnsupportedSignatureType",
   InvalidSolRecordV2 = "InvalidSolRecordV2",
   MissingVerifier = "MissingVerifier",
+  PythFeedNotFound = "PythFeedNotFound",
 }
 
 export class SNSError extends Error {

@@ -3,13 +3,17 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { getDomainKeySync } from "./utils";
 import { NameRegistryState } from "./state";
 import { Buffer } from "buffer";
-import { decode, encode } from "bech32-buffer";
 import base58 from "bs58";
-import ipaddr from "ipaddr.js";
+import {
+  isValid as isValidIp,
+  fromByteArray as ipFromByteArray,
+  parse as parseIp,
+} from "ipaddr.js";
 import { encode as encodePunycode } from "punycode";
 import { check } from "./utils";
 import { ErrorType, SNSError } from "./error";
-import * as tweetnacl from "tweetnacl";
+import { ed25519 } from "@noble/curves/ed25519";
+import { bech32 } from "@scure/base";
 
 const trimNullPaddingIdx = (buffer: Buffer): number => {
   const arr = Array.from(buffer);
@@ -28,9 +32,9 @@ const trimNullPaddingIdx = (buffer: Buffer): number => {
 export const checkSolRecord = (
   record: Uint8Array,
   signedRecord: Uint8Array,
-  pubkey: PublicKey
+  pubkey: PublicKey,
 ) => {
-  return tweetnacl.sign.detached.verify(record, signedRecord, pubkey.toBytes());
+  return ed25519.verify(signedRecord, record, pubkey.toBytes());
 };
 
 /**
@@ -49,7 +53,7 @@ export async function getRecord(
   connection: Connection,
   domain: string,
   record: Record,
-  deserialize: true
+  deserialize: true,
 ): Promise<string | undefined>;
 
 // Overload signature for the case where deserialize is false or undefined.
@@ -57,7 +61,7 @@ export async function getRecord(
   connection: Connection,
   domain: string,
   record: Record,
-  deserialize?: false
+  deserialize?: false,
 ): Promise<NameRegistryState | undefined>;
 
 /**
@@ -71,7 +75,7 @@ export async function getRecord(
   connection: Connection,
   domain: string,
   record: Record,
-  deserialize?: boolean
+  deserialize?: boolean,
 ) {
   const pubkey = getRecordKeySync(domain, record);
   let { registry } = await NameRegistryState.retrieve(connection, pubkey);
@@ -94,7 +98,7 @@ export async function getRecords(
   connection: Connection,
   domain: string,
   records: Record[],
-  deserialize: true
+  deserialize: true,
 ): Promise<string[]>;
 
 // Overload signature for the case where deserialize is false or undefined.
@@ -102,14 +106,14 @@ export async function getRecords(
   connection: Connection,
   domain: string,
   records: Record[],
-  deserialize?: false
+  deserialize?: false,
 ): Promise<NameRegistryState[]>;
 
 export async function getRecords(
   connection: Connection,
   domain: string,
   records: Record[],
-  deserialize?: boolean
+  deserialize?: boolean,
 ) {
   const pubkeys = records.map((record) => getRecordKeySync(domain, record));
   const registries = await NameRegistryState.retrieveBatch(connection, pubkeys);
@@ -120,7 +124,7 @@ export async function getRecords(
       return deserializeRecord(
         e,
         records[idx],
-        getRecordKeySync(domain, records[idx])
+        getRecordKeySync(domain, records[idx]),
       );
     });
   }
@@ -145,7 +149,7 @@ export const getIpfsRecord = async (connection: Connection, domain: string) => {
  */
 export const getArweaveRecord = async (
   connection: Connection,
-  domain: string
+  domain: string,
 ) => {
   return await getRecord(connection, domain, Record.ARWV, true);
 };
@@ -198,7 +202,7 @@ export const getDogeRecord = async (connection: Connection, domain: string) => {
  */
 export const getEmailRecord = async (
   connection: Connection,
-  domain: string
+  domain: string,
 ) => {
   return await getRecord(connection, domain, Record.Email, true);
 };
@@ -221,7 +225,7 @@ export const getUrlRecord = async (connection: Connection, domain: string) => {
  */
 export const getDiscordRecord = async (
   connection: Connection,
-  domain: string
+  domain: string,
 ) => {
   return await getRecord(connection, domain, Record.Discord, true);
 };
@@ -234,7 +238,7 @@ export const getDiscordRecord = async (
  */
 export const getGithubRecord = async (
   connection: Connection,
-  domain: string
+  domain: string,
 ) => {
   return await getRecord(connection, domain, Record.Github, true);
 };
@@ -247,7 +251,7 @@ export const getGithubRecord = async (
  */
 export const getRedditRecord = async (
   connection: Connection,
-  domain: string
+  domain: string,
 ) => {
   return await getRecord(connection, domain, Record.Reddit, true);
 };
@@ -260,7 +264,7 @@ export const getRedditRecord = async (
  */
 export const getTwitterRecord = async (
   connection: Connection,
-  domain: string
+  domain: string,
 ) => {
   return await getRecord(connection, domain, Record.Twitter, true);
 };
@@ -273,7 +277,7 @@ export const getTwitterRecord = async (
  */
 export const getTelegramRecord = async (
   connection: Connection,
-  domain: string
+  domain: string,
 ) => {
   return await getRecord(connection, domain, Record.Telegram, true);
 };
@@ -316,7 +320,7 @@ export const getSolRecord = async (connection: Connection, domain: string) => {
  */
 export const getPointRecord = async (
   connection: Connection,
-  domain: string
+  domain: string,
 ) => {
   return await getRecord(connection, domain, Record.POINT, true);
 };
@@ -339,7 +343,7 @@ export const getBscRecord = async (connection: Connection, domain: string) => {
  */
 export const getInjectiveRecord = async (
   connection: Connection,
-  domain: string
+  domain: string,
 ) => {
   return await getRecord(connection, domain, Record.Injective, true);
 };
@@ -352,7 +356,7 @@ export const getInjectiveRecord = async (
  */
 export const getBackpackRecord = async (
   connection: Connection,
-  domain: string
+  domain: string,
 ) => {
   return await getRecord(connection, domain, Record.Backpack, true);
 };
@@ -367,7 +371,7 @@ export const getBackpackRecord = async (
  */
 export const getBackgroundRecord = async (
   connection: Connection,
-  domain: string
+  domain: string,
 ) => {
   return await getRecord(connection, domain, Record.Background, true);
 };
@@ -382,7 +386,7 @@ export const getBackgroundRecord = async (
 export const deserializeRecord = (
   registry: NameRegistryState | undefined,
   record: Record,
-  recordKey: PublicKey
+  recordKey: PublicKey,
 ): string | undefined => {
   const buffer = registry?.data;
   if (!buffer) return undefined;
@@ -406,7 +410,7 @@ export const deserializeRecord = (
     const valid = checkSolRecord(
       expected,
       buffer.slice(32, 96),
-      registry.owner
+      registry.owner,
     );
     if (valid) {
       return base58.encode(buffer.slice(0, 32));
@@ -417,8 +421,8 @@ export const deserializeRecord = (
   if (size && idx !== size) {
     const address = buffer.slice(0, idx).toString("utf-8");
     if (record === Record.Injective) {
-      const decoded = decode(address);
-      if (decoded.prefix === "inj" && decoded.data.length === 20) {
+      const decoded = bech32.decodeToBytes(address);
+      if (decoded.prefix === "inj" && decoded.bytes.length === 20) {
         return address;
       }
     } else if (record === Record.BSC || record === Record.ETH) {
@@ -428,7 +432,7 @@ export const deserializeRecord = (
         return address;
       }
     } else if (record === Record.A || record === Record.AAAA) {
-      if (ipaddr.isValid(address)) {
+      if (isValidIp(address)) {
         return address;
       }
     }
@@ -438,9 +442,9 @@ export const deserializeRecord = (
   if (record === Record.ETH || record === Record.BSC) {
     return "0x" + buffer.slice(0, size).toString("hex");
   } else if (record === Record.Injective) {
-    return encode("inj", buffer.slice(0, size), "bech32");
+    return bech32.encode("inj", bech32.toWords(buffer.slice(0, size)));
   } else if (record === Record.A || record === Record.AAAA) {
-    return ipaddr.fromByteArray([...buffer.slice(0, size)]).toString();
+    return ipFromByteArray([...buffer.slice(0, size)]).toString();
   } else if (record === Record.Background) {
     return new PublicKey(buffer.slice(0, size)).toString();
   }
@@ -467,22 +471,22 @@ export const serializeRecord = (str: string, record: Record): Buffer => {
   if (record === Record.SOL) {
     throw new SNSError(
       ErrorType.UnsupportedRecord,
-      "Use `serializeSolRecord` for SOL record"
+      "Use `serializeSolRecord` for SOL record",
     );
   } else if (record === Record.ETH || record === Record.BSC) {
     check(str.slice(0, 2) === "0x", ErrorType.InvalidEvmAddress);
     return Buffer.from(str.slice(2), "hex");
   } else if (record === Record.Injective) {
-    const decoded = decode(str);
+    const decoded = bech32.decodeToBytes(str);
     check(decoded.prefix === "inj", ErrorType.InvalidInjectiveAddress);
-    check(decoded.data.length === 20, ErrorType.InvalidInjectiveAddress);
-    return Buffer.from(decoded.data);
+    check(decoded.bytes.length === 20, ErrorType.InvalidInjectiveAddress);
+    return Buffer.from(decoded.words);
   } else if (record === Record.A) {
-    const array = ipaddr.parse(str).toByteArray();
+    const array = parseIp(str).toByteArray();
     check(array.length === 4, ErrorType.InvalidARecord);
     return Buffer.from(array);
   } else if (record === Record.AAAA) {
-    const array = ipaddr.parse(str).toByteArray();
+    const array = parseIp(str).toByteArray();
     check(array.length === 16, ErrorType.InvalidAAAARecord);
     return Buffer.from(array);
   } else if (record === Record.Background) {
@@ -504,7 +508,7 @@ export const serializeSolRecord = (
   content: PublicKey,
   recordKey: PublicKey,
   signer: PublicKey,
-  signature: Uint8Array
+  signature: Uint8Array,
 ): Buffer => {
   const expected = Buffer.concat([content.toBuffer(), recordKey.toBuffer()]);
   const encodedMessage = new TextEncoder().encode(expected.toString("hex"));

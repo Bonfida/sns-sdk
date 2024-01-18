@@ -32,6 +32,12 @@ test("Records V2 des/ser", () => {
   des = deserializeRecordV2Content(Buffer.from(ser), Record.SOL);
   expect(des).toBe(content);
   expect(ser.length).toBe(32);
+
+  content = "inj13glcnaum2xqv5a0n0hdsmv0f6nfacjsfvrh5j9";
+  ser = serializeRecordV2Content(content, Record.Injective);
+  expect(ser.length).toBe(20);
+  des = deserializeRecordV2Content(ser, Record.Injective);
+  expect(des).toBe(content);
 });
 
 test("Create record", async () => {

@@ -1,6 +1,5 @@
-import { Connection, PublicKey, MemcmpFilter } from "@solana/web3.js";
-import BN from "bn.js";
-import { sha256 } from "@ethersproject/sha2";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { sha256 } from "@noble/hashes/sha256";
 import {
   HASH_PREFIX,
   NAME_PROGRAM_ID,
@@ -16,7 +15,7 @@ import { SNSError, ErrorType } from "../error";
  */
 export async function getNameOwner(
   connection: Connection,
-  nameAccountKey: PublicKey
+  nameAccountKey: PublicKey,
 ) {
   const nameAccount = await connection.getAccountInfo(nameAccountKey);
   if (!nameAccount) {
@@ -30,8 +29,8 @@ export async function getNameOwner(
  */
 export async function getHashedName(name: string): Promise<Buffer> {
   const input = HASH_PREFIX + name;
-  const str = sha256(Buffer.from(input, "utf8")).slice(2);
-  return Buffer.from(str, "hex");
+  const hashed = sha256(Buffer.from(input, "utf8"));
+  return Buffer.from(hashed);
 }
 
 /**
@@ -40,7 +39,7 @@ export async function getHashedName(name: string): Promise<Buffer> {
 export async function getNameAccountKey(
   hashed_name: Buffer,
   nameClass?: PublicKey,
-  nameParent?: PublicKey
+  nameParent?: PublicKey,
 ): Promise<PublicKey> {
   const seeds = [hashed_name];
   if (nameClass) {
@@ -55,7 +54,7 @@ export async function getNameAccountKey(
   }
   const [nameAccountKey] = await PublicKey.findProgramAddress(
     seeds,
-    NAME_PROGRAM_ID
+    NAME_PROGRAM_ID,
   );
   return nameAccountKey;
 }
@@ -69,22 +68,22 @@ export async function getNameAccountKey(
  */
 export async function performReverseLookup(
   connection: Connection,
-  nameAccount: PublicKey
+  nameAccount: PublicKey,
 ): Promise<string> {
   const hashedReverseLookup = await getHashedName(nameAccount.toBase58());
   const reverseLookupAccount = await getNameAccountKey(
     hashedReverseLookup,
-    REVERSE_LOOKUP_CLASS
+    REVERSE_LOOKUP_CLASS,
   );
 
   const { registry } = await NameRegistryState.retrieve(
     connection,
-    reverseLookupAccount
+    reverseLookupAccount,
   );
   if (!registry.data) {
     throw new SNSError(ErrorType.NoAccountData);
   }
-  const nameLength = new BN(registry.data.slice(0, 4), "le").toNumber();
+  const nameLength = registry.data.slice(0, 4).readUInt32LE(0);
   return registry.data.slice(4, 4 + nameLength).toString();
 }
 
@@ -97,35 +96,35 @@ export async function performReverseLookup(
  */
 export async function performReverseLookupBatch(
   connection: Connection,
-  nameAccounts: PublicKey[]
+  nameAccounts: PublicKey[],
 ): Promise<(string | undefined)[]> {
   let reverseLookupAccounts: PublicKey[] = [];
   for (let nameAccount of nameAccounts) {
     const hashedReverseLookup = await getHashedName(nameAccount.toBase58());
     const reverseLookupAccount = await getNameAccountKey(
       hashedReverseLookup,
-      REVERSE_LOOKUP_CLASS
+      REVERSE_LOOKUP_CLASS,
     );
     reverseLookupAccounts.push(reverseLookupAccount);
   }
 
   let names = await NameRegistryState.retrieveBatch(
     connection,
-    reverseLookupAccounts
+    reverseLookupAccounts,
   );
 
   return names.map((name) => {
     if (name === undefined || name.data === undefined) {
       return undefined;
     }
-    let nameLength = new BN(name.data.slice(0, 4), "le").toNumber();
+    const nameLength = name.data.slice(0, 4).readUInt32LE(0);
     return name.data.slice(4, 4 + nameLength).toString();
   });
 }
 
 const _derive = async (
   name: string,
-  parent: PublicKey = ROOT_DOMAIN_ACCOUNT
+  parent: PublicKey = ROOT_DOMAIN_ACCOUNT,
 ) => {
   let hashed = await getHashedName(name);
   let pubkey = await getNameAccountKey(hashed, undefined, parent);
@@ -156,7 +155,7 @@ export const getDomainKey = async (domain: string, record = false) => {
     // Sub domain
     const { pubkey: subKey } = await _derive(
       "\0".concat(splitted[1]),
-      parentKey
+      parentKey,
     );
     // Sub record
     const recordPrefix = Buffer.from([1]).toString();
@@ -182,7 +181,7 @@ export const getReverseKey = async (domain: string, isSub?: boolean) => {
   const reverseLookupAccount = await getNameAccountKey(
     hashedReverseLookup,
     REVERSE_LOOKUP_CLASS,
-    isSub ? parent : undefined
+    isSub ? parent : undefined,
   );
   return reverseLookupAccount;
 };

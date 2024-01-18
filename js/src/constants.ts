@@ -99,6 +99,79 @@ export const TOKENS_SYM_MINT = new Map<string, string>([
   ["6McPRfPV6bY1e9hLxWyG54W9i9Epq75QBvXg2oetBVTB", "INJ"],
 ]);
 
+export const PYTH_FEEDS = new Map<string, { price: string; product: string }>([
+  [
+    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    {
+      price: "Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD",
+      product: "8GWTTbNiXdmyZREXbjsZBmCRuzdPrW55dnZGDkTRjWvb",
+    },
+  ],
+  [
+    "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+    {
+      price: "3vxLXJqLqF3JG5TCbYycbKWRBbCJQLxQmBGCkyqEEefL",
+      product: "Av6XyAMJnyi68FdsKSPYgzfXGjYrrt6jcAMwtvzLCqaM",
+    },
+  ],
+  [
+    "So11111111111111111111111111111111111111112",
+    {
+      price: "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG",
+      product: "ALP8SdU9oARYVLgLR7LrqMNCYBnhtnQz1cj6bwgwQmgj",
+    },
+  ],
+  [
+    "EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp",
+    {
+      price: "ETp9eKXVv1dWwHSpsXRUuXHmw24PwRkttCGVgpZEY9zF",
+      product: "HyEB4Goiv7QyfFStaBn49JqQzSTV1ybtVikwsMLH1f2M",
+    },
+  ],
+  [
+    "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
+    {
+      price: "E4v1BBgoso9s64TQvmyownAVJbhbEPGyzA3qn4n46qj9",
+      product: "BS2iAqT67j8hA9Jji4B8UpL3Nfw9kwPfU5s4qeaf1e7r",
+    },
+  ],
+  [
+    "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+    {
+      price: "8ihFLu5FimgTQ1Unh4dVyEHUGodJ5gJQCrQf4KUVB9bN",
+      product: "FerFD54J6RgmQVCR5oNgpzXmz8BW2eBNhhirb1d5oifo",
+    },
+  ],
+  [
+    "EPeUFDgHRxs9xxEPVaL6kfGQvCon7jmAWKVUHuux1Tpz",
+    {
+      price: "AbMTYZ82Xfv9PtTQ5e1fJXemXjzqEEFHP3oDLRTae6yz",
+      product: "8xTEctXKo6Xo3EzNhSNp4TUe8mgfwWFbDUXJhuubvrKx",
+    },
+  ],
+  [
+    "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
+    {
+      price: "nrYkQQQur7z8rYTST3G9GqATviK5SxTDkrqd21MW6Ue",
+      product: "AiQB4WngNPKDe3iWAwZmMzbULDAAfUD6Sr1knfZNJj3y",
+    },
+  ],
+  [
+    "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
+    {
+      price: "AFrYBhb5wKQtxRS9UA9YRS4V3dwFm7SqmS6DHKq6YVgo",
+      product: "3RtUHQR2LQ7su5R4zWwjupx72sWRGvLA4cFmnbHnT9M7",
+    },
+  ],
+  [
+    "6McPRfPV6bY1e9hLxWyG54W9i9Epq75QBvXg2oetBVTB",
+    {
+      price: "9EdtbaivHQYA4Nh3XzGR6DwRaoorqXYnmpfsnFhvwuVj",
+      product: "5Q5kyCVzssrGMd2BniSdVeRwjNWrGGrFhMrgGt4zURyA",
+    },
+  ],
+]);
+
 export const PYTH_MAPPING_ACC = new PublicKey(
   "AHtgzX45WTKfkPG53L6WYhGEXwQkN1BVknET3sVsLL8J",
 );

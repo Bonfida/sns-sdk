@@ -18,28 +18,20 @@ import {
 } from "./instructions";
 import { NameRegistryState } from "./state";
 import { Numberu64, Numberu32 } from "./int";
-import {
-  getHashedName,
-  getNameAccountKey,
-  getNameOwner,
-} from "./deprecated/utils";
+import { getNameOwner } from "./deprecated/utils";
 import {
   NAME_PROGRAM_ID,
   ROOT_DOMAIN_ACCOUNT,
   REGISTER_PROGRAM_ID,
   REFERRERS,
   USDC_MINT,
-  TOKENS_SYM_MINT,
+  PYTH_FEEDS,
   PYTH_MAPPING_ACC,
   VAULT_OWNER,
   REVERSE_LOOKUP_CLASS,
   WOLVES_COLLECTION_METADATA,
   METAPLEX_ID,
 } from "./constants";
-import {
-  getPythProgramKeyForCluster,
-  PythHttpClient,
-} from "@pythnetwork/client";
 import {
   check,
   getDomainKeySync,
@@ -90,8 +82,8 @@ export async function createNameRegistry(
   nameClass?: PublicKey,
   parentName?: PublicKey,
 ): Promise<TransactionInstruction> {
-  const hashed_name = await getHashedName(name);
-  const nameAccountKey = await getNameAccountKey(
+  const hashed_name = getHashedNameSync(name);
+  const nameAccountKey = getNameAccountKeySync(
     hashed_name,
     nameClass,
     parentName,
@@ -117,10 +109,8 @@ export async function createNameRegistry(
     nameOwner,
     payerKey,
     hashed_name,
-    //@ts-ignore
-    new Numberu64(balance),
-    //@ts-ignore
-    new Numberu32(space),
+    new Numberu64(BigInt(balance)),
+    new Numberu32(BigInt(space)),
     nameClass,
     parentName,
     nameParentOwner,
@@ -147,8 +137,8 @@ export async function updateNameRegistryData(
   nameClass?: PublicKey,
   nameParent?: PublicKey,
 ): Promise<TransactionInstruction> {
-  const hashed_name = await getHashedName(name);
-  const nameAccountKey = await getNameAccountKey(
+  const hashed_name = getHashedNameSync(name);
+  const nameAccountKey = getNameAccountKeySync(
     hashed_name,
     nameClass,
     nameParent,
@@ -165,8 +155,7 @@ export async function updateNameRegistryData(
   const updateInstr = updateInstruction(
     NAME_PROGRAM_ID,
     nameAccountKey,
-    //@ts-ignore
-    new Numberu32(offset),
+    new Numberu32(BigInt(offset)),
     input_data,
     signer,
   );
@@ -193,8 +182,8 @@ export async function transferNameOwnership(
   nameParent?: PublicKey,
   parentOwner?: PublicKey,
 ): Promise<TransactionInstruction> {
-  const hashed_name = await getHashedName(name);
-  const nameAccountKey = await getNameAccountKey(
+  const hashed_name = getHashedNameSync(name);
+  const nameAccountKey = getNameAccountKeySync(
     hashed_name,
     nameClass,
     nameParent,
@@ -239,8 +228,8 @@ export async function deleteNameRegistry(
   nameClass?: PublicKey,
   nameParent?: PublicKey,
 ): Promise<TransactionInstruction> {
-  const hashed_name = await getHashedName(name);
-  const nameAccountKey = await getNameAccountKey(
+  const hashed_name = getHashedNameSync(name);
+  const nameAccountKey = getNameAccountKeySync(
     hashed_name,
     nameClass,
     nameParent,
@@ -327,25 +316,12 @@ export const registerDomainName = async (
     }
   }
 
-  const pythConnection = new PythHttpClient(
-    connection,
-    getPythProgramKeyForCluster("mainnet-beta"),
-  );
-  const data = await pythConnection.getData();
-
-  const symbol = TOKENS_SYM_MINT.get(mint.toBase58());
-
-  if (!symbol) {
-    throw new SNSError(
-      ErrorType.SymbolNotFound,
-      `No symbol found for mint ${mint.toBase58()}`,
-    );
-  }
-
-  const priceData = data.productPrice.get("Crypto." + symbol + "/USD")!;
-  const productData = data.productFromSymbol.get("Crypto." + symbol + "/USD")!;
-
   const vault = getAssociatedTokenAddressSync(mint, VAULT_OWNER);
+  const pythFeed = PYTH_FEEDS.get(mint.toBase58());
+
+  if (!pythFeed) {
+    throw new SNSError(ErrorType.PythFeedNotFound);
+  }
 
   const ix = new createInstructionV3({
     name,
@@ -362,8 +338,8 @@ export const registerDomainName = async (
     buyer,
     buyerTokenAccount,
     PYTH_MAPPING_ACC,
-    priceData.productAccountKey,
-    new PublicKey(productData.price_account),
+    new PublicKey(pythFeed.product),
+    new PublicKey(pythFeed.price),
     vault,
     TOKEN_PROGRAM_ID,
     SYSVAR_RENT_PUBKEY,
@@ -396,8 +372,8 @@ export const createReverseName = async (
     REGISTER_PROGRAM_ID,
   );
 
-  let hashedReverseLookup = await getHashedName(nameAccount.toBase58());
-  let reverseLookupAccount = await getNameAccountKey(
+  let hashedReverseLookup = getHashedNameSync(nameAccount.toBase58());
+  let reverseLookupAccount = getNameAccountKeySync(
     hashedReverseLookup,
     centralState,
     parentName,
@@ -516,8 +492,8 @@ export const createRecordInstruction = async (
     owner,
     payer,
     hashed,
-    new Numberu64(lamports),
-    new Numberu32(space),
+    new Numberu64(BigInt(lamports)),
+    new Numberu32(BigInt(space)),
     undefined,
     parent,
     owner,
@@ -601,7 +577,7 @@ export const updateRecordInstruction = async (
   const ix = updateInstruction(
     NAME_PROGRAM_ID,
     pubkey,
-    new Numberu32(0),
+    new Numberu32(BigInt(0)),
     serialized,
     owner,
   );
@@ -826,8 +802,8 @@ export const createSolRecordInstruction = async (
     signer,
     payer,
     hashed,
-    new Numberu64(lamports),
-    new Numberu32(space),
+    new Numberu64(BigInt(lamports)),
+    new Numberu32(BigInt(space)),
     undefined,
     parent,
     signer,
@@ -870,7 +846,7 @@ export const updateSolRecordInstruction = async (
   const ix = updateInstruction(
     NAME_PROGRAM_ID,
     pubkey,
-    new Numberu32(0),
+    new Numberu32(BigInt(0)),
     serialized,
     signer,
   );

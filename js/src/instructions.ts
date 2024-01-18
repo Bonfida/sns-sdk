@@ -25,12 +25,11 @@ export function createInstruction(
   space: Numberu32,
   nameClassKey?: PublicKey,
   nameParent?: PublicKey,
-  nameParentOwner?: PublicKey
+  nameParentOwner?: PublicKey,
 ): TransactionInstruction {
   const buffers = [
     Buffer.from(Int8Array.from([0])),
-    //@ts-ignore
-    new Numberu32(hashed_name.length).toBuffer(),
+    new Numberu32(BigInt(hashed_name.length)).toBuffer(),
     hashed_name,
     lamports.toBuffer(),
     space.toBuffer(),
@@ -107,13 +106,12 @@ export function updateInstruction(
   nameAccountKey: PublicKey,
   offset: Numberu32,
   input_data: Buffer,
-  nameUpdateSigner: PublicKey
+  nameUpdateSigner: PublicKey,
 ): TransactionInstruction {
   const buffers = [
     Buffer.from(Int8Array.from([1])),
     offset.toBuffer(),
-    //@ts-ignore
-    new Numberu32(input_data.length).toBuffer(),
+    new Numberu32(BigInt(input_data.length)).toBuffer(),
     input_data,
   ];
 
@@ -145,7 +143,7 @@ export function transferInstruction(
   currentNameOwnerKey: PublicKey,
   nameClassKey?: PublicKey,
   nameParent?: PublicKey,
-  parentOwner?: PublicKey
+  parentOwner?: PublicKey,
 ): TransactionInstruction {
   const buffers = [Buffer.from(Int8Array.from([2])), newOwnerKey.toBuffer()];
 
@@ -198,7 +196,7 @@ export function deleteInstruction(
   nameProgramId: PublicKey,
   nameAccountKey: PublicKey,
   refundTargetKey: PublicKey,
-  nameOwnerKey: PublicKey
+  nameOwnerKey: PublicKey,
 ): TransactionInstruction {
   const buffers = [Buffer.from(Int8Array.from([3]))];
 
@@ -268,7 +266,7 @@ export class createV2Instruction {
     buyer: PublicKey,
     buyerTokenAccount: PublicKey,
     usdcVault: PublicKey,
-    state: PublicKey
+    state: PublicKey,
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     const keys = [
@@ -374,7 +372,7 @@ export class createReverseInstruction {
     feePayer: PublicKey,
     rentSysvar: PublicKey,
     parentName?: PublicKey,
-    parentNameOwner?: PublicKey
+    parentNameOwner?: PublicKey,
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys: AccountKey[] = [];
@@ -483,7 +481,7 @@ export class createInstructionV3 {
     splTokenProgram: PublicKey,
     rentSysvar: PublicKey,
     state: PublicKey,
-    referrerAccountOpt?: PublicKey
+    referrerAccountOpt?: PublicKey,
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys: AccountKey[] = [];
@@ -619,7 +617,7 @@ export class createWithNftInstruction {
     splTokenProgram: PublicKey,
     rentSysvar: PublicKey,
     state: PublicKey,
-    mplTokenMetadata: PublicKey
+    mplTokenMetadata: PublicKey,
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys: AccountKey[] = [];
@@ -738,7 +736,7 @@ export class burnInstruction {
     state: PublicKey,
     centralState: PublicKey,
     owner: PublicKey,
-    target: PublicKey
+    target: PublicKey,
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys: AccountKey[] = [];
@@ -801,7 +799,7 @@ export function reallocInstruction(
   payerKey: PublicKey,
   nameAccountKey: PublicKey,
   nameOwnerKey: PublicKey,
-  space: Numberu32
+  space: Numberu32,
 ): TransactionInstruction {
   const buffers = [Buffer.from(Int8Array.from([4])), space.toBuffer()];
 
