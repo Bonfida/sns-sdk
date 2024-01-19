@@ -60,7 +60,7 @@ export const resolve = async (connection: Connection, domain: string) => {
   return registry.owner;
 };
 
-const resolveSolRecordV1 = async (
+export const resolveSolRecordV1 = async (
   connection: Connection,
   owner: PublicKey,
   domain: string,
@@ -87,7 +87,7 @@ const resolveSolRecordV1 = async (
   return new PublicKey(solRecord.data.slice(0, 32));
 };
 
-const resolveSolRecordV2 = async (
+export const resolveSolRecordV2 = async (
   connection: Connection,
   owner: PublicKey,
   domain: string,

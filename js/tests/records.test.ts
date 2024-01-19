@@ -4,6 +4,7 @@ import * as record from "../src/record";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Record } from "../src/types/record";
 import { createRecordInstruction } from "../src/bindings";
+import { resolveSolRecordV1 } from "../src/resolve";
 
 jest.setTimeout(20_000);
 
@@ -75,7 +76,7 @@ test("Get multiple records", async () => {
     connection,
     "🍍",
     [Record.Telegram, Record.Github, Record.Backpack],
-    true
+    true,
   );
   expect(records[0]).toBe("@🍍-tg");
   expect(records[1]).toBe("@🍍_dev");
@@ -96,7 +97,7 @@ test("Create", async () => {
     Record.A,
     "192.168.0.1",
     owner,
-    owner
+    owner,
   );
   const tx = new Transaction().add(ix);
   tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
@@ -104,4 +105,13 @@ test("Create", async () => {
 
   let res = await connection.simulateTransaction(tx);
   expect(res.value.err).toBe(null);
+});
+
+test("Check sol record", async () => {
+  const domain = "wallet-guide-4";
+  const owner = new PublicKey("Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8");
+  const result = await resolveSolRecordV1(connection, owner, domain);
+  expect(result.toBase58()).toBe(
+    "Hf4daCT4tC2Vy9RCe9q8avT68yAsNJ1dQe6xiQqyGuqZ",
+  );
 });
