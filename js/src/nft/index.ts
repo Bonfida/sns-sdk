@@ -16,7 +16,6 @@ import {
   NftRecord,
   getRecordFromMint,
 } from "./name-tokenizer";
-import { reverseLookupBatch } from "../utils";
 
 /**
  * This function can be used to retrieve the owner of a tokenized domain name
@@ -27,12 +26,12 @@ import { reverseLookupBatch } from "../utils";
  */
 export const retrieveNftOwner = async (
   connection: Connection,
-  nameAccount: PublicKey
+  nameAccount: PublicKey,
 ) => {
   try {
     const [mint] = await PublicKey.findProgramAddress(
       [MINT_PREFIX, nameAccount.toBuffer()],
-      NAME_TOKENIZER_ID
+      NAME_TOKENIZER_ID,
     );
 
     const mintInfo = await getMint(connection, mint);
@@ -91,7 +90,7 @@ export const retrieveNfts = async (connection: Connection) => {
   });
   const offset = 1 + 1 + 32 + 32;
   return result.map(
-    (e) => new PublicKey(e.account.data.slice(offset, offset + 32))
+    (e) => new PublicKey(e.account.data.slice(offset, offset + 32)),
   );
 };
 
@@ -114,7 +113,7 @@ const closure = async (connection: Connection, acc: RawAccount) => {
 
 export const retrieveRecords = async (
   connection: Connection,
-  owner: PublicKey
+  owner: PublicKey,
 ) => {
   const filters: GetProgramAccountsFilter[] = [
     ...getFilter(owner.toBase58()),

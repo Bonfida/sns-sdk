@@ -4,6 +4,7 @@ export * from "./twitter_bindings";
 export * from "./utils";
 export * from "./instructions";
 export * from "./nft";
+export { getDomainMint } from "./nft/name-tokenizer";
 export * from "./favorite-domain";
 export * from "./constants";
 export * from "./int";
