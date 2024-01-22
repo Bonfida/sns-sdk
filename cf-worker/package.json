@@ -2,9 +2,9 @@
   "name": "sns-sdk-proxy",
   "version": "0.0.0",
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20230221.0",
-    "typescript": "^4.9.5",
-    "wrangler": "3.4.0"
+    "@cloudflare/workers-types": "^4.20240117.0",
+    "typescript": "^5.3.3",
+    "wrangler": "3.23.0"
   },
   "private": true,
   "scripts": {
@@ -12,10 +12,10 @@
     "deploy": "wrangler publish"
   },
   "dependencies": {
-    "@bonfida/spl-name-service": "^1.0.6",
+    "@bonfida/spl-name-service": "^2.3.3",
     "@solana/spl-token": "^0.3.7",
     "@solana/web3.js": "^1.73.3",
-    "hono": "^3.4.0",
-    "tweetnacl": "^1.0.3"
+    "hono": "^3.12.6",
+    "zod": "^3.22.4"
   }
 }
