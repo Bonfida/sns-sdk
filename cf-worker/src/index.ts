@@ -14,12 +14,16 @@ import {
   reverseLookupBatch,
   getTokenizedDomains,
   getRecords,
+  RecordVersion,
+  getTwitterRegistry,
+  getHandleAndRegistryKey,
 } from "@bonfida/spl-name-service";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { cors } from "hono/cors";
 import { cache } from "hono/cache";
 import { logger } from "hono/logger";
+import { z } from "zod";
 
 const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
@@ -27,8 +31,17 @@ export interface Env {
   RPC_URL: string;
 }
 
-const getConnection = (c: Context<any>) => {
-  return new Connection(c.env?.RPC_URL as string, "processed");
+const isPubkey = (x: string) => {
+  try {
+    new PublicKey(x);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const getConnection = (c: Context<any>, clientRpc: string | undefined) => {
+  return new Connection(clientRpc || (c.env?.RPC_URL as string), "processed");
 };
 
 function response<T>(success: boolean, result: T) {
@@ -54,8 +67,9 @@ app.get("/", async (c) => c.text("Visit https://github.com/Bonfida/sns-sdk"));
  */
 app.get("/resolve/:domain", async (c) => {
   const { domain } = c.req.param();
+  const rpc = c.req.query("rpc");
   try {
-    const res = await resolve(getConnection(c), domain);
+    const res = await resolve(getConnection(c, rpc), domain);
     return c.json(response(true, res));
   } catch (err) {
     console.log(err);
@@ -69,12 +83,20 @@ app.get("/resolve/:domain", async (c) => {
 app.get("/domain-key/:domain", (c) => {
   try {
     const { domain } = c.req.param();
-    const query = c.req.query("record");
-    const res = getDomainKeySync(domain, query === "true");
+    const Query = z.object({
+      record: z.nativeEnum(RecordVersion).optional(),
+    });
+    const { record } = Query.parse(c.req.query());
+
+    const res = getDomainKeySync(domain, record);
     return c.json(response(true, res.pubkey.toBase58()));
   } catch (err) {
     console.log(err);
-    return c.json(response(false, "Invalid domain input"));
+    if (err instanceof z.ZodError) {
+      return c.json(response(false, "Invalid input"), 400);
+    } else {
+      return c.json(response(false, "Internal error"), 500);
+    }
   }
 });
 
@@ -84,11 +106,15 @@ app.get("/domain-key/:domain", (c) => {
 app.get("/domains/:owner", async (c) => {
   try {
     const { owner } = c.req.param();
-    const res = await getAllDomains(getConnection(c), new PublicKey(owner));
-    const revs = await reverseLookupBatch(getConnection(c), res);
+    const rpc = c.req.query("rpc");
+    const res = await getAllDomains(
+      getConnection(c, rpc),
+      new PublicKey(owner)
+    );
+    const revs = await reverseLookupBatch(getConnection(c, rpc), res);
 
     const tokenized = await getTokenizedDomains(
-      getConnection(c),
+      getConnection(c, rpc),
       new PublicKey(owner)
     );
 
@@ -119,6 +145,7 @@ app.get("/reverse-key/:domain", (c) => {
   try {
     const { domain } = c.req.param();
     const query = c.req.query("sub");
+
     const res = getReverseKeySync(domain, query === "true");
     return c.json(response(true, res.toBase58()));
   } catch (err) {
@@ -132,12 +159,20 @@ app.get("/reverse-key/:domain", (c) => {
  */
 app.get("/record-key/:domain/:record", (c) => {
   try {
-    const { domain, record } = c.req.param();
-    const res = getRecordKeySync(domain, record as Record);
+    const Params = z.object({
+      domain: z.string(),
+      record: z.nativeEnum(Record),
+    });
+    const { domain, record } = Params.parse(c.req.param());
+    const res = getRecordKeySync(domain, record);
     return c.json(response(true, res.toBase58()));
   } catch (err) {
     console.log(err);
-    return c.json(response(false, "Invalid input"));
+    if (err instanceof z.ZodError) {
+      return c.json(response(false, "Invalid input"), 400);
+    } else {
+      return c.json(response(false, "Internal error"), 500);
+    }
   }
 });
 
@@ -146,12 +181,21 @@ app.get("/record-key/:domain/:record", (c) => {
  */
 app.get("/record/:domain/:record", async (c) => {
   try {
-    const { domain, record } = c.req.param();
-    const res = await getRecord(getConnection(c), domain, record as Record);
+    const Query = z.object({
+      domain: z.string(),
+      record: z.nativeEnum(Record),
+      rpc: z.string().optional(),
+    });
+    const { domain, record, rpc } = Query.parse(c.req.param());
+    const res = await getRecord(getConnection(c, rpc), domain, record);
     return c.json(response(true, res?.data?.toString("base64")));
   } catch (err) {
     console.log(err);
-    return c.json(response(false, "Invalid input"));
+    if (err instanceof z.ZodError) {
+      return c.json(response(false, "Invalid input"), 400);
+    } else {
+      return c.json(response(false, "Internal error"), 500);
+    }
   }
 });
 
@@ -161,7 +205,11 @@ app.get("/record/:domain/:record", async (c) => {
 app.get("/favorite-domain/:owner", async (c) => {
   try {
     const { owner } = c.req.param();
-    const res = await getFavoriteDomain(getConnection(c), new PublicKey(owner));
+    const rpc = c.req.query("rpc");
+    const res = await getFavoriteDomain(
+      getConnection(c, rpc),
+      new PublicKey(owner)
+    );
     return c.json(
       response(true, { domain: res.domain.toBase58(), reverse: res.reverse })
     );
@@ -189,7 +237,11 @@ app.get("/types/record", (c) => {
 app.get("/reverse-lookup/:pubkey", async (c) => {
   try {
     const { pubkey } = c.req.param();
-    const res = await reverseLookup(getConnection(c), new PublicKey(pubkey));
+    const rpc = c.req.query("rpc");
+    const res = await reverseLookup(
+      getConnection(c, rpc),
+      new PublicKey(pubkey)
+    );
     return c.json(response(true, res));
   } catch (err) {
     console.log(err);
@@ -203,8 +255,9 @@ app.get("/reverse-lookup/:pubkey", async (c) => {
 app.get("/subdomains/:parent", async (c) => {
   try {
     const { parent } = c.req.param();
+    const rpc = c.req.query("rpc");
     const subs = await findSubdomains(
-      getConnection(c),
+      getConnection(c, rpc),
       getDomainKeySync(parent).pubkey
     );
     return c.json(response(true, subs));
@@ -221,22 +274,59 @@ app.get("/subdomains/:parent", async (c) => {
 app.get("/records/:domain", async (c) => {
   try {
     const { domain } = c.req.param();
+    const rpc = c.req.query("rpc");
+
     const parsedRecords = c.req.query("records")?.split(",");
-    if (!parsedRecords || parsedRecords.length === 0) {
+    const recordSchema = z.array(z.nativeEnum(Record));
+    const records = recordSchema.parse(parsedRecords);
+
+    if (!records || records.length === 0) {
       return c.json(response(false, "Missing records in URL query params"));
     }
 
-    const res = await getRecords(
-      getConnection(c),
-      domain,
-      // TODO: Check that the records are valid
-      parsedRecords as Record[]
-    );
+    const res = await getRecords(getConnection(c, rpc), domain, records);
 
     const result = res.map((e, idx) => {
-      return { record: parsedRecords[idx], data: e?.data?.toString("utf-8") };
+      return { record: records[idx], data: e?.data?.toString("utf-8") };
     });
     return c.json(response(true, result));
+  } catch (err) {
+    console.log(err);
+    if (err instanceof z.ZodError) {
+      return c.json(response(false, "Invalid input"), 400);
+    } else {
+      return c.json(response(false, "Internal error"), 500);
+    }
+  }
+});
+
+/**
+ * Returns twitter handle
+ */
+
+app.get("/twitter/get-handle-by-key/:key", async (c) => {
+  try {
+    const { key } = c.req.param();
+    const rpc = c.req.query("rpc");
+    const connection = getConnection(c, rpc);
+    const [handle] = await getHandleAndRegistryKey(
+      connection,
+      new PublicKey(key)
+    );
+    return c.json(response(true, handle));
+  } catch (err) {
+    console.log(err);
+    return c.json(response(false, "Invalid input"));
+  }
+});
+
+app.get("/twitter/get-key-by-handle/:handle", async (c) => {
+  try {
+    const { handle } = c.req.param();
+    const rpc = c.req.query("rpc");
+    const connection = getConnection(c, rpc);
+    const registry = await getTwitterRegistry(connection, handle);
+    return c.json(response(true, registry.owner.toBase58()));
   } catch (err) {
     console.log(err);
     return c.json(response(false, "Invalid input"));
@@ -252,38 +342,37 @@ app.get("/records/:domain", async (c) => {
  */
 app.get("/register", async (c) => {
   try {
-    const buyerStr = c.req.query("buyer");
-    const domain = c.req.query("domain");
-    const space = c.req.query("space");
-    const serialize = c.req.query("serialize");
-    const refKey = c.req.query("referrerKey");
-    const mint = c.req.query("mint") || USDC_MINT;
+    const Query = z.object({
+      buyerStr: z.string().refine(isPubkey),
+      domain: z.string(),
+      space: z.number().min(0),
+      serialize: z.boolean().optional(),
+      refKey: z.string().refine(isPubkey).optional(),
+      mintStr: z.string().refine(isPubkey).optional(),
+      rpc: z.string().optional(),
+    });
 
-    if (!buyerStr || !domain || !space) {
-      return c.json(response(false, "Missing input"));
-    }
+    const { buyerStr, domain, space, serialize, refKey, mintStr, rpc } =
+      Query.parse(c.req.query());
 
     const buyer = new PublicKey(buyerStr);
+    const mint = new PublicKey(mintStr || USDC_MINT);
 
-    const ata = await getAssociatedTokenAddress(
-      new PublicKey(USDC_MINT),
-      buyer,
-      true
-    );
+    const ata = await getAssociatedTokenAddress(mint, buyer, true);
 
-    const connection = getConnection(c);
+    const connection = getConnection(c, rpc);
 
     const [, ix] = await registerDomainName(
       connection,
       domain,
-      parseInt(space),
+      space,
       buyer,
       ata,
-      new PublicKey(mint),
+      mint,
       refKey ? new PublicKey(refKey) : undefined
     );
 
-    if (serialize === "true") {
+    if (serialize) {
       const tx = new Transaction().add(...ix);
 
       tx.feePayer = buyer;
@@ -313,7 +402,11 @@ app.get("/register", async (c) => {
     return c.json(response(true, result));
   } catch (err) {
     console.log(err);
-    return c.json(response(false, "Invalid input"));
+    if (err instanceof z.ZodError) {
+      return c.json(response(false, "Invalid input"), 400);
+    } else {
+      return c.json(response(false, "Internal error"), 500);
+    }
   }
 });
 
