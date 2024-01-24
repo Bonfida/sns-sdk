@@ -17,6 +17,10 @@ import {
   RecordVersion,
   getTwitterRegistry,
   getHandleAndRegistryKey,
+  getRecordV2,
+  getMultipleFavoriteDomains,
+  NameRegistryState,
+  GUARDIANS,
 } from "@bonfida/spl-name-service";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
@@ -24,6 +28,7 @@ import { cors } from "hono/cors";
 import { cache } from "hono/cache";
 import { logger } from "hono/logger";
 import { z } from "zod";
+import { Validation } from "@bonfida/sns-records";
 
 const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
@@ -200,6 +205,78 @@ app.get("/record/:domain/:record", async (c) => {
 });
 
 /**
+ * Returns the base64 encoded content of a record for the specified domain
+ */
+app.get("/record-v2/:domain/:record", async (c) => {
+  try {
+    const Query = z.object({
+      domain: z.string(),
+      record: z.nativeEnum(Record),
+      rpc: z.string().optional(),
+    });
+    const { domain, record, rpc } = Query.parse(c.req.param());
+    const connection = getConnection(c, rpc);
+    const { registry } = await NameRegistryState.retrieve(
+      connection,
+      getDomainKeySync(domain).pubkey
+    );
+    const owner = registry.owner;
+    const res = await getRecordV2(connection, domain, record, {
+      deserialize: true,
+    });
+
+    const stale = !res.retrievedRecord
+      .getStalenessId()
+      .equals(owner.toBuffer());
+
+    let roa = undefined;
+
+    if (Record.SOL === record) {
+      roa =
+        res.retrievedRecord
+          .getRoAId()
+          .equals(res.retrievedRecord.getContent()) &&
+        res.retrievedRecord.header.rightOfAssociationValidation ===
+          Validation.Solana;
+    } else if ([Record.ETH, Record.BSC, Record.Injective].includes(record)) {
+      roa =
+        res.retrievedRecord
+          .getRoAId()
+          .equals(res.retrievedRecord.getContent()) &&
+        res.retrievedRecord.header.rightOfAssociationValidation ===
+          Validation.Ethereum;
+    } else if ([Record.Url]) {
+      const guardian = GUARDIANS.get(record);
+      if (guardian) {
+        roa =
+          res.retrievedRecord.getRoAId().equals(guardian.toBuffer()) &&
+          res.retrievedRecord.header.rightOfAssociationValidation ===
+            Validation.Solana;
+      }
+    }
+
+    return c.json(
+      response(true, {
+        deserialized: res.deserializedContent,
+        stale,
+        roa,
+        record: {
+          header: res.retrievedRecord.header,
+          data: res.retrievedRecord.data.toString("base64"),
+        },
+      })
+    );
+  } catch (err) {
+    console.log(err);
+    if (err instanceof z.ZodError) {
+      return c.json(response(false, "Invalid input"), 400);
+    } else {
+      return c.json(response(false, "Internal error"), 500);
+    }
+  }
+});
+
+/**
  * Returns the favorite domain for the specified owner and null if it does not exist
  */
 app.get("/favorite-domain/:owner", async (c) => {
@@ -213,6 +290,27 @@ app.get("/favorite-domain/:owner", async (c) => {
     return c.json(
       response(true, { domain: res.domain.toBase58(), reverse: res.reverse })
     );
+  } catch (err) {
+    console.log(err);
+    if (err instanceof Error) {
+      if (err.message.includes("Favourite domain not found")) {
+        return c.json(response(true, null));
+      }
+    }
+    return c.json(response(false, "Invalid domain input"));
+  }
+});
+
+/**
+ * Returns the favorite domain for the specified owners (comma separated) and undefined if it does not exist
+ */
+app.get("/multiple-favorite-domains/:owners", async (c) => {
+  try {
+    const { owners } = c.req.param();
+    const rpc = c.req.query("rpc");
+    const parsed = owners.split(",").map((e) => new PublicKey(e));
+    const res = await getMultipleFavoriteDomains(getConnection(c, rpc), parsed);
+    return c.json(response(true, res));
   } catch (err) {
     console.log(err);
     if (err instanceof Error) {
