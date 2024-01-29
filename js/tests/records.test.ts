@@ -1,10 +1,11 @@
 require("dotenv").config();
 import { test, jest, expect } from "@jest/globals";
 import * as record from "../src/record";
-import { Connection, PublicKey, Transaction } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { Record } from "../src/types/record";
 import { createRecordInstruction } from "../src/bindings";
 import { resolveSolRecordV1 } from "../src/resolve";
+import { NameRegistryState } from "../src/state";
 
 jest.setTimeout(20_000);
 
@@ -114,4 +115,50 @@ test("Check sol record", async () => {
   expect(result.toBase58()).toBe(
     "Hf4daCT4tC2Vy9RCe9q8avT68yAsNJ1dQe6xiQqyGuqZ",
   );
+});
+
+test("Des/ser", () => {
+  const items = [
+    { content: "this is a test", record: Record.TXT },
+    {
+      content: "inj13glcnaum2xqv5a0n0hdsmv0f6nfacjsfvrh5j9",
+      record: Record.Injective,
+    },
+    {
+      content: "example.com",
+      record: Record.CNAME,
+    },
+    {
+      content: "example.com",
+      record: Record.CNAME,
+    },
+    {
+      content: "0xc0ffee254729296a45a3885639ac7e10f9d54979",
+      record: Record.ETH,
+    },
+    {
+      content: "1.1.1.4",
+      record: Record.A,
+    },
+    {
+      content: "2345:425:2ca1::567:5673:23b5",
+      record: Record.AAAA,
+    },
+    {
+      content: "username",
+      record: Record.Discord,
+    },
+  ];
+
+  items.forEach((e) => {
+    const ser = record.serializeRecord(e.content, e.record);
+    const registry: NameRegistryState = {
+      data: ser,
+      parentName: PublicKey.default,
+      class: PublicKey.default,
+      owner: PublicKey.default,
+    };
+    const des = record.deserializeRecord(registry, e.record, PublicKey.default);
+    expect(des).toBe(e.content);
+  });
 });
