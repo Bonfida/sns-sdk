@@ -9,7 +9,7 @@ import {
   fromByteArray as ipFromByteArray,
   parse as parseIp,
 } from "ipaddr.js";
-import { encode as encodePunycode } from "punycode";
+import { encode as encodePunycode, decode as decodePunnyCode } from "punycode";
 import { check } from "./utils";
 import { ErrorType, SNSError } from "./error";
 import { ed25519 } from "@noble/curves/ed25519";
@@ -396,7 +396,11 @@ export const deserializeRecord = (
   const idx = trimNullPaddingIdx(buffer);
 
   if (!size) {
-    return buffer.slice(0, idx).toString("utf-8");
+    const str = buffer.slice(0, idx).toString("utf-8");
+    if (record === Record.CNAME || record === Record.TXT) {
+      return decodePunnyCode(str);
+    }
+    return str;
   }
 
   // Handle SOL record first whether it's over allocated or not

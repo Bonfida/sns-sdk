@@ -22,22 +22,55 @@ jest.setTimeout(50_000);
 const connection = new Connection(process.env.RPC_URL!);
 
 test("Records V2 des/ser", () => {
-  let content = "this is a test";
-  let ser = serializeRecordV2Content(content, Record.TXT);
-  let des = deserializeRecordV2Content(Buffer.from(ser), Record.TXT);
-  expect(des).toBe(content);
+  const items = [
+    { content: "this is a test", record: Record.TXT },
+    {
+      content: Keypair.generate().publicKey.toBase58(),
+      record: Record.SOL,
+      length: 32,
+    },
+    {
+      content: "inj13glcnaum2xqv5a0n0hdsmv0f6nfacjsfvrh5j9",
+      record: Record.Injective,
+      length: 20,
+    },
+    {
+      content: "example.com",
+      record: Record.CNAME,
+    },
+    {
+      content: "example.com",
+      record: Record.CNAME,
+    },
+    {
+      content: "0xc0ffee254729296a45a3885639ac7e10f9d54979",
+      record: Record.ETH,
+      length: 20,
+    },
+    {
+      content: "1.1.1.4",
+      record: Record.A,
+      length: 4,
+    },
+    {
+      content: "2345:425:2ca1::567:5673:23b5",
+      record: Record.AAAA,
+      length: 16,
+    },
+    {
+      content: "username",
+      record: Record.Discord,
+    },
+  ];
 
-  content = Keypair.generate().publicKey.toBase58();
-  ser = serializeRecordV2Content(content, Record.SOL);
-  des = deserializeRecordV2Content(Buffer.from(ser), Record.SOL);
-  expect(des).toBe(content);
-  expect(ser.length).toBe(32);
-
-  content = "inj13glcnaum2xqv5a0n0hdsmv0f6nfacjsfvrh5j9";
-  ser = serializeRecordV2Content(content, Record.Injective);
-  expect(ser.length).toBe(20);
-  des = deserializeRecordV2Content(ser, Record.Injective);
-  expect(des).toBe(content);
+  items.forEach((e) => {
+    const ser = serializeRecordV2Content(e.content, e.record);
+    const des = deserializeRecordV2Content(ser, e.record);
+    expect(des).toBe(e.content);
+    if (e.length) {
+      expect(ser.length).toBe(e.length);
+    }
+  });
 });
 
 test("Create record", async () => {
