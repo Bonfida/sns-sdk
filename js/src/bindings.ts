@@ -316,7 +316,7 @@ export const registerDomainName = async (
     }
   }
 
-  const vault = getAssociatedTokenAddressSync(mint, VAULT_OWNER);
+  const vault = getAssociatedTokenAddressSync(mint, VAULT_OWNER, true);
   const pythFeed = PYTH_FEEDS.get(mint.toBase58());
 
   if (!pythFeed) {
