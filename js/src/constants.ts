@@ -79,7 +79,7 @@ export const REFERRERS: PublicKey[] = [
   new PublicKey("DM1jJCkZZEwY5tmWbgvKRxsDFzXCdbfrYCCH1CtwguEs"), // 4Everland
   new PublicKey("ADCp4QXFajHrhy4f43pD6GJFtQLkdBY2mjS9DfCk7tNW"), // Bandit network
   new PublicKey("2XTgjw8yi1E3Etgj4CUyRD7Zk49gynH2U9gA5N2MY4NP"), // Altoscan
-  new PublicKey("5oDWj8vr3vbcq9JZTtwXqrkCMZggMsDzNietvbr1BNfe"), // Solscan
+  new PublicKey("5PwNeqQPiygQks9R17jUAodZQNuhvCqqkrxSaeNE8qTR"), // Solscan
   new PublicKey("8kJqxAbqbPLGLMgB6FhLcnw2SiUEavx2aEGM3WQGhtJF"), // Domain Labs
   new PublicKey("HemvJzwxvVpWBjPETpaseAH395WAxb2G73MeUfjVkK1u"), // Solflare
   new PublicKey("7hMiiUtkH4StMPJxyAtvzXTUjecTniQ8czkCPusf5eSW"), // Solnames
