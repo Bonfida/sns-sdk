@@ -21,6 +21,7 @@ import {
  */
 export const GUARDIANS = new Map<Record, PublicKey>([
   [Record.Url, new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3")],
+  [Record.CNAME, new PublicKey("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3")],
 ]);
 
 /**
