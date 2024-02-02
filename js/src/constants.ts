@@ -176,8 +176,12 @@ export const PYTH_MAPPING_ACC = new PublicKey(
   "AHtgzX45WTKfkPG53L6WYhGEXwQkN1BVknET3sVsLL8J",
 );
 
-export const VAULT_OWNER = new PublicKey(
+export const VAULT_OWNER_DEPRECATED = new PublicKey(
   "GcWEQ9K78FV7LEHteFVciYApERk5YvQuFDQPk1yYJVXi",
+);
+
+export const VAULT_OWNER = new PublicKey(
+  "5D2zKog251d6KPCyFyLMt3KroWwXXPWSgTPyhV22K2gR",
 );
 
 export const CUSTOM_BG_TLD = new PublicKey(
