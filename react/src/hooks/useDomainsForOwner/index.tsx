@@ -1,7 +1,8 @@
-import { useAsync } from "react-async-hook";
 import { getAllDomains, reverseLookupBatch } from "@bonfida/spl-name-service";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { toKey } from "../../utils/pubkey";
+import { useQuery } from "@tanstack/react-query";
+import { Options } from "../../types";
 
 type Result = { pubkey: PublicKey; domain: string }[];
 
@@ -14,20 +15,26 @@ type Result = { pubkey: PublicKey; domain: string }[];
 export const useDomainsForOwner = (
   connection: Connection,
   owner: string | PublicKey | null | undefined,
+  options: Options<Result | undefined> = {
+    queryKey: ["useDomainsForOwner", owner],
+  },
 ) => {
   const key = toKey(owner);
-  return useAsync(async () => {
-    if (!key) return;
-    const domains = await getAllDomains(connection, key);
-    const reverses = await reverseLookupBatch(connection, domains);
-    const result = domains
-      .map((e, idx) => {
-        return { pubkey: e, domain: reverses[idx] };
-      })
-      .filter((e) => !!e.domain)
-      .sort((a, b) =>
-        (a.domain as string).localeCompare(b.domain as string),
-      ) as Result;
-    return result;
-  }, [key?.toBase58()]);
+  return useQuery({
+    ...options,
+    queryFn: async () => {
+      if (!key) return;
+      const domains = await getAllDomains(connection, key);
+      const reverses = await reverseLookupBatch(connection, domains);
+      const result = domains
+        .map((e, idx) => {
+          return { pubkey: e, domain: reverses[idx] };
+        })
+        .filter((e) => !!e.domain)
+        .sort((a, b) =>
+          (a.domain as string).localeCompare(b.domain as string),
+        ) as Result;
+      return result;
+    },
+  });
 };

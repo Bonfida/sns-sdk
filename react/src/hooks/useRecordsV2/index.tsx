@@ -1,6 +1,11 @@
-import { useAsync } from "react-async-hook";
+import { Options } from "../../types";
+import { useQuery } from "@tanstack/react-query";
 import { Connection } from "@solana/web3.js";
-import { Record, getMultipleRecordsV2 } from "@bonfida/spl-name-service";
+import {
+  Record,
+  RecordResult,
+  getMultipleRecordsV2,
+} from "@bonfida/spl-name-service";
 
 /**
  * Returns the deserialized (or not) records V2 of the given domain name
@@ -14,12 +19,18 @@ export const useRecordsV2 = (
   connection: Connection,
   domain: string,
   records: Record[],
-  deserialize?: boolean,
+  deserialize: boolean,
+  options: Options<(RecordResult | undefined)[]> = {
+    queryKey: ["useRecordsV2", domain, ...records, deserialize],
+  },
 ) => {
-  return useAsync(async () => {
-    const res = await getMultipleRecordsV2(connection, domain, records, {
-      deserialize,
-    });
-    return res;
-  }, [domain, ...records]);
+  return useQuery({
+    ...options,
+    queryFn: async () => {
+      const res = await getMultipleRecordsV2(connection, domain, records, {
+        deserialize,
+      });
+      return res;
+    },
+  });
 };

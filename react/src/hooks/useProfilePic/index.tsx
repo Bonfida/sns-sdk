@@ -1,6 +1,8 @@
 import { Connection } from "@solana/web3.js";
 import { Record } from "@bonfida/spl-name-service";
 import { useDeserializedRecords } from "../useRecords";
+import { Options } from "../../types";
+import { useQuery } from "@tanstack/react-query";
 
 /**
  * Returns the profile picture URI for the given domain
@@ -9,7 +11,5 @@ import { useDeserializedRecords } from "../useRecords";
  * @returns The picture URI
  */
 export const useProfilePic = (connection: Connection, domain: string) => {
-  const record = useDeserializedRecords(connection, domain, [Record.Pic]);
-  const { result, ...rest } = record;
-  return { result: result?.[0], ...rest };
+  return useDeserializedRecords(connection, domain, [Record.Pic]);
 };

@@ -1,6 +1,7 @@
-import { useAsync } from "react-async-hook";
+import { useQuery } from "@tanstack/react-query";
 import { resolve } from "@bonfida/spl-name-service";
 import { Connection, PublicKey } from "@solana/web3.js";
+import { Options } from "../../types";
 
 const fn = async (
   connection: Connection,
@@ -20,6 +21,9 @@ const fn = async (
 export const useDomainOwner = (
   connection: Connection,
   domain: string | null | undefined,
+  options: Options<PublicKey | undefined> = {
+    queryKey: ["useDomainOwner", domain],
+  },
 ) => {
-  return useAsync(fn, [connection, domain]);
+  return useQuery({ ...options, queryFn: async () => fn(connection, domain) });
 };

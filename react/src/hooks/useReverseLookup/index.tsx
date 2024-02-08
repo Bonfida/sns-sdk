@@ -1,4 +1,5 @@
-import { useAsync } from "react-async-hook";
+import { Options } from "../../types";
+import { useQuery } from "@tanstack/react-query";
 import { reverseLookup } from "@bonfida/spl-name-service";
 import { Connection, PublicKey } from "@solana/web3.js";
 
@@ -11,10 +12,14 @@ import { Connection, PublicKey } from "@solana/web3.js";
 export const useReverseLookup = (
   connection: Connection,
   pubkey: PublicKey | null | undefined,
+  options: Options<string | undefined> = { queryKey: ["useReverseLookup", pubkey] },
 ) => {
-  return useAsync(async () => {
-    if (!pubkey) return;
-    const reverse = await reverseLookup(connection, pubkey);
-    return reverse;
-  }, [pubkey?.toBase58()]);
+  return useQuery({
+    ...options,
+    queryFn: async () => {
+      if (!pubkey) return;
+      const reverse = await reverseLookup(connection, pubkey);
+      return reverse;
+    },
+  });
 };

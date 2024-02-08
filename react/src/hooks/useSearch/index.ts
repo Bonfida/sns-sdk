@@ -1,4 +1,5 @@
-import { UseAsyncReturn, useAsync } from "react-async-hook";
+import { Options } from "../../types";
+import { useQuery } from "@tanstack/react-query";
 import { getDomainKeySync } from "@bonfida/spl-name-service";
 import type { Connection } from "@solana/web3.js";
 import { generateRandomDomain } from "../../utils";
@@ -54,10 +55,12 @@ export const getDomainsResult = async (
 export const useSearch = ({
   connection,
   domain,
+  options = { queryKey: ["useSearch", domain] },
 }: {
   connection: Connection;
   domain: string;
-}): UseAsyncReturn<Result[]> => {
+  options: Options<Result[]>;
+}) => {
   const fn = async (): Promise<Result[]> => {
     if (!domain || !connection) return [];
 
@@ -95,5 +98,5 @@ export const useSearch = ({
     return getDomainsResult(connection, domains);
   };
 
-  return useAsync(fn, [!!connection, domain]);
+  return useQuery({ ...options, queryFn: fn });
 };
