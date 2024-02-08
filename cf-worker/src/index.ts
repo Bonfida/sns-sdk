@@ -57,13 +57,6 @@ const app = new Hono();
 
 app.use("*", logger());
 app.use("/*", cors({ origin: "*" }));
-app.use(
-  "*",
-  cache({
-    cacheName: "sns-sdk-proxy",
-    cacheControl: "max-age=3600",
-  })
-);
 
 app.get("/", async (c) => c.text("Visit https://github.com/Bonfida/sns-sdk"));
 
