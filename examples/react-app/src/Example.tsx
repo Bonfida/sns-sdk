@@ -16,11 +16,7 @@ export const Example = () => {
 
   const [searchInput, updateSearchInput] = useState("");
   const [searchQuery, updateSearchQuery] = useState("");
-  const searchResult = useSearch({
-    connection,
-    domain: searchQuery,
-    options: { queryKey: ["useSearch", searchQuery] },
-  });
+  const searchResult = useSearch({ connection, domain: searchQuery });
 
   const domainSuggestions = useDomainSuggestions(connection, searchQuery);
 

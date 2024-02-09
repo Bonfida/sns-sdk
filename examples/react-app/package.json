@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@bonfida/prettier-config": "^1.0.0",
+    "@tanstack/react-query-devtools": "^5.18.1",
     "@types/react": "^18.2.39",
     "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react-swc": "^3.5.0",
