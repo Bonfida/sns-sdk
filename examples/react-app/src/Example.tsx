@@ -18,10 +18,7 @@ export const Example = () => {
   const [searchQuery, updateSearchQuery] = useState("");
   const searchResult = useSearch({ connection, domain: searchQuery });
 
-  const domainSuggestions = useDomainSuggestions({
-    connection,
-    domain: searchQuery,
-  });
+  const domainSuggestions = useDomainSuggestions(connection, searchQuery);
 
   const topDomainsSales = useTopDomainsSales();
 
@@ -29,11 +26,11 @@ export const Example = () => {
     <div className="flex flex-col h-full gap-3 px-10">
       <div className="flex space-x-4 text-white">
         <p>Owner of bonfida.sol: </p>{" "}
-        <p className="font-medium">{bonfidaOwner.result?.toBase58()}</p>
+        <p className="font-medium">{bonfidaOwner.data?.toBase58()}</p>
       </div>
       <div className="text-white">
         <p>Your domains:</p>
-        {domains?.result?.map((e) => {
+        {domains?.data?.map((e) => {
           return (
             <p key={e.pubkey.toBase58()}>
               - {e.domain}.sol ({e.pubkey.toBase58()})
@@ -61,8 +58,8 @@ export const Example = () => {
           <button>Submit</button>
         </form>
         <div className="py-2">
-          {searchResult.loading && "Loading..."}
-          {searchResult.result?.map((e) => {
+          {searchResult.isLoading && "Loading..."}
+          {searchResult.data?.map((e) => {
             return (
               <p key={e.domain}>
                 Domain name: {e.domain}
@@ -74,7 +71,7 @@ export const Example = () => {
         </div>
         <hr></hr>
         <p>Domain suggestions:</p>
-        {domainSuggestions.loading && "Loading..."}
+        {domainSuggestions.isLoading && "Loading..."}
         <table>
           <thead>
             <tr>
@@ -83,7 +80,7 @@ export const Example = () => {
             </tr>
           </thead>
           <tbody>
-            {domainSuggestions.result?.map((e) => {
+            {domainSuggestions.data?.map((e) => {
               return (
                 <tr key={e.domain}>
                   <td>{e.domain}</td>
@@ -106,7 +103,7 @@ export const Example = () => {
             </tr>
           </thead>
           <tbody>
-            {topDomainsSales.result?.map((e) => {
+            {topDomainsSales.data?.map((e) => {
               return (
                 <tr key={e.domain}>
                   <td>{e.domain}.sol</td>

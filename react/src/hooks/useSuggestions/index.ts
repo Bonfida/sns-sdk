@@ -1,4 +1,5 @@
-import { UseAsyncReturn, useAsync } from "react-async-hook";
+import { Options } from "../../types";
+import { useQuery } from "@tanstack/react-query";
 import { generateRandomDomain } from "../../utils";
 import { getDomainsResult, type Result } from "../useSearch";
 import type { Connection } from "@solana/web3.js";
@@ -10,7 +11,7 @@ const URL = "https://sns-api.bonfida.com/v2/suggestion/search";
  * to suggest, generates basic alternatives.
  *
  * @param {Connection} params.connection - The Solana connection instance
- * @param {string[]} params.domain - Domain name.
+ * @param {string} params.domain - Domain name.
  * @returns {Promise<Result[]>}
  *
  * @example
@@ -19,13 +20,11 @@ const URL = "https://sns-api.bonfida.com/v2/suggestion/search";
  * const domain = 'solana';
  * const result = await useDomainSuggestions({ connection, domain });
  */
-export const useDomainSuggestions = ({
-  connection,
-  domain,
-}: {
-  connection: Connection;
-  domain: string;
-}): UseAsyncReturn<Result[]> => {
+export const useDomainSuggestions = (
+  connection: Connection,
+  domain: string,
+  options: Options<Result[]> = { queryKey: ["useDomainSuggestions", domain] },
+) => {
   const fn = async () => {
     if (!domain || domain === "") return [];
     const splitted = domain.split(".");
@@ -48,5 +47,5 @@ export const useDomainSuggestions = ({
     });
   };
 
-  return useAsync(fn, [domain, !!connection]);
+  return useQuery({ ...options, queryFn: fn });
 };

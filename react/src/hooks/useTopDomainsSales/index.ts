@@ -1,7 +1,13 @@
 import { useRef } from "react";
-import { useAsync, type UseAsyncReturn } from "react-async-hook";
+import { Options } from "../../types";
+import { useQuery } from "@tanstack/react-query";
 
 const URL = "https://sns-api.bonfida.com/sales/top";
+
+type Result = {
+  domain: string;
+  price: string;
+};
 
 interface SearchResponseEntity {
   domain_name: string;
@@ -33,17 +39,19 @@ const getDefaultStartTime = () => {
  * // Example usage
  * const topSales = await useTopDomainsSales();
  */
-export const useTopDomainsSales = ({
-  isEnabled = true,
-  startTime,
-  endTime,
-  limit = 10,
-}: {
-  isEnabled?: boolean;
-  startTime?: Date;
-  endTime?: Date;
-  limit?: number;
-} = {}): UseAsyncReturn<{ domain: string; price: string }[] | undefined> => {
+export const useTopDomainsSales = (
+  {
+    startTime,
+    endTime,
+    limit = 10,
+    options,
+  }: {
+    startTime?: Date;
+    endTime?: Date;
+    limit?: number;
+    options: Options<Result[]>;
+  } = { options: { queryKey: ["useTopDomainsSales"] } },
+) => {
   const defaultStartTime = useRef(getDefaultStartTime());
   const defaultEndTime = useRef(new Date());
 
@@ -51,8 +59,6 @@ export const useTopDomainsSales = ({
   const effectiveEndTime = endTime || defaultEndTime.current;
 
   const fn = async () => {
-    if (!isEnabled) return;
-
     const searchParams = new URLSearchParams({
       start_time: String(Math.floor(effectiveStartTime.getTime() / 1000)),
       end_time: String(Math.floor(effectiveEndTime.getTime() / 1000)),
@@ -72,5 +78,5 @@ export const useTopDomainsSales = ({
     }));
   };
 
-  return useAsync(fn, [startTime, endTime, limit]);
+  return useQuery({ ...options, queryFn: fn });
 };

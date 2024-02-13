@@ -1,4 +1,5 @@
-import { UseAsyncReturn, useAsync } from "react-async-hook";
+import { Options } from "../../types";
+import { useQuery } from "@tanstack/react-query";
 import { getDomainKeySync } from "@bonfida/spl-name-service";
 import type { Connection } from "@solana/web3.js";
 import { generateRandomDomain } from "../../utils";
@@ -41,23 +42,27 @@ export const getDomainsResult = async (
  * Asynchronously finds domain or subdomain and its availability. Provides basic
  * alternatives for subdomains.
  *
- * @param {Connection} params.connection - The Solana connection instance
- * @param {string[]} params.domain - Domain name.
- * @returns {Promise<Result[]>}
+ * @param {Object} params - The parameters object.
+ * @param {Connection} params.connection - The Solana connection instance.
+ * @param {string} params.domain - The domain name to search for.
+ * @param {Options<Result[]>} [params.options={ queryKey: ["useSearch", domain] }] - Optional. Configuration options for the query, including the query key.
+ * @returns A React Query object containing the search results.
  *
  * @example
  * // Example usage
  * const connection = new Connection(network);
  * const domain = 'solana';
- * const result = await useSearch({ connection, domain });
+ * const { data, isLoading, error } = useSearch({ connection, domain });
  */
 export const useSearch = ({
   connection,
   domain,
+  options = { queryKey: ["useSearch", domain] },
 }: {
   connection: Connection;
   domain: string;
-}): UseAsyncReturn<Result[]> => {
+  options?: Options<Result[]>;
+}) => {
   const fn = async (): Promise<Result[]> => {
     if (!domain || !connection) return [];
 
@@ -74,7 +79,7 @@ export const useSearch = ({
         connection,
         domainsAlternatives,
       );
-      // if the subdomain doesn't exists check if the domain is available
+      // if the subdomain doesn't exist, check if the domain is available
       if (!subdomainInfo?.data) {
         const domainKey = getDomainKeySync(parsedDomain).pubkey;
         const domainInfo = await connection?.getAccountInfo(domainKey);
@@ -95,5 +100,5 @@ export const useSearch = ({
     return getDomainsResult(connection, domains);
   };
 
-  return useAsync(fn, [!!connection, domain]);
+  return useQuery({ ...options, queryFn: fn });
 };

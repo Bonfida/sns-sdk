@@ -1,4 +1,5 @@
-import { useAsync } from "react-async-hook";
+import { Options } from "../../types";
+import { useQuery } from "@tanstack/react-query";
 import { findSubdomains } from "@bonfida/spl-name-service";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { toDomainKey } from "../../utils/domain-to-key";
@@ -12,11 +13,17 @@ import { toDomainKey } from "../../utils/domain-to-key";
 export const useSubdomains = (
   connection: Connection,
   domain: string | PublicKey | undefined | null,
+  options: Options<string[] | undefined> = {
+    queryKey: ["useSubdomains", domain],
+  },
 ) => {
   const key = toDomainKey(domain);
-  return useAsync(async () => {
-    if (!key) return;
-    const subs = await findSubdomains(connection, key);
-    return subs;
-  }, [key?.toBase58()]);
+  return useQuery({
+    ...options,
+    queryFn: async () => {
+      if (!key) return;
+      const subs = await findSubdomains(connection, key);
+      return subs;
+    },
+  });
 };

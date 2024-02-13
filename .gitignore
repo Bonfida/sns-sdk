@@ -181,3 +181,4 @@ target
 .DS_Store
 js/stats.html
 *.tgz
+*.html
