@@ -1,8 +1,9 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { Record } from "../types/record";
-import { resolve } from "../resolve";
 import { getRecordV2Key } from ".";
 import { Record as SnsRecord, Validation } from "@bonfida/sns-records";
+import { NameRegistryState } from "../state";
+import { getDomainKeySync } from "../utils";
 
 /**
  * This function verifies the staleness of a record.
@@ -17,13 +18,17 @@ export const verifyStaleness = async (
   domain: string,
 ) => {
   const recordKey = getRecordV2Key(domain, record);
-  const owner = await resolve(connection, domain);
+  const { registry, nftOwner } = await NameRegistryState.retrieve(
+    connection,
+    getDomainKeySync(domain).pubkey,
+  );
+  const owner = nftOwner || registry.owner;
   const recordObj = await SnsRecord.retrieve(connection, recordKey);
 
   const stalenessId = recordObj.getStalenessId();
 
   return (
-    owner.equals(new PublicKey(stalenessId)) &&
+    owner?.equals(new PublicKey(stalenessId)) &&
     recordObj.header.stalenessValidation === Validation.Solana
   );
 };

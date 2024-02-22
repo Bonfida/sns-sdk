@@ -13,6 +13,7 @@ import {
   AccountLayout,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
+import { NameRegistryState } from "./state";
 
 export const NAME_OFFERS_ID = new PublicKey(
   "85iDfUvr3HJyLM2zcq5BXSiDvUWfw6cSE1FfNBo8Ap29",
@@ -101,7 +102,11 @@ export const getFavoriteDomain = async (
   const favorite = await FavouriteDomain.retrieve(connection, favKey);
 
   const reverse = await reverseLookup(connection, favorite.nameAccount);
-  const domainOwner = await resolve(connection, reverse);
+  const { registry, nftOwner } = await NameRegistryState.retrieve(
+    connection,
+    favorite.nameAccount,
+  );
+  const domainOwner = nftOwner || registry.owner;
 
   return {
     domain: favorite.nameAccount,
