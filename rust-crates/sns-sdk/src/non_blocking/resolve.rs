@@ -21,7 +21,7 @@ use crate::{
         ROOT_DOMAIN_ACCOUNT,
     },
     error::SnsError,
-    favourite_domain::{derive_favorite_domain_key, FavouriteDomain},
+    favourite_domain::{derive_favourite_domain_key, FavouriteDomain},
     record::{get_record_key, record_v1::check_sol_record, Record},
 };
 
@@ -386,7 +386,7 @@ pub async fn get_favourite_domain(
     rpc_client: &RpcClient,
     owner: &Pubkey,
 ) -> Result<Option<Pubkey>, SnsError> {
-    let favourite_domain_state_key = derive_favorite_domain_key(owner);
+    let favourite_domain_state_key = derive_favourite_domain_key(owner);
     let account = rpc_client
         .get_account_with_commitment(&favourite_domain_state_key, rpc_client.commitment())
         .await?

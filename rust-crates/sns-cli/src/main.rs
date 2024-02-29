@@ -1,6 +1,7 @@
 use std::{fs::File, time::Duration};
 
-use sns_sdk::record;
+use sns_sdk::{favourite_domain::register_favourite::Accounts, record, NAME_OFFERS_PROGRAM_ID};
+use solana_sdk::{bs58, signature::Keypair, system_program};
 
 use {
     anyhow::anyhow,
@@ -75,6 +76,21 @@ enum Commands {
             help = "The list of domains to register with or without .sol suffix"
         )]
         domains: Vec<String>,
+        #[arg(long, short, help = "Optional custom RPC URL")]
+        url: Option<String>,
+    },
+    #[command(arg_required_else_help = true, about = "Register a favourite domain")]
+    RegisterFavourite {
+        #[arg(
+            required = true,
+            help = "The path to the wallet private key used to set the favourite domain or an owner wallet"
+        )]
+        owner: String,
+        #[arg(
+            required = true,
+            help = "The list of domains to transfer with or without .sol suffix"
+        )]
+        domain: String,
         #[arg(long, short, help = "Optional custom RPC URL")]
         url: Option<String>,
     },
@@ -509,6 +525,79 @@ async fn process_register(
     Ok(())
 }
 
+enum OwnerKind {
+    Keypair(Keypair),
+    Pubkey(Pubkey),
+}
+
+impl OwnerKind {
+    fn owner(&self) -> Pubkey {
+        match self {
+            OwnerKind::Keypair(keypair) => keypair.pubkey(),
+            OwnerKind::Pubkey(pk) => *pk,
+        }
+    }
+}
+
+async fn process_register_favourite(
+    rpc_client: &RpcClient,
+    owner_keypair_path_or_address: &str,
+    domain: &str,
+) -> CliResult {
+    println!("Registering favourite domain...");
+    let owner_kind = {
+        match read_keypair_file(owner_keypair_path_or_address) {
+            Ok(kp) => OwnerKind::Keypair(kp),
+            Err(e) => match Pubkey::from_str(&owner_keypair_path_or_address) {
+                Ok(owner) => OwnerKind::Pubkey(owner),
+                Err(parse_pk_error) => {
+                    return Err(anyhow!(
+                    "Owner was not a valid keypair nor a valid address: {e:?}, {parse_pk_error:?}"
+                )
+                    .into())
+                }
+            },
+        }
+    };
+    let owner = owner_kind.owner();
+    let domain_key = get_domain_key(&domain)?;
+    let ix = sns_sdk::favourite_domain::get_register_favourite_instruction(
+        NAME_OFFERS_PROGRAM_ID,
+        Accounts {
+            owner: &owner,
+            name: &domain_key,
+            favourite_domain: &sns_sdk::favourite_domain::derive_favourite_domain_key(&owner),
+            system_program: &system_program::ID,
+        },
+        sns_sdk::favourite_domain::register_favourite::Params {},
+    );
+    let blockhash = rpc_client.get_latest_blockhash().await?;
+
+    match owner_kind {
+        OwnerKind::Keypair(keypair) => {
+            let tx = Transaction::new_signed_with_payer(
+                &[ix],
+                Some(&keypair.pubkey()),
+                &[&keypair],
+                blockhash,
+            );
+            let sig = rpc_client.send_and_confirm_transaction(&tx).await?;
+            println!("Favourite set, txid: {sig}");
+        }
+        OwnerKind::Pubkey(_) => {
+            let mut tx = Transaction::new_with_payer(&[ix.clone()], Some(&owner));
+            tx.message.recent_blockhash = blockhash;
+
+            println!(
+                "base58 register favourite tx: {}",
+                bs58::encode(bincode::serialize(&tx).unwrap()).into_string()
+            );
+        }
+    }
+
+    Ok(())
+}
+
 async fn process_record_set(
     rpc_client: &RpcClient,
     domain: &str,
@@ -750,6 +839,9 @@ async fn main() {
             space,
             url,
         } => process_register(&get_rpc_client(url), &keypair_path, domains, space).await,
+        Commands::RegisterFavourite { owner, domain, url } => {
+            process_register_favourite(&get_rpc_client(url), &owner, &domain).await
+        }
         Commands::Record(RecordCommand { cmd }) => match cmd {
             RecordSubCommand::Get { domain, record } => {
                 process_record_get(&get_rpc_client(None), &domain, &record).await
