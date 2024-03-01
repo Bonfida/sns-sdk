@@ -86,10 +86,7 @@ enum Commands {
             help = "The path to the wallet private key used to set the favourite domain or an owner wallet"
         )]
         owner: String,
-        #[arg(
-            required = true,
-            help = "The list of domains to transfer with or without .sol suffix"
-        )]
+        #[arg(required = true, help = "The domain to set as favorite")]
         domain: String,
         #[arg(long, short, help = "Optional custom RPC URL")]
         url: Option<String>,
