@@ -6,6 +6,7 @@ import { Record } from "../src/types/record";
 import { createRecordInstruction } from "../src/bindings";
 import { resolveSolRecordV1 } from "../src/resolve";
 import { NameRegistryState } from "../src/state";
+import { getRecordKeySync } from "../src/record";
 
 jest.setTimeout(20_000);
 
@@ -160,5 +161,42 @@ test("Des/ser", () => {
     };
     const des = record.deserializeRecord(registry, e.record, PublicKey.default);
     expect(des).toBe(e.content);
+  });
+});
+
+describe("getRecordKeySync", () => {
+  test.each([
+    {
+      domain: "domain1.sol",
+      record: Record.SOL,
+      expected: "ATH9akc5pi1PWDB39YY7VCoYzCxmz8XVj23oegSoNSPL",
+    },
+    {
+      domain: "sub.domain2.sol",
+      record: Record.SOL,
+      expected: "AEgJVf6zaQfkyYPnYu8Y9Vxa1Sy69EtRSP8iGubx5MnC",
+    },
+    {
+      domain: "domain3.sol",
+      record: Record.Url,
+      expected: "EuxtWLCKsdpwM8ftKjnD2Q8vBdzZunh7DY1mHwXhLTqx",
+    },
+    {
+      domain: "sub.domain4.sol",
+      record: Record.Url,
+      expected: "64nv6HSbifdUgdWst48V4YUB3Y3uQXVQRD4iDZPd9qGx",
+    },
+    {
+      domain: "domain5.sol",
+      record: Record.IPFS,
+      expected: "2uRMeYzKXaYgFVQ1Yh7fKyZWcxsFUMgpEwMi19sVjwjk",
+    },
+    {
+      domain: "sub.domain6.sol",
+      record: Record.IPFS,
+      expected: "61JdnEhbd2bEfxnu2uQ38gM2SUry2yY8kBMEseYh8dDy",
+    },
+  ])("$domain", (e) => {
+    expect(getRecordKeySync(e.domain, e.record).toBase58()).toBe(e.expected);
   });
 });

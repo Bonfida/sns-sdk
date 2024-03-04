@@ -12,9 +12,9 @@ import {
 } from "@solana/spl-token";
 import {
   NAME_TOKENIZER_ID,
-  MINT_PREFIX,
   NftRecord,
   getRecordFromMint,
+  getDomainMint,
 } from "./name-tokenizer";
 
 /**
@@ -29,10 +29,7 @@ export const retrieveNftOwner = async (
   nameAccount: PublicKey,
 ) => {
   try {
-    const [mint] = await PublicKey.findProgramAddress(
-      [MINT_PREFIX, nameAccount.toBuffer()],
-      NAME_TOKENIZER_ID,
-    );
+    const mint = getDomainMint(nameAccount);
 
     const mintInfo = await getMint(connection, mint);
     if (mintInfo.supply.toString() === "0") {
