@@ -15,6 +15,7 @@ import {
   createInstructionV3,
   burnInstruction,
   createWithNftInstruction,
+  registerFavoriteInstruction,
 } from "./instructions";
 import { NameRegistryState } from "./state";
 import { Numberu64, Numberu32 } from "./int";
@@ -58,6 +59,7 @@ import {
   Validation,
   writeRoa,
 } from "@bonfida/sns-records";
+import { FavouriteDomain, NAME_OFFERS_ID } from "./favorite-domain";
 
 /**
  * Creates a name account with the given rent budget, allocated space, owner and class.
@@ -970,4 +972,23 @@ export const transferSubdomain = async (
   );
 
   return ix;
+};
+
+/**
+ * This function can be used to register a domain name as favorite
+ * @param nameAccount The name account being registered as favorite
+ * @param owner The owner of the name account
+ * @param programId The name offer program ID
+ * @returns
+ */
+export const registerFavorite = (nameAccount: PublicKey, owner: PublicKey) => {
+  const [favKey] = FavouriteDomain.getKeySync(NAME_OFFERS_ID, owner);
+  const ix = new registerFavoriteInstruction().getInstruction(
+    NAME_OFFERS_ID,
+    nameAccount,
+    favKey,
+    owner,
+    SystemProgram.programId,
+  );
+  return [ix];
 };
