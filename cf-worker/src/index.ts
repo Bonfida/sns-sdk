@@ -21,8 +21,16 @@ import {
   getMultipleFavoriteDomains,
   NameRegistryState,
   GUARDIANS,
+  createSubdomain,
+  transferInstruction,
+  NAME_PROGRAM_ID,
 } from "@bonfida/spl-name-service";
-import { Connection, PublicKey, Transaction } from "@solana/web3.js";
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+} from "@solana/web3.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { cors } from "hono/cors";
 import { cache } from "hono/cache";
@@ -44,6 +52,10 @@ const isPubkey = (x: string) => {
     return false;
   }
 };
+
+const booleanSchema = z
+  .union([z.boolean(), z.literal("true"), z.literal("false")])
+  .transform((value) => value === true || value === "true");
 
 const getConnection = (c: Context<any>, clientRpc: string | undefined) => {
   return new Connection(clientRpc || (c.env?.RPC_URL as string), "processed");
@@ -437,7 +449,7 @@ app.get("/register", async (c) => {
       buyerStr: z.string().refine(isPubkey),
       domain: z.string(),
       space: z.number().min(0),
-      serialize: z.boolean().optional(),
+      serialize: booleanSchema.optional(),
       refKey: z.string().refine(isPubkey).optional(),
       mintStr: z.string().refine(isPubkey).optional(),
       rpc: z.string().optional(),
@@ -477,6 +489,82 @@ app.get("/register", async (c) => {
 
     const result = [];
     for (let i of ix) {
+      result.push({
+        programId: i.programId.toBase58(),
+        keys: i.keys.map((e) => {
+          return {
+            isSigner: e.isSigner,
+            isWritable: e.isWritable,
+            pubkey: e.pubkey.toBase58(),
+          };
+        }),
+        data: i.data.toString("base64"),
+      });
+    }
+
+    return c.json(response(true, result));
+  } catch (err) {
+    console.log(err);
+    if (err instanceof z.ZodError) {
+      return c.json(response(false, "Invalid input"), 400);
+    } else {
+      return c.json(response(false, "Internal error"), 500);
+    }
+  }
+});
+
+/**
+ * Returns the base64 transaction to create a sub domain
+ */
+app.get("/create-sub", async (c) => {
+  try {
+    const Query = z.object({
+      owner: z.string().refine(isPubkey),
+      subdomain: z.string(),
+      rpc: z.string().optional(),
+      serialize: booleanSchema.optional(),
+      finalOwner: z.string().refine(isPubkey).optional(),
+    });
+
+    const { owner, subdomain, rpc, serialize, finalOwner } = Query.parse(
+      c.req.query()
+    );
+
+    const connection = getConnection(c, rpc);
+    const ixs: TransactionInstruction[] = [];
+
+    const [, ix] = await createSubdomain(
+      connection,
+      subdomain,
+      new PublicKey(owner),
+      0
+    );
+    ixs.push(...ix);
+
+    if (finalOwner) {
+      const ix = transferInstruction(
+        NAME_PROGRAM_ID,
+        getDomainKeySync(subdomain).pubkey,
+        new PublicKey(finalOwner),
+        new PublicKey(owner)
+      );
+      ixs.push(ix);
+    }
+
+    if (serialize) {
+      const tx = new Transaction().add(...ixs);
+
+      tx.feePayer = new PublicKey(owner);
+      tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+      const ser = tx.serialize({
+        requireAllSignatures: false,
+        verifySignatures: false,
+      });
+      return c.json(response(true, ser));
+    }
+
+    const result = [];
+    for (let i of ixs) {
       result.push({
         programId: i.programId.toBase58(),
         keys: i.keys.map((e) => {
