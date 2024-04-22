@@ -18,7 +18,7 @@ test("Create sub", async () => {
     connection,
     sub + "." + parent,
     parentOwner,
-    1_000
+    1_000,
   );
   const tx = new Transaction();
   tx.add(...ix);

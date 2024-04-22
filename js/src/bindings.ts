@@ -407,12 +407,14 @@ export const createReverseName = async (
  * @param subdomain The subdomain to create with or without .sol e.g something.bonfida.sol or something.bonfida
  * @param owner The owner of the parent domain creating the subdomain
  * @param space The space to allocate to the subdomain (defaults to 2kb)
+ * @param feePayer Optional: Specifies a fee payer different from the parent owner
  */
 export const createSubdomain = async (
   connection: Connection,
   subdomain: string,
   owner: PublicKey,
   space = 2_000,
+  feePayer?: PublicKey,
 ) => {
   const ixs: TransactionInstruction[] = [];
   const sub = subdomain.split(".")[0];
@@ -431,7 +433,7 @@ export const createSubdomain = async (
     connection,
     "\0".concat(sub),
     space, // Hardcode space to 2kB
-    owner,
+    feePayer || owner,
     owner,
     lamports,
     undefined,
@@ -446,7 +448,7 @@ export const createSubdomain = async (
     const [, ix_reverse] = await createReverseName(
       pubkey,
       "\0".concat(sub),
-      owner,
+      feePayer || owner,
       parent,
       owner,
     );
