@@ -5,6 +5,7 @@ import { createSubdomain, transferSubdomain } from "../src/bindings";
 import { randomBytes } from "crypto";
 import { VAULT_OWNER } from "../src/constants";
 import { findSubdomains, getDomainKeySync } from "../src/utils";
+import { resolve } from "../src/resolve";
 
 jest.setTimeout(20_000);
 
@@ -67,4 +68,27 @@ test("Find sub domain", async () => {
   );
   const expectedSub = ["dex", "naming", "test"];
   subs.sort().forEach((e, idx) => expect(e).toBe(expectedSub[idx]));
+});
+
+test("Create sub - Fee payer ", async () => {
+  const sub = "gvbhnjklmjnhb";
+  const parent = "bonfida.sol";
+  const feePayer = VAULT_OWNER;
+
+  const parentOwner = await resolve(connection, parent);
+  const [, ix] = await createSubdomain(
+    connection,
+    sub + "." + parent,
+    parentOwner,
+    1_000,
+    feePayer,
+  );
+  const tx = new Transaction();
+  tx.add(...ix);
+  const { blockhash } = await connection.getLatestBlockhash();
+
+  tx.recentBlockhash = blockhash;
+  tx.feePayer = VAULT_OWNER;
+  const res = await connection.simulateTransaction(tx);
+  expect(res.value.err).toBe(null);
 });
