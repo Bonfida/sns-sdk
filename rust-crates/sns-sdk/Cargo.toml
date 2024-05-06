@@ -15,15 +15,15 @@ blocking = []
 devnet = []
 
 [dependencies]
-spl-name-service = {version = "0.2.0", features = ["no-entrypoint"]}
-solana-program = "1.16.16"
+spl-name-service = { version = "0.3.0", features = ["no-entrypoint"] }
+solana-program = "1.18.11"
 derive_more = "0.99.17"
-solana-sdk = "1.16.16"
-solana-client = "1.16.16"
-solana-account-decoder = "1.16.16"
+solana-sdk = "1.18.11"
+solana-client = "1.18.11"
+solana-account-decoder = "1.18.11"
 ed25519-dalek = "1.0.1"
 hex = "0.4.3"
-spl-token = "3.0.0"
+spl-token = { version="4.0.0", features= ["no-entrypoint"] }
 borsh = "0.10.3"
 bonfida-utils = "0.4.4"
 spl-associated-token-account = { version = "2.3.0", features = ["no-entrypoint"] }
