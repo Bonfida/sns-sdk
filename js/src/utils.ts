@@ -1,6 +1,11 @@
 import { Connection, PublicKey, MemcmpFilter } from "@solana/web3.js";
 import { sha256 } from "@noble/hashes/sha256";
-import { HASH_PREFIX, NAME_PROGRAM_ID, ROOT_DOMAIN_ACCOUNT } from "./constants";
+import {
+  DEFAULT_PYTH_PUSH_PROGRAM,
+  HASH_PREFIX,
+  NAME_PROGRAM_ID,
+  ROOT_DOMAIN_ACCOUNT,
+} from "./constants";
 import { NameRegistryState } from "./state";
 import { REVERSE_LOOKUP_CLASS } from "./constants";
 import { Buffer } from "buffer";
@@ -385,3 +390,12 @@ export function deserializeReverse(
   const nameLength = data.slice(0, 4).readUInt32LE(0);
   return data.slice(4, 4 + nameLength).toString();
 }
+
+export const getPythFeedAccountKey = (shard: number, priceFeed: number[]) => {
+  const buffer = Buffer.alloc(2);
+  buffer.writeUint16LE(shard);
+  return PublicKey.findProgramAddressSync(
+    [buffer, Buffer.from(priceFeed)],
+    DEFAULT_PYTH_PUSH_PROGRAM,
+  );
+};

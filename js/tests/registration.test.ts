@@ -1,7 +1,11 @@
 require("dotenv").config();
 import { test, jest } from "@jest/globals";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
-import { registerDomainName, registerWithNft } from "../src/bindings";
+import {
+  registerDomainName,
+  registerDomainNameV2,
+  registerWithNft,
+} from "../src/bindings";
 import { randomBytes } from "crypto";
 import { REFERRERS, USDC_MINT } from "../src/constants";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
@@ -101,6 +105,45 @@ test("Indempotent ATA creation ref", async () => {
     );
     tx.add(...ix);
   }
+  const { blockhash } = await connection.getLatestBlockhash();
+  tx.recentBlockhash = blockhash;
+  tx.feePayer = VAULT_OWNER;
+  const res = await connection.simulateTransaction(tx);
+  expect(res.value.err).toBe(null);
+});
+
+test("Register V2", async () => {
+  const tx = new Transaction();
+  const ix = await registerDomainNameV2(
+    connection,
+    randomBytes(10).toString("hex"),
+    1_000,
+    VAULT_OWNER,
+    getAssociatedTokenAddressSync(FIDA_MINT, VAULT_OWNER, true),
+    FIDA_MINT,
+    REFERRERS[1],
+  );
+  tx.add(...ix);
+  const { blockhash } = await connection.getLatestBlockhash();
+  tx.recentBlockhash = blockhash;
+  tx.feePayer = VAULT_OWNER;
+  const res = await connection.simulateTransaction(tx);
+  console.log(res.value.unitsConsumed, "Consummed");
+  expect(res.value.err).toBe(null);
+});
+
+test("Registration V2 with ref", async () => {
+  const tx = new Transaction();
+  const ix = await registerDomainNameV2(
+    connection,
+    randomBytes(10).toString("hex"),
+    1_000,
+    VAULT_OWNER,
+    getAssociatedTokenAddressSync(FIDA_MINT, VAULT_OWNER, true),
+    FIDA_MINT,
+    REFERRERS[1],
+  );
+  tx.add(...ix);
   const { blockhash } = await connection.getLatestBlockhash();
   tx.recentBlockhash = blockhash;
   tx.feePayer = VAULT_OWNER;
