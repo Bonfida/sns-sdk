@@ -7,7 +7,7 @@ import {
   getRecordKeySync,
   getRecord,
   reverseLookup,
-  registerDomainName,
+  registerDomainNameV2,
   findSubdomains,
   getAllDomains,
   getFavoriteDomain,
@@ -33,7 +33,6 @@ import {
 } from "@solana/web3.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { cors } from "hono/cors";
-import { cache } from "hono/cache";
 import { logger } from "hono/logger";
 import { z } from "zod";
 import { Validation } from "@bonfida/sns-records";
@@ -465,7 +464,7 @@ app.get("/register", async (c) => {
 
     const connection = getConnection(c, rpc);
 
-    const [, ix] = await registerDomainName(
+    const ixs = await registerDomainNameV2(
       connection,
       domain,
       space,
@@ -476,7 +475,7 @@ app.get("/register", async (c) => {
     );
 
     if (serialize) {
-      const tx = new Transaction().add(...ix);
+      const tx = new Transaction().add(...ixs);
 
       tx.feePayer = buyer;
       tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
@@ -488,7 +487,7 @@ app.get("/register", async (c) => {
     }
 
     const result = [];
-    for (let i of ix) {
+    for (let i of ixs) {
       result.push({
         programId: i.programId.toBase58(),
         keys: i.keys.map((e) => {
