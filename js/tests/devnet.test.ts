@@ -34,6 +34,26 @@ test("Registration", async () => {
   expect(res.value.err).toBe(null);
 });
 
+test("Registration V2", async () => {
+  const tx = new Transaction();
+
+  const ix = await devnet.bindings.registerDomainNameV2(
+    connection,
+    randomBytes(10).toString("hex"),
+    1_000,
+    OWNER2,
+    getAssociatedTokenAddressSync(NATIVE_MINT, OWNER2, true),
+    NATIVE_MINT,
+  );
+  tx.add(...ix);
+  const { blockhash } = await connection.getLatestBlockhash();
+  tx.recentBlockhash = blockhash;
+  tx.feePayer = OWNER2;
+  const res = await connection.simulateTransaction(tx);
+  console.log(res.value.logs);
+  expect(res.value.err).toBe(null);
+});
+
 test("Create", async () => {
   const tx = new Transaction();
 

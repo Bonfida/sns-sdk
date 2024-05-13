@@ -259,6 +259,7 @@ export async function deleteNameRegistry(
 }
 
 /**
+ * @deprecated This function is deprecated and will be removed in future releases. Use `registerDomainNameV2` instead.
  * This function can be used to register a .sol domain
  * @param connection The Solana RPC connection object
  * @param name The domain name to register e.g bonfida if you want to register bonfida.sol
