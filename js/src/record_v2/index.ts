@@ -31,6 +31,13 @@ export const ETH_ROA_RECORDS = new Set<Record>([
   Record.ETH,
   Record.Injective,
   Record.BSC,
+  Record.BASE,
+]);
+
+export const EVM_RECORDS = new Set<Record>([
+  Record.ETH,
+  Record.BSC,
+  Record.BASE,
 ]);
 
 /**
@@ -123,7 +130,7 @@ export const deserializeRecordV2Content = (
     return decoded;
   } else if (record === Record.SOL) {
     return new PublicKey(content).toBase58();
-  } else if (record === Record.ETH || record === Record.BSC) {
+  } else if (EVM_RECORDS.has(record)) {
     return "0x" + content.toString("hex");
   } else if (record === Record.Injective) {
     return bech32.encode("inj", bech32.toWords(content));
@@ -153,7 +160,7 @@ export const serializeRecordV2Content = (
     return Buffer.from(content, "utf-8");
   } else if (record === Record.SOL) {
     return new PublicKey(content).toBuffer();
-  } else if (record === Record.ETH || record === Record.BSC) {
+  } else if (EVM_RECORDS.has(record)) {
     check(content.slice(0, 2) === "0x", ErrorType.InvalidEvmAddress);
     return Buffer.from(content.slice(2), "hex");
   } else if (record === Record.Injective) {
