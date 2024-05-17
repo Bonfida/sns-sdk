@@ -24,7 +24,10 @@
     "paths": {
       "*": ["node_modules/*", "src/types/*"]
     },
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strict": true
   },
   "include": [
     "src/*",
@@ -33,5 +36,5 @@
     "src/nft/index.ts",
     "src/record_v2/index.ts"
   ],
-  "exclude": ["src/**/*.test.ts", "**/node_modules", "dist"]
+  "exclude": ["src/**/*.test.ts", "**/node_modules", "dist", "benchmarks"]
 }

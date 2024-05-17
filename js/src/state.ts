@@ -1,5 +1,5 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { retrieveNftOwner } from "./nft";
+import { retrieveNftOwnerV2 } from "./nft";
 import { Buffer } from "buffer";
 import { deserialize } from "borsh";
 import { AccountDoesNotExistError } from "./error";
@@ -50,7 +50,7 @@ export class NameRegistryState {
     );
     res.data = nameAccount.data?.slice(this.HEADER_LEN);
 
-    const nftOwner = await retrieveNftOwner(connection, nameAccountKey);
+    const nftOwner = await retrieveNftOwnerV2(connection, nameAccountKey);
 
     return { registry: res, nftOwner };
   }

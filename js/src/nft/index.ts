@@ -17,6 +17,32 @@ import {
   getDomainMint,
 } from "./name-tokenizer";
 
+export const retrieveNftOwnerV2 = async (
+  connection: Connection,
+  nameAccount: PublicKey,
+) => {
+  const mint = getDomainMint(nameAccount);
+
+  const largestAccounts = await connection.getTokenLargestAccounts(mint);
+  if (largestAccounts.value.length === 0) {
+    return null;
+  }
+
+  const largestAccountInfo = await connection.getAccountInfo(
+    largestAccounts.value[0].address,
+  );
+
+  if (!largestAccountInfo) {
+    return null;
+  }
+
+  const decoded = AccountLayout.decode(largestAccountInfo.data);
+  if (decoded.amount.toString() === "1") {
+    return decoded.owner;
+  }
+  return null;
+};
+
 /**
  * This function can be used to retrieve the owner of a tokenized domain name
  *
