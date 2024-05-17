@@ -21,7 +21,11 @@ import { getHashedNameSync, getNameAccountKeySync } from "./utils";
 import { Numberu32, Numberu64 } from "./int";
 import { deserialize, serialize } from "borsh";
 import { Buffer } from "buffer";
-import { ErrorType, SNSError } from "./error";
+import {
+  AccountDoesNotExistError,
+  InvalidReverseTwitterError,
+  MultipleRegistriesError,
+} from "./error";
 
 ////////////////////////////////////////////////////
 // Bindings
@@ -286,7 +290,8 @@ export async function getTwitterHandleandRegistryKeyViaFilters(
       return [state.twitterHandle, new PublicKey(state.twitterRegistryKey)];
     }
   }
-  throw new SNSError(ErrorType.AccountDoesNotExist);
+
+  throw new AccountDoesNotExistError("The twitter account does not exist");
 }
 
 // Uses the RPC node filtering feature, execution speed may vary
@@ -322,7 +327,7 @@ export async function getTwitterRegistryData(
   );
 
   if (filteredAccounts.length > 1) {
-    throw new SNSError(ErrorType.MultipleRegistries);
+    throw new MultipleRegistriesError("More than 1 accounts were found");
   }
 
   return filteredAccounts[0].account.data.slice(NameRegistryState.HEADER_LEN);
@@ -356,7 +361,9 @@ export class ReverseTwitterRegistryState {
       "processed",
     );
     if (!reverseTwitterAccount) {
-      throw new SNSError(ErrorType.InvalidReverseTwitter);
+      throw new InvalidReverseTwitterError(
+        "The reverse twitter account was not found",
+      );
     }
 
     const res = new ReverseTwitterRegistryState(

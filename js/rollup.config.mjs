@@ -35,6 +35,10 @@ export default {
     terser(),
     visualizer(),
   ],
+  treeshake: {
+    moduleSideEffects: false,
+    preset: "smallest",
+  },
   onwarn: function (warning, handler) {
     if (warning.code === "THIS_IS_UNDEFINED") return;
     handler(warning);

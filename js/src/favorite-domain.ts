@@ -1,13 +1,12 @@
 import { Buffer } from "buffer";
-import { deserialize, Schema } from "borsh";
+import { deserialize } from "borsh";
 import {
   deserializeReverse,
   getReverseKeyFromDomainKey,
   reverseLookup,
 } from "./utils";
 import { PublicKey, Connection } from "@solana/web3.js";
-import { ErrorType, SNSError } from "./error";
-import { resolve } from "./resolve";
+import { FavouriteDomainNotFoundError } from "./error";
 import { getDomainMint } from "./nft/name-tokenizer";
 import {
   AccountLayout,
@@ -52,7 +51,9 @@ export class FavouriteDomain {
   static async retrieve(connection: Connection, key: PublicKey) {
     const accountInfo = await connection.getAccountInfo(key);
     if (!accountInfo || !accountInfo.data) {
-      throw new SNSError(ErrorType.FavouriteDomainNotFound);
+      throw new FavouriteDomainNotFoundError(
+        "The favourite account does not exist",
+      );
     }
     return this.deserialize(accountInfo.data);
   }

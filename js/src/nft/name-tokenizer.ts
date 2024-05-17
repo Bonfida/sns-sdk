@@ -1,4 +1,4 @@
-import { deserialize, Schema } from "borsh";
+import { deserialize } from "borsh";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { Buffer } from "buffer";
 

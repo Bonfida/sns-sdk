@@ -27,20 +27,6 @@ export const REGISTER_PROGRAM_ID = new PublicKey(
 );
 
 /**
- * The FIDA Pyth price feed
- */
-export const PYTH_FIDA_PRICE_ACC = new PublicKey(
-  "ETp9eKXVv1dWwHSpsXRUuXHmw24PwRkttCGVgpZEY9zF",
-);
-
-/**
- * The FIDA buy and burn address
- */
-export const BONFIDA_FIDA_BNB = new PublicKey(
-  "AUoZ3YAhV3b2rZeEH93UMZHXUZcTramBvb4d9YEVySkc",
-);
-
-/**
  * The reverse look up class
  */
 export const REVERSE_LOOKUP_CLASS = new PublicKey(
@@ -59,15 +45,6 @@ export const TWITTER_VERIFICATION_AUTHORITY = new PublicKey(
  */
 export const TWITTER_ROOT_PARENT_REGISTRY_KEY = new PublicKey(
   "4YcexoW3r78zz16J2aqmukBLRwGq6rAvWzJpkYAXqebv",
-);
-
-/**
- * The length of the SOL record signature
- */
-export const SOL_RECORD_SIG_LEN = 96;
-
-export const BONFIDA_USDC_BNB = new PublicKey(
-  "DmSyHDSM9eSLyvoLsPvDr5fRRFZ7Bfr3h3ULvWpgQaq7",
 );
 
 export const USDC_MINT = new PublicKey(

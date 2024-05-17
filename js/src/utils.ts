@@ -9,11 +9,11 @@ import {
 import { NameRegistryState } from "./state";
 import { REVERSE_LOOKUP_CLASS } from "./constants";
 import { Buffer } from "buffer";
-import { ErrorType, SNSError } from "./error";
 import { CENTRAL_STATE_SNS_RECORDS } from "@bonfida/sns-records";
 import { RecordVersion } from "./types/record";
 import { retrieveRecords } from "./nft";
 import splitGraphemes from "graphemesplit";
+import { InvalidInputError, NoAccountDataError, SNSError } from "./error";
 
 export const getHashedNameSync = (name: string): Buffer => {
   const input = HASH_PREFIX + name;
@@ -65,7 +65,7 @@ export async function reverseLookup(
     reverseLookupAccount,
   );
   if (!registry.data) {
-    throw new SNSError(ErrorType.NoAccountData);
+    throw new NoAccountDataError("The registry data is empty");
   }
 
   return deserializeReverse(registry.data);
@@ -208,7 +208,7 @@ export const getDomainKeySync = (domain: string, record?: RecordVersion) => {
     );
     return { ...result, isSub: true, parent: parentKey, isSubRecord: true };
   } else if (splitted.length >= 3) {
-    throw new SNSError(ErrorType.InvalidInput);
+    throw new InvalidInputError("The domain is malformed");
   }
   const result = _deriveSync(domain, ROOT_DOMAIN_ACCOUNT);
   return { ...result, isSub: false, parent: undefined };
@@ -323,9 +323,9 @@ export const getReverseKeyFromDomainKey = (
   return reverseLookupAccount;
 };
 
-export const check = (bool: boolean, errorType: ErrorType) => {
+export const check = <T extends SNSError>(bool: boolean, error: T) => {
   if (!bool) {
-    throw new SNSError(errorType);
+    throw error;
   }
 };
 

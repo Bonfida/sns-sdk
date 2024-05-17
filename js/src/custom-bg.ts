@@ -2,13 +2,13 @@ import { PublicKey } from "@solana/web3.js";
 import { CUSTOM_BG_TLD } from "./constants";
 import { CustomBg } from "./types/custom-bg";
 import { getHashedNameSync, getNameAccountKeySync } from "./utils";
-import { ErrorType, SNSError } from "./error";
+import { InvalidCustomBgError } from "./error";
 
 const DEGEN_POET_KEY = new PublicKey(
-  "ART5dr4bDic2sQVZoFheEmUxwQq5VGSx9he7JxHcXNQD"
+  "ART5dr4bDic2sQVZoFheEmUxwQq5VGSx9he7JxHcXNQD",
 );
 const RBG_0x00_KEY = new PublicKey(
-  "CSWvuDHXExVGEMR9kP8xYAHuNjXogeRck9Cnr312CC9g"
+  "CSWvuDHXExVGEMR9kP8xYAHuNjXogeRck9Cnr312CC9g",
 );
 
 export const getCustomBgKeys = (domain: string, customBg: CustomBg) => {
@@ -18,7 +18,7 @@ export const getCustomBgKeys = (domain: string, customBg: CustomBg) => {
   const domainKey = getNameAccountKeySync(
     hashedDomain,
     undefined,
-    CUSTOM_BG_TLD
+    CUSTOM_BG_TLD,
   );
   const bgKey = getNameAccountKeySync(hashedBg, undefined, domainKey);
 
@@ -32,6 +32,6 @@ export const getArtistPubkey = (bg: CustomBg): PublicKey => {
     case CustomBg.Rgb0x001:
       return RBG_0x00_KEY;
     default:
-      throw new SNSError(ErrorType.InvalidCustomBg);
+      throw new InvalidCustomBgError("The given background is invalid");
   }
 };

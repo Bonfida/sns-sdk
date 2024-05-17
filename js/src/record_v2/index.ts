@@ -1,5 +1,13 @@
 import { Record } from "../types/record";
-import { ErrorType, SNSError } from "../error";
+import {
+  InvalidAAAARecordError,
+  InvalidARecordError,
+  InvalidEvmAddressError,
+  InvalidInjectiveAddressError,
+  InvalidRecordDataError,
+  InvalidRecordInputError,
+  MissingVerifierError,
+} from "../error";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { encode as encodePunycode, decode as decodePunnycode } from "punycode";
 import {
@@ -67,7 +75,9 @@ export const verifyRightOfAssociation = async (
     : Validation.Solana;
 
   verifier = verifier ?? GUARDIANS.get(record)?.toBuffer();
-  if (!verifier) throw new SNSError(ErrorType.MissingVerifier);
+  if (!verifier) {
+    throw new MissingVerifierError("You must specify the verifier");
+  }
 
   return (
     verifier.compare(roaId) === 0 &&
@@ -137,7 +147,7 @@ export const deserializeRecordV2Content = (
   } else if (record === Record.A || record === Record.AAAA) {
     return ipFromByteArray([...content]).toString();
   } else {
-    throw new SNSError(ErrorType.InvalidARecord);
+    throw new InvalidRecordDataError("The record content is malformed");
   }
 };
 
@@ -161,23 +171,40 @@ export const serializeRecordV2Content = (
   } else if (record === Record.SOL) {
     return new PublicKey(content).toBuffer();
   } else if (EVM_RECORDS.has(record)) {
-    check(content.slice(0, 2) === "0x", ErrorType.InvalidEvmAddress);
+    check(
+      content.slice(0, 2) === "0x",
+      new InvalidEvmAddressError("The record content must start with `0x`"),
+    );
     return Buffer.from(content.slice(2), "hex");
   } else if (record === Record.Injective) {
     const decoded = bech32.decodeToBytes(content);
-    check(decoded.prefix === "inj", ErrorType.InvalidInjectiveAddress);
-    check(decoded.bytes.length === 20, ErrorType.InvalidInjectiveAddress);
+    check(
+      decoded.prefix === "inj",
+      new InvalidInjectiveAddressError(
+        "The record content must start with `inj",
+      ),
+    );
+    check(
+      decoded.bytes.length === 20,
+      new InvalidInjectiveAddressError(`The record data must be 20 bytes long`),
+    );
     return Buffer.from(decoded.bytes);
   } else if (record === Record.A) {
     const array = parseIp(content).toByteArray();
-    check(array.length === 4, ErrorType.InvalidARecord);
+    check(
+      array.length === 4,
+      new InvalidARecordError("The record content must be 4 bytes long"),
+    );
     return Buffer.from(array);
   } else if (record === Record.AAAA) {
     const array = parseIp(content).toByteArray();
-    check(array.length === 16, ErrorType.InvalidAAAARecord);
+    check(
+      array.length === 16,
+      new InvalidAAAARecordError("The record content must be 16 bytes long"),
+    );
     return Buffer.from(array);
   } else {
-    throw new SNSError(ErrorType.InvalidARecord);
+    throw new InvalidRecordInputError("The record content is malformed");
   }
 };
 

@@ -4,7 +4,7 @@ import { getDomainKeySync } from "./utils";
 import { NameRegistryState } from "./state";
 import { Record } from "./types/record";
 import { Buffer } from "buffer";
-import { ErrorType, SNSError } from "./error";
+import { InvalidSignatureError, NoRecordDataError } from "./error";
 import { getRecordV2Key } from "./record_v2";
 import { Record as SnsRecord, Validation } from "@bonfida/sns-records";
 
@@ -69,7 +69,7 @@ export const resolveSolRecordV1 = async (
   const solRecord = await getSolRecord(connection, domain);
 
   if (!solRecord?.data) {
-    throw new SNSError(ErrorType.NoRecordData);
+    throw new NoRecordDataError("The SOL record V1 data is empty");
   }
 
   const encoder = new TextEncoder();
@@ -81,7 +81,7 @@ export const resolveSolRecordV1 = async (
   const valid = checkSolRecord(expected, solRecord.data.slice(32), owner);
 
   if (!valid) {
-    throw new SNSError(ErrorType.InvalidSignature);
+    throw new InvalidSignatureError("The SOL record V1 signature is invalid");
   }
 
   return new PublicKey(solRecord.data.slice(0, 32));

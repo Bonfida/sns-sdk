@@ -11,9 +11,19 @@ import {
 } from "ipaddr.js";
 import { encode as encodePunycode, decode as decodePunnyCode } from "punycode";
 import { check } from "./utils";
-import { ErrorType, SNSError } from "./error";
 import { ed25519 } from "@noble/curves/ed25519";
 import { bech32 } from "@scure/base";
+import {
+  InvalidAAAARecordError,
+  InvalidARecordError,
+  InvalidEvmAddressError,
+  InvalidInjectiveAddressError,
+  InvalidRecordDataError,
+  InvalidRecordInputError,
+  InvalidSignatureError,
+  NoRecordDataError,
+  UnsupportedRecordError,
+} from "./error";
 
 const trimNullPaddingIdx = (buffer: Buffer): number => {
   const arr = Array.from(buffer);
@@ -81,7 +91,7 @@ export async function getRecord(
   let { registry } = await NameRegistryState.retrieve(connection, pubkey);
 
   if (!registry.data) {
-    throw new SNSError(ErrorType.NoRecordData);
+    throw new NoRecordDataError(`The record data is empty`);
   }
 
   if (deserialize) {
@@ -440,7 +450,7 @@ export const deserializeRecord = (
         return address;
       }
     }
-    throw new SNSError(ErrorType.InvalidRecordData);
+    throw new InvalidRecordDataError("The record data is malformed");
   }
 
   if (record === Record.ETH || record === Record.BSC) {
@@ -452,7 +462,7 @@ export const deserializeRecord = (
   } else if (record === Record.Background) {
     return new PublicKey(buffer.slice(0, size)).toString();
   }
-  throw new SNSError(ErrorType.InvalidRecordData);
+  throw new InvalidRecordDataError("The record data is malformed");
 };
 
 /**
@@ -473,31 +483,44 @@ export const serializeRecord = (str: string, record: Record): Buffer => {
   }
 
   if (record === Record.SOL) {
-    throw new SNSError(
-      ErrorType.UnsupportedRecord,
-      "Use `serializeSolRecord` for SOL record",
-    );
+    throw new UnsupportedRecordError("Use `serializeSolRecord` for SOL record");
   } else if (record === Record.ETH || record === Record.BSC) {
-    check(str.slice(0, 2) === "0x", ErrorType.InvalidEvmAddress);
+    check(
+      str.slice(0, 2) === "0x",
+      new InvalidEvmAddressError("The record content must start with `0x`"),
+    );
     return Buffer.from(str.slice(2), "hex");
   } else if (record === Record.Injective) {
     const decoded = bech32.decodeToBytes(str);
-    check(decoded.prefix === "inj", ErrorType.InvalidInjectiveAddress);
-    check(decoded.bytes.length === 20, ErrorType.InvalidInjectiveAddress);
+    check(
+      decoded.prefix === "inj",
+      new InvalidInjectiveAddressError(
+        "The record content must start with `inj",
+      ),
+    );
+    check(
+      decoded.bytes.length === 20,
+      new InvalidInjectiveAddressError(`The record data must be 20 bytes long`),
+    );
     return Buffer.from(decoded.bytes);
   } else if (record === Record.A) {
     const array = parseIp(str).toByteArray();
-    check(array.length === 4, ErrorType.InvalidARecord);
+    check(
+      array.length === 4,
+      new InvalidARecordError(`The record content must be 4 bytes long`),
+    );
     return Buffer.from(array);
   } else if (record === Record.AAAA) {
     const array = parseIp(str).toByteArray();
-    check(array.length === 16, ErrorType.InvalidAAAARecord);
+    check(
+      array.length === 16,
+      new InvalidAAAARecordError(`The record content must be 16 bytes logn`),
+    );
     return Buffer.from(array);
   } else if (record === Record.Background) {
     return new PublicKey(str).toBuffer();
   }
-
-  throw new SNSError(ErrorType.InvalidRecordInput);
+  throw new InvalidRecordInputError(`The provided record data is invalid`);
 };
 
 /**
@@ -517,7 +540,7 @@ export const serializeSolRecord = (
   const expected = Buffer.concat([content.toBuffer(), recordKey.toBuffer()]);
   const encodedMessage = new TextEncoder().encode(expected.toString("hex"));
   const valid = checkSolRecord(encodedMessage, signature, signer);
-  check(valid, ErrorType.InvalidSignature);
+  check(valid, new InvalidSignatureError("The SOL signature is invalid"));
 
   return Buffer.concat([content.toBuffer(), signature]);
 };

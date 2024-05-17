@@ -24,7 +24,13 @@ import {
   getAssociatedTokenAddressSync,
   createAssociatedTokenAccountIdempotentInstruction,
 } from "@solana/spl-token";
-import { ErrorType, SNSError } from "./error";
+import {
+  InvalidDomainError,
+  InvalidInputError,
+  InvalidSubdomainError,
+  NoAccountDataError,
+  PythFeedNotFoundError,
+} from "./error";
 import {
   deserializeReverse,
   getHashedNameSync,
@@ -161,7 +167,7 @@ const reverseLookup = async (
     reverseLookupAccount,
   );
   if (!registry.data) {
-    throw new SNSError(ErrorType.NoAccountData);
+    throw new NoAccountDataError("The registry data is empty");
   }
   return deserializeReverse(registry.data);
 };
@@ -189,7 +195,7 @@ const getDomainKeySync = (domain: string) => {
     const result = _deriveSync(sub, parentKey);
     return { ...result, isSub: true, parent: parentKey };
   } else if (splitted.length >= 3) {
-    throw new SNSError(ErrorType.InvalidInput);
+    throw new InvalidInputError("The domain is malformed");
   }
   const result = _deriveSync(domain, constants.ROOT_DOMAIN_ACCOUNT);
   return { ...result, isSub: false, parent: undefined };
@@ -423,7 +429,7 @@ const registerDomainName = async (
 ) => {
   // Basic validation
   if (name.includes(".") || name.trim().toLowerCase() !== name) {
-    throw new SNSError(ErrorType.InvalidDomain);
+    throw new InvalidDomainError("The domain is malformed");
   }
   const [cs] = PublicKey.findProgramAddressSync(
     [constants.REGISTER_PROGRAM_ID.toBuffer()],
@@ -468,7 +474,9 @@ const registerDomainName = async (
   const pythFeed = devnet.constants.PYTH_FEEDS.get(mint.toBase58());
 
   if (!pythFeed) {
-    throw new SNSError(ErrorType.PythFeedNotFound);
+    throw new PythFeedNotFoundError(
+      "The Pyth account for the provided mint was not found",
+    );
   }
 
   const ix = new createInstructionV3({
@@ -563,7 +571,7 @@ const createSubdomain = async (
   const ixs: TransactionInstruction[] = [];
   const sub = subdomain.split(".")[0];
   if (!sub) {
-    throw new SNSError(ErrorType.InvalidSubdomain);
+    throw new InvalidSubdomainError("The subdomain is malformed");
   }
 
   const { parent, pubkey } = getDomainKeySync(subdomain);
@@ -649,7 +657,7 @@ const transferSubdomain = async (
   const { pubkey, isSub, parent } = getDomainKeySync(subdomain);
 
   if (!parent || !isSub) {
-    throw new SNSError(ErrorType.InvalidSubdomain);
+    throw new InvalidSubdomainError("The subdomain is not valid");
   }
 
   if (!owner) {
@@ -701,7 +709,7 @@ const registerDomainNameV2 = async (
 ) => {
   // Basic validation
   if (name.includes(".") || name.trim().toLowerCase() !== name) {
-    throw new SNSError(ErrorType.InvalidDomain);
+    throw new InvalidDomainError("The domain name is malformed");
   }
   const [cs] = PublicKey.findProgramAddressSync(
     [constants.REGISTER_PROGRAM_ID.toBuffer()],
@@ -750,7 +758,9 @@ const registerDomainNameV2 = async (
   const pythFeed = PYTH_PULL_FEEDS.get(mint.toBase58());
 
   if (!pythFeed) {
-    throw new SNSError(ErrorType.PythFeedNotFound);
+    throw new PythFeedNotFoundError(
+      "The Pyth account for the provided mint was not found",
+    );
   }
 
   const [pythFeedAccount] = getPythFeedAccountKey(0, pythFeed);

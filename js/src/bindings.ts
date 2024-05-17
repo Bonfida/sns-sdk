@@ -48,7 +48,6 @@ import {
   getAssociatedTokenAddressSync,
   createAssociatedTokenAccountIdempotentInstruction,
 } from "@solana/spl-token";
-import { ErrorType, SNSError } from "./error";
 import { serializeRecord, serializeSolRecord } from "./record";
 import { Record, RecordVersion } from "./types/record";
 import { serializeRecordV2Content } from "./record_v2";
@@ -63,6 +62,13 @@ import {
   writeRoa,
 } from "@bonfida/sns-records";
 import { FavouriteDomain, NAME_OFFERS_ID } from "./favorite-domain";
+import {
+  AccountDoesNotExistError,
+  InvalidDomainError,
+  InvalidSubdomainError,
+  PythFeedNotFoundError,
+  UnsupportedRecordError,
+} from "./error";
 
 /**
  * Creates a name account with the given rent budget, allocated space, owner and class.
@@ -281,7 +287,7 @@ export const registerDomainName = async (
 ) => {
   // Basic validation
   if (name.includes(".") || name.trim().toLowerCase() !== name) {
-    throw new SNSError(ErrorType.InvalidDomain);
+    throw new InvalidDomainError("The domain name is malformed");
   }
   const [cs] = PublicKey.findProgramAddressSync(
     [REGISTER_PROGRAM_ID.toBuffer()],
@@ -326,7 +332,9 @@ export const registerDomainName = async (
   const pythFeed = PYTH_FEEDS.get(mint.toBase58());
 
   if (!pythFeed) {
-    throw new SNSError(ErrorType.PythFeedNotFound);
+    throw new PythFeedNotFoundError(
+      "The Pyth account for the provided mint was not found",
+    );
   }
 
   const ix = new createInstructionV3({
@@ -379,7 +387,7 @@ export const registerDomainNameV2 = async (
 ) => {
   // Basic validation
   if (name.includes(".") || name.trim().toLowerCase() !== name) {
-    throw new SNSError(ErrorType.InvalidDomain);
+    throw new InvalidDomainError("The domain name is malformed");
   }
   const [cs] = PublicKey.findProgramAddressSync(
     [REGISTER_PROGRAM_ID.toBuffer()],
@@ -424,7 +432,9 @@ export const registerDomainNameV2 = async (
   const pythFeed = PYTH_PULL_FEEDS.get(mint.toBase58());
 
   if (!pythFeed) {
-    throw new SNSError(ErrorType.PythFeedNotFound);
+    throw new PythFeedNotFoundError(
+      "The Pyth account for the provided mint was not found",
+    );
   }
 
   const [pythFeedAccount] = getPythFeedAccountKey(0, pythFeed);
@@ -523,7 +533,7 @@ export const createSubdomain = async (
   const ixs: TransactionInstruction[] = [];
   const sub = subdomain.split(".")[0];
   if (!sub) {
-    throw new SNSError(ErrorType.InvalidSubdomain);
+    throw new InvalidDomainError("The subdomain name is malformed");
   }
 
   const { parent, pubkey } = getDomainKeySync(subdomain);
@@ -581,7 +591,12 @@ export const createRecordInstruction = async (
   owner: PublicKey,
   payer: PublicKey,
 ) => {
-  check(record !== Record.SOL, ErrorType.UnsupportedRecord);
+  check(
+    record !== Record.SOL,
+    new UnsupportedRecordError(
+      "SOL record is not supported for this instruction",
+    ),
+  );
   const { pubkey, hashed, parent } = getDomainKeySync(
     `${record}.${domain}`,
     RecordVersion.V1,
@@ -660,11 +675,19 @@ export const updateRecordInstruction = async (
   owner: PublicKey,
   payer: PublicKey,
 ) => {
-  check(record !== Record.SOL, ErrorType.UnsupportedRecord);
+  check(
+    record !== Record.SOL,
+    new UnsupportedRecordError(
+      "SOL record is not supported for this instruction",
+    ),
+  );
   const { pubkey } = getDomainKeySync(`${record}.${domain}`, RecordVersion.V1);
 
   const info = await connection.getAccountInfo(pubkey);
-  check(!!info?.data, ErrorType.AccountDoesNotExist);
+  check(
+    !!info?.data,
+    new AccountDoesNotExistError("The record account does not exist"),
+  );
 
   const serialized = serializeRecord(data, record);
   if (info?.data.slice(96).length !== serialized.length) {
@@ -934,7 +957,10 @@ export const updateSolRecordInstruction = async (
   );
 
   const info = await connection.getAccountInfo(pubkey);
-  check(!!info?.data, ErrorType.AccountDoesNotExist);
+  check(
+    !!info?.data,
+    new AccountDoesNotExistError("The record account does not exist"),
+  );
 
   if (info?.data.length !== 96) {
     return [
@@ -1050,7 +1076,7 @@ export const transferSubdomain = async (
   const { pubkey, isSub, parent } = getDomainKeySync(subdomain);
 
   if (!parent || !isSub) {
-    throw new SNSError(ErrorType.InvalidSubdomain);
+    throw new InvalidSubdomainError("The subdomain is not valid");
   }
 
   if (!owner) {
