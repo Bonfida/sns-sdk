@@ -1,6 +1,7 @@
 import { deserialize } from "borsh";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { Buffer } from "buffer";
+import { NftRecordNotFoundError } from "../error";
 
 export const NAME_TOKENIZER_ID = new PublicKey(
   "nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk",
@@ -61,7 +62,9 @@ export class NftRecord {
   static async retrieve(connection: Connection, key: PublicKey) {
     const accountInfo = await connection.getAccountInfo(key);
     if (!accountInfo || !accountInfo.data) {
-      throw new Error("NFT record not found");
+      throw new NftRecordNotFoundError(
+        "NFT record not found: " + key.toBase58(),
+      );
     }
     return this.deserialize(accountInfo.data);
   }

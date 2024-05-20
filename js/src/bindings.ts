@@ -65,6 +65,7 @@ import { FavouriteDomain, NAME_OFFERS_ID } from "./favorite-domain";
 import {
   AccountDoesNotExistError,
   InvalidDomainError,
+  InvalidParrentError,
   InvalidSubdomainError,
   PythFeedNotFoundError,
   UnsupportedRecordError,
@@ -651,7 +652,7 @@ export const createRecordV2Instruction = (
   }
 
   if (!parent) {
-    throw new Error("Invalid parent");
+    throw new InvalidParrentError("Parent could not be found");
   }
 
   const ix = allocateAndPostRecord(
@@ -743,7 +744,7 @@ export const updateRecordV2Instruction = (
   }
 
   if (!parent) {
-    throw new Error("Invalid parent");
+    throw new InvalidParrentError("Parent could not be found");
   }
 
   const ix = editRecord(
@@ -784,7 +785,7 @@ export const deleteRecordV2 = (
   }
 
   if (!parent) {
-    throw new Error("Invalid parent");
+    throw new InvalidParrentError("Parent could not be found");
   }
 
   const ix = deleteRecord(
@@ -816,7 +817,7 @@ export const validateRecordV2Content = (
   }
 
   if (!parent) {
-    throw new Error("Invalid parent");
+    throw new InvalidParrentError("Parent could not be found");
   }
 
   const ix = validateSolanaSignature(
@@ -849,7 +850,7 @@ export const writRoaRecordV2 = (
   }
 
   if (!parent) {
-    throw new Error("Invalid parent");
+    throw new InvalidParrentError("Parent could not be found");
   }
   const ix = writeRoa(
     payer,
@@ -881,7 +882,7 @@ export const ethValidateRecordV2Content = (
   }
 
   if (!parent) {
-    throw new Error("Invalid parent");
+    throw new InvalidParrentError("Parent could not be found");
   }
 
   const ix = validateEthSignature(

@@ -31,6 +31,8 @@ export enum ErrorType {
   PythFeedNotFound = "PythFeedNotFound",
   InvalidRoA = "InvalidRoA",
   InvalidPda = "InvalidPda",
+  InvalidParrent = "InvalidParrent",
+  NftRecordNotFound = "NftRecordNotFound",
 }
 
 export class SNSError extends Error {
@@ -235,5 +237,17 @@ export class InvalidRoAError extends SNSError {
 export class InvalidPdaError extends SNSError {
   constructor(message?: string) {
     super(ErrorType.InvalidPda, message);
+  }
+}
+
+export class InvalidParrentError extends SNSError {
+  constructor(message?: string) {
+    super(ErrorType.InvalidParrent, message);
+  }
+}
+
+export class NftRecordNotFoundError extends SNSError {
+  constructor(message?: string) {
+    super(ErrorType.NftRecordNotFound, message);
   }
 }
