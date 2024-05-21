@@ -6,7 +6,7 @@ import {
 } from "../src/favorite-domain";
 import { PublicKey, Connection, Keypair, Transaction } from "@solana/web3.js";
 import { registerFavorite } from "../src/bindings";
-import { getDomainKeySync } from "../src/utils";
+import { getDomainKeySync } from "../src/utils/getDomainKeySync";
 
 jest.setTimeout(10_000);
 

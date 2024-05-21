@@ -17,7 +17,8 @@ import {
   updateInstruction,
 } from "./instructions";
 import { NameRegistryState } from "./state";
-import { getHashedNameSync, getNameAccountKeySync } from "./utils";
+import { getHashedNameSync } from "./utils/getHashedNameSync";
+import { getNameAccountKeySync } from "./utils/getNameAccountKeySync";
 import { Numberu32, Numberu64 } from "./int";
 import { deserialize, serialize } from "borsh";
 import { Buffer } from "buffer";

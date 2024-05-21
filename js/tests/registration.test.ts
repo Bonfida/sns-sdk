@@ -9,7 +9,8 @@ import {
 import { randomBytes } from "crypto";
 import { REFERRERS, USDC_MINT } from "../src/constants";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
-import { getDomainKeySync, getReverseKeySync } from "../src/utils";
+import { getDomainKeySync } from "../src/utils/getDomainKeySync";
+import { getReverseKeySync } from "../src/utils/getReverseKeySync";
 import { Metaplex } from "@metaplex-foundation/js";
 
 jest.setTimeout(20_000);

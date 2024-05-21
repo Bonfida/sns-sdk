@@ -1,18 +1,18 @@
-import { RECORD_V1_SIZE, Record, RecordVersion } from "./types/record";
-import { Connection, PublicKey } from "@solana/web3.js";
-import { getDomainKeySync } from "./utils";
-import { NameRegistryState } from "./state";
 import { Buffer } from "buffer";
 import { encode as bs58Encode } from "bs58";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { ed25519 } from "@noble/curves/ed25519";
+import { bech32 } from "@scure/base";
+import { encode as encodePunycode, decode as decodePunnyCode } from "punycode";
 import {
   isValid as isValidIp,
   fromByteArray as ipFromByteArray,
   parse as parseIp,
 } from "ipaddr.js";
-import { encode as encodePunycode, decode as decodePunnyCode } from "punycode";
-import { check } from "./utils";
-import { ed25519 } from "@noble/curves/ed25519";
-import { bech32 } from "@scure/base";
+import { RECORD_V1_SIZE, Record, RecordVersion } from "./types/record";
+import { getDomainKeySync } from "./utils/getDomainKeySync";
+import { NameRegistryState } from "./state";
+import { check } from "./utils/check";
 import {
   InvalidAAAARecordError,
   InvalidARecordError,

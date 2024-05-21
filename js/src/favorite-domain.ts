@@ -1,17 +1,15 @@
 import { Buffer } from "buffer";
 import { deserialize } from "borsh";
-import {
-  deserializeReverse,
-  getReverseKeyFromDomainKey,
-  reverseLookup,
-} from "./utils";
 import { PublicKey, Connection } from "@solana/web3.js";
-import { FavouriteDomainNotFoundError } from "./error";
-import { getDomainMint } from "./nft/name-tokenizer";
 import {
   AccountLayout,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
+import { deserializeReverse } from "./utils/deserializeReverse";
+import { getReverseKeyFromDomainKey } from "./utils/getReverseKeyFromDomainKey";
+import { reverseLookup } from "./utils/reverseLookup";
+import { FavouriteDomainNotFoundError } from "./error";
+import { getDomainMint } from "./nft/name-tokenizer";
 import { NameRegistryState } from "./state";
 
 export const NAME_OFFERS_ID = new PublicKey(

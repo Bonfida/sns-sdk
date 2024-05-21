@@ -6,19 +6,31 @@ import { nodeResolve } from "@rollup/plugin-node-resolve";
 import replace from "@rollup/plugin-replace";
 import babel from "@rollup/plugin-babel";
 import { visualizer } from "rollup-plugin-visualizer";
+import multiInput from 'rollup-plugin-multi-input';
 
+/**
+ * @type {import('rollup').RollupOptions}
+ */
 export default {
-  input: "src/index.ts",
+  input: [
+    "src/index.ts",
+    "src/record_v2/**/*.ts",
+    "src/utils/**/*.ts",
+  ],
+  treeshake: true,
   output: [
     {
-      file: "dist/index.mjs",
+      dir: "dist/",
       format: "esm",
       sourcemap: true,
+      entryFileNames: '[name].mjs',
+      exports: "named"
     },
-    { file: "dist/index.cjs", format: "cjs", sourcemap: true },
+    { dir: "dist/", format: "cjs", sourcemap: true },
   ],
   external: ["@solana/web3.js"],
   plugins: [
+    multiInput.default(),
     typescript(),
     commonjs(),
     babel({ babelHelpers: "bundled" }),

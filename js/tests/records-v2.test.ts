@@ -1,12 +1,10 @@
 require("dotenv").config();
 import { test, expect } from "@jest/globals";
-import {
-  deserializeRecordV2Content,
-  getMultipleRecordsV2,
-  getRecordV2,
-  getRecordV2Key,
-  serializeRecordV2Content,
-} from "../src/record_v2";
+import { deserializeRecordV2Content } from "../src/record_v2/deserializeRecordV2Content";
+import { getMultipleRecordsV2 } from "../src/record_v2/getMultipleRecordsV2";
+import { getRecordV2 } from "../src/record_v2/getRecordV2";
+import { getRecordV2Key } from "../src/record_v2/getRecordV2Key";
+import { serializeRecordV2Content } from "../src/record_v2/serializeRecordV2Content";
 import { Record } from "../src/types/record";
 import { Keypair, Connection, PublicKey, Transaction } from "@solana/web3.js";
 import {

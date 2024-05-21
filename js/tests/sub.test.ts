@@ -4,7 +4,8 @@ import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { createSubdomain, transferSubdomain } from "../src/bindings";
 import { randomBytes } from "crypto";
 import { VAULT_OWNER } from "../src/constants";
-import { findSubdomains, getDomainKeySync } from "../src/utils";
+import { findSubdomains } from "../src/utils/findSubdomains";
+import { getDomainKeySync } from "../src/utils/getDomainKeySync";
 import { resolve } from "../src/resolve";
 
 jest.setTimeout(20_000);

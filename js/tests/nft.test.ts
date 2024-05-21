@@ -1,7 +1,8 @@
 require("dotenv").config();
 import { test, jest } from "@jest/globals";
 import { PublicKey, Connection } from "@solana/web3.js";
-import { getDomainKeySync, getTokenizedDomains } from "../src/utils";
+import { getDomainKeySync } from "../src/utils/getDomainKeySync";
+import { getTokenizedDomains } from "../src/utils/getTokenizedDomains";
 import { getDomainMint } from "../src/nft/name-tokenizer";
 
 jest.setTimeout(10_000);
@@ -29,7 +30,7 @@ test("Get tokenized domains", async () => {
   const domains = (
     await getTokenizedDomains(
       connection,
-      new PublicKey("Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8")
+      new PublicKey("Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8"),
     )
   ).map((e) => {
     return {

@@ -35,14 +35,12 @@ import {
   METAPLEX_ID,
   PYTH_PULL_FEEDS,
 } from "./constants";
-import {
-  check,
-  getDomainKeySync,
-  getHashedNameSync,
-  getNameAccountKeySync,
-  getPythFeedAccountKey,
-  getReverseKeySync,
-} from "./utils";
+import { check } from "./utils/check";
+import { getDomainKeySync } from "./utils/getDomainKeySync";
+import { getReverseKeySync } from "./utils/getReverseKeySync";
+import { getHashedNameSync } from "./utils/getHashedNameSync";
+import { getNameAccountKeySync } from "./utils/getNameAccountKeySync";
+import { getPythFeedAccountKey } from "./utils/getPythFeedAccountKey";
 import {
   TOKEN_PROGRAM_ID,
   getAssociatedTokenAddressSync,
@@ -50,7 +48,7 @@ import {
 } from "@solana/spl-token";
 import { serializeRecord, serializeSolRecord } from "./record";
 import { Record, RecordVersion } from "./types/record";
-import { serializeRecordV2Content } from "./record_v2";
+import { serializeRecordV2Content } from "./record_v2/serializeRecordV2Content";
 import {
   editRecord,
   allocateAndPostRecord,

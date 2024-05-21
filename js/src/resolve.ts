@@ -1,11 +1,11 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { getRecordKeySync, getSolRecord, checkSolRecord } from "./record";
-import { getDomainKeySync } from "./utils";
+import { getDomainKeySync } from "./utils/getDomainKeySync";
 import { NameRegistryState } from "./state";
 import { Record } from "./types/record";
 import { Buffer } from "buffer";
 import { InvalidSignatureError, NoRecordDataError } from "./error";
-import { getRecordV2Key } from "./record_v2";
+import { getRecordV2Key } from "./record_v2/getRecordV2Key";
 import { Record as SnsRecord, Validation } from "@bonfida/sns-records";
 
 /**
