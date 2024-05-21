@@ -1,9 +1,9 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { Record } from "../types/record";
-import { getRecordV2Key } from ".";
+import { getRecordV2Key } from "./getRecordV2Key";
 import { Record as SnsRecord, Validation } from "@bonfida/sns-records";
 import { NameRegistryState } from "../state";
-import { getDomainKeySync } from "../utils";
+import { getDomainKeySync } from "../utils/getDomainKeySync";
 
 /**
  * This function verifies the staleness of a record.

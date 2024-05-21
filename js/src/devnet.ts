@@ -31,11 +31,9 @@ import {
   NoAccountDataError,
   PythFeedNotFoundError,
 } from "./error";
-import {
-  deserializeReverse,
-  getHashedNameSync,
-  getPythFeedAccountKey,
-} from "./utils";
+import { deserializeReverse } from "./utils/deserializeReverse";
+import { getHashedNameSync } from "./utils/getHashedNameSync";
+import { getPythFeedAccountKey } from "./utils/getPythFeedAccountKey";
 import { PYTH_PULL_FEEDS } from "./constants";
 
 const constants = {

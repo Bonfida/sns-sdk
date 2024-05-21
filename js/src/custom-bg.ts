@@ -1,7 +1,8 @@
 import { PublicKey } from "@solana/web3.js";
 import { CUSTOM_BG_TLD } from "./constants";
 import { CustomBg } from "./types/custom-bg";
-import { getHashedNameSync, getNameAccountKeySync } from "./utils";
+import { getHashedNameSync } from "./utils/getHashedNameSync";
+import { getNameAccountKeySync } from "./utils/getNameAccountKeySync";
 import { InvalidCustomBgError } from "./error";
 
 const DEGEN_POET_KEY = new PublicKey(

@@ -1,6 +1,6 @@
 import { test, expect } from "@jest/globals";
 import { getDomainKey } from "../src/deprecated/utils";
-import { getDomainKeySync } from "../src/utils";
+import { getDomainKeySync } from "../src/utils/getDomainKeySync";
 
 const items = [
   {
@@ -27,6 +27,6 @@ test("Derivation", async () => {
     expect(pubkey.toBase58()).toBe(item.address);
   }
   items.forEach((e) =>
-    expect(getDomainKeySync(e.domain).pubkey.toBase58()).toBe(e.address)
+    expect(getDomainKeySync(e.domain).pubkey.toBase58()).toBe(e.address),
   );
 });
