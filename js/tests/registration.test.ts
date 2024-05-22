@@ -1,11 +1,9 @@
 require("dotenv").config();
 import { test, jest } from "@jest/globals";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
-import {
-  registerDomainName,
-  registerDomainNameV2,
-  registerWithNft,
-} from "../src/bindings";
+import { registerDomainName } from "../src/bindings/registerDomainName";
+import { registerDomainNameV2 } from "../src/bindings/registerDomainNameV2";
+import { registerWithNft } from "../src/bindings/registerWithNft";
 import { randomBytes } from "crypto";
 import { REFERRERS, USDC_MINT } from "../src/constants";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";

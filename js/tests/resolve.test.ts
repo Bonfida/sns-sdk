@@ -1,7 +1,7 @@
 require("dotenv").config();
 import { test, jest, expect } from "@jest/globals";
 import { Connection } from "@solana/web3.js";
-import { resolve } from "../src/resolve";
+import { resolve } from "../src/resolve/resolve";
 
 jest.setTimeout(50_000);
 

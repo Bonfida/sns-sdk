@@ -1,12 +1,30 @@
 require("dotenv").config();
 import { test, jest, expect } from "@jest/globals";
-import * as record from "../src/record";
+import { getIpfsRecord } from "../src/record/helpers/getIpfsRecord";
+import { getArweaveRecord } from "../src/record/helpers/getArweaveRecord";
+import { getEthRecord } from "../src/record/helpers/getEthRecord";
+import { getBtcRecord } from "../src/record/helpers/getBtcRecord";
+import { getLtcRecord } from "../src/record/helpers/getLtcRecord";
+import { getDogeRecord } from "../src/record/helpers/getDogeRecord";
+import { getEmailRecord } from "../src/record/helpers/getEmailRecord";
+import { getUrlRecord } from "../src/record/helpers/getUrlRecord";
+import { getDiscordRecord } from "../src/record/helpers/getDiscordRecord";
+import { getGithubRecord } from "../src/record/helpers/getGithubRecord";
+import { getRedditRecord } from "../src/record/helpers/getRedditRecord";
+import { getTwitterRecord } from "../src/record/helpers/getTwitterRecord";
+import { getTelegramRecord } from "../src/record/helpers/getTelegramRecord";
+import { getBscRecord } from "../src/record/helpers/getBscRecord";
+
+import { getRecords } from "../src/record/getRecords";
+import { serializeRecord } from "../src/record/serializeRecord";
+import { deserializeRecord } from "../src/record/deserializeRecord";
+
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Record } from "../src/types/record";
-import { createRecordInstruction } from "../src/bindings";
-import { resolveSolRecordV1 } from "../src/resolve";
+import { createRecordInstruction } from "../src/bindings/createRecordInstruction";
+import { resolveSolRecordV1 } from "../src/resolve/resolveSolRecordV1";
 import { NameRegistryState } from "../src/state";
-import { getRecordKeySync } from "../src/record";
+import { getRecordKeySync } from "../src/record/getRecordKeySync";
 
 jest.setTimeout(20_000);
 
@@ -14,67 +32,59 @@ const connection = new Connection(process.env.RPC_URL!);
 
 test("Records", async () => {
   const domain = "🍍";
-  record.getIpfsRecord(connection, domain).then((e) => {
+  getIpfsRecord(connection, domain).then((e) => {
     expect(e).toBe("QmbWqxBEKC3P8tqsKc98xmWNzrzDtRLMiMPL8wBuTGsMnR");
   });
 
-  record
-    .getArweaveRecord(connection, domain)
-    .then((e) => expect(e).toBe("some-arweave-hash"));
+  getArweaveRecord(connection, domain).then((e) =>
+    expect(e).toBe("some-arweave-hash"),
+  );
 
-  record
-    .getEthRecord(connection, domain)
-    .then((e) => expect(e).toBe("0x570eDC13f9D406a2b4E6477Ddf75D5E9cCF51cd6"));
+  getEthRecord(connection, domain).then((e) =>
+    expect(e).toBe("0x570eDC13f9D406a2b4E6477Ddf75D5E9cCF51cd6"),
+  );
 
-  record
-    .getBtcRecord(connection, domain)
-    .then((e) => expect(e).toBe("3JfBcjv7TbYN9yQsyfcNeHGLcRjgoHhV3z"));
+  getBtcRecord(connection, domain).then((e) =>
+    expect(e).toBe("3JfBcjv7TbYN9yQsyfcNeHGLcRjgoHhV3z"),
+  );
 
-  record
-    .getLtcRecord(connection, domain)
-    .then((e) => expect(e).toBe("MK6deR3Mi6dUsim9M3GPDG2xfSeSAgSrpQ"));
+  getLtcRecord(connection, domain).then((e) =>
+    expect(e).toBe("MK6deR3Mi6dUsim9M3GPDG2xfSeSAgSrpQ"),
+  );
 
-  record
-    .getDogeRecord(connection, domain)
-    .then((e) => expect(e).toBe("DC79kjg58VfDZeMj9cWNqGuDfYfGJg9DjZ"));
+  getDogeRecord(connection, domain).then((e) =>
+    expect(e).toBe("DC79kjg58VfDZeMj9cWNqGuDfYfGJg9DjZ"),
+  );
 
-  record
-    .getEmailRecord(connection, domain)
-    .then((e) => expect(e).toBe("🍍@gmail.com"));
+  getEmailRecord(connection, domain).then((e) =>
+    expect(e).toBe("🍍@gmail.com"),
+  );
 
-  record.getUrlRecord(connection, domain).then((e) => expect(e).toBe("🍍.io"));
+  getUrlRecord(connection, domain).then((e) => expect(e).toBe("🍍.io"));
 
-  record
-    .getDiscordRecord(connection, domain)
-    .then((e) => expect(e).toBe("@🍍#7493"));
+  getDiscordRecord(connection, domain).then((e) => expect(e).toBe("@🍍#7493"));
 
-  record
-    .getGithubRecord(connection, domain)
-    .then((e) => expect(expect(e).toBe("@🍍_dev")));
+  getGithubRecord(connection, domain).then((e) =>
+    expect(expect(e).toBe("@🍍_dev")),
+  );
 
-  record
-    .getRedditRecord(connection, domain)
-    .then((e) => expect(e).toBe("@reddit-🍍"));
+  getRedditRecord(connection, domain).then((e) => expect(e).toBe("@reddit-🍍"));
 
-  record
-    .getTwitterRecord(connection, domain)
-    .then((e) => expect(e).toBe("@🍍"));
+  getTwitterRecord(connection, domain).then((e) => expect(e).toBe("@🍍"));
 
-  return record
-    .getTelegramRecord(connection, domain)
-    .then((e) => expect(e).toBe("@🍍-tg"));
+  return getTelegramRecord(connection, domain).then((e) =>
+    expect(e).toBe("@🍍-tg"),
+  );
 });
 
 const sub = "test.🇺🇸.sol";
 
 test("Sub records", async () => {
-  record
-    .getEmailRecord(connection, sub)
-    .then((e) => expect(e).toBe("test@test.com"));
+  getEmailRecord(connection, sub).then((e) => expect(e).toBe("test@test.com"));
 });
 
 test("Get multiple records", async () => {
-  const records = await record.getRecords(
+  const records = await getRecords(
     connection,
     "🍍",
     [Record.Telegram, Record.Github, Record.Backpack],
@@ -86,7 +96,7 @@ test("Get multiple records", async () => {
 });
 
 test("BSC", async () => {
-  const res = await record.getBscRecord(connection, "aanda.sol");
+  const res = await getBscRecord(connection, "aanda.sol");
   expect(res).toBe("0x4170ad697176fe6d660763f6e4dfcf25018e8b63");
 });
 
@@ -152,14 +162,14 @@ test("Des/ser", () => {
   ];
 
   items.forEach((e) => {
-    const ser = record.serializeRecord(e.content, e.record);
+    const ser = serializeRecord(e.content, e.record);
     const registry: NameRegistryState = {
       data: ser,
       parentName: PublicKey.default,
       class: PublicKey.default,
       owner: PublicKey.default,
     };
-    const des = record.deserializeRecord(registry, e.record, PublicKey.default);
+    const des = deserializeRecord(registry, e.record, PublicKey.default);
     expect(des).toBe(e.content);
   });
 });

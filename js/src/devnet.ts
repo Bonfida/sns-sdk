@@ -6,16 +6,14 @@ import {
   TransactionInstruction,
   SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
-import {
-  createInstruction,
-  deleteInstruction,
-  transferInstruction,
-  updateInstruction,
-  createReverseInstruction,
-  createInstructionV3,
-  burnInstruction,
-  createSplitV2Instruction,
-} from "./instructions";
+import { createInstruction } from "./instructions/createInstruction";
+import { deleteInstruction } from "./instructions/deleteInstruction";
+import { transferInstruction } from "./instructions/transferInstruction";
+import { updateInstruction } from "./instructions/updateInstruction";
+import { createReverseInstruction } from "./instructions/createReverseInstruction";
+import { createInstructionV3 } from "./instructions/createInstructionV3";
+import { burnInstruction } from "./instructions/burnInstruction";
+import { createSplitV2Instruction } from "./instructions/createSplitV2Instruction";
 import { NameRegistryState } from "./state";
 import { Numberu64, Numberu32 } from "./int";
 import { getHashedName, getNameOwner } from "./deprecated/utils";
