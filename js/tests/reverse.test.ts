@@ -1,9 +1,9 @@
 require("dotenv").config();
 import { test, jest, expect } from "@jest/globals";
 import { Connection, Transaction } from "@solana/web3.js";
-import { createSubdomain } from "../src/bindings";
+import { createSubdomain } from "../src/bindings/createSubdomain";
 import { VAULT_OWNER } from "../src/constants";
-import { resolve } from "../src/resolve";
+import { resolve } from "../src/resolve/resolve";
 
 jest.setTimeout(5_000);
 

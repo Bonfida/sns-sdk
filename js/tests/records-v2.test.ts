@@ -7,14 +7,12 @@ import { getRecordV2Key } from "../src/record_v2/getRecordV2Key";
 import { serializeRecordV2Content } from "../src/record_v2/serializeRecordV2Content";
 import { Record } from "../src/types/record";
 import { Keypair, Connection, PublicKey, Transaction } from "@solana/web3.js";
-import {
-  createRecordV2Instruction,
-  deleteRecordV2,
-  ethValidateRecordV2Content,
-  updateRecordV2Instruction,
-  validateRecordV2Content,
-  writRoaRecordV2,
-} from "../src/bindings";
+import { createRecordV2Instruction } from "../src/bindings/createRecordV2Instruction";
+import { deleteRecordV2 } from "../src/bindings/deleteRecordV2";
+import { ethValidateRecordV2Content } from "../src/bindings/ethValidateRecordV2Content";
+import { updateRecordV2Instruction } from "../src/bindings/updateRecordV2Instruction";
+import { validateRecordV2Content } from "../src/bindings/validateRecordV2Content";
+import { writRoaRecordV2 } from "../src/bindings/writRoaRecordV2";
 
 jest.setTimeout(50_000);
 

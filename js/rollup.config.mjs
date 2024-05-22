@@ -16,6 +16,11 @@ export default {
     "src/index.ts",
     "src/record_v2/**/*.ts",
     "src/utils/**/*.ts",
+    "src/twitter/**/*.ts",
+    "src/resolve/**/*.ts",
+    "src/record/**/*.ts",
+    "src/bindings/**/*.ts",
+    "src/instructions/**/*.ts",
   ],
   treeshake: true,
   output: [
