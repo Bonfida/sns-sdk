@@ -3,6 +3,7 @@ import {
   Connection,
   GetProgramAccountsFilter,
   MemcmpFilter,
+  SolanaJSONRPCError,
 } from "@solana/web3.js";
 import {
   getMint,
@@ -21,26 +22,34 @@ export const retrieveNftOwnerV2 = async (
   connection: Connection,
   nameAccount: PublicKey,
 ) => {
-  const mint = getDomainMint(nameAccount);
+  try {
+    const mint = getDomainMint(nameAccount);
 
-  const largestAccounts = await connection.getTokenLargestAccounts(mint);
-  if (largestAccounts.value.length === 0) {
+    const largestAccounts = await connection.getTokenLargestAccounts(mint);
+    if (largestAccounts.value.length === 0) {
+      return null;
+    }
+
+    const largestAccountInfo = await connection.getAccountInfo(
+      largestAccounts.value[0].address,
+    );
+
+    if (!largestAccountInfo) {
+      return null;
+    }
+
+    const decoded = AccountLayout.decode(largestAccountInfo.data);
+    if (decoded.amount.toString() === "1") {
+      return decoded.owner;
+    }
     return null;
+  } catch (err) {
+    if (err instanceof SolanaJSONRPCError && err.code === -32602) {
+      // Mint does not exist
+      return null;
+    }
+    throw err;
   }
-
-  const largestAccountInfo = await connection.getAccountInfo(
-    largestAccounts.value[0].address,
-  );
-
-  if (!largestAccountInfo) {
-    return null;
-  }
-
-  const decoded = AccountLayout.decode(largestAccountInfo.data);
-  if (decoded.amount.toString() === "1") {
-    return decoded.owner;
-  }
-  return null;
 };
 
 /**
@@ -99,7 +108,8 @@ export const retrieveNftOwner = async (
  * @returns
  */
 export const retrieveNfts = async (connection: Connection) => {
-  const filters = [
+  const filters: GetProgramAccountsFilter[] = [
+    { dataSize: NftRecord.LEN },
     {
       memcmp: {
         offset: 0,

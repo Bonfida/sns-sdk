@@ -27,6 +27,8 @@ export async function getAllDomains(
   ];
   const accounts = await connection.getProgramAccounts(NAME_PROGRAM_ID, {
     filters,
+    // Only the public keys matter, not the data
+    dataSlice: { offset: 0, length: 0 },
   });
   return accounts.map((a) => a.pubkey);
 }

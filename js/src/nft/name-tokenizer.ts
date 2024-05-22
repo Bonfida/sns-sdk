@@ -1,5 +1,9 @@
 import { deserialize } from "borsh";
-import { Connection, PublicKey } from "@solana/web3.js";
+import {
+  Connection,
+  GetProgramAccountsFilter,
+  PublicKey,
+} from "@solana/web3.js";
 import { Buffer } from "buffer";
 import { NftRecordNotFoundError } from "../error";
 
@@ -30,6 +34,8 @@ export class NftRecord {
   nameAccount: PublicKey;
   owner: PublicKey;
   nftMint: PublicKey;
+
+  static LEN = 1 + 1 + 32 + 32 + 32;
 
   static schema = {
     struct: {
@@ -87,7 +93,8 @@ export const getRecordFromMint = async (
   connection: Connection,
   mint: PublicKey,
 ) => {
-  const filters = [
+  const filters: GetProgramAccountsFilter[] = [
+    { dataSize: NftRecord.LEN },
     {
       memcmp: {
         offset: 0,
