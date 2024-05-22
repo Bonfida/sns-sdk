@@ -34,6 +34,7 @@ import {
   WOLVES_COLLECTION_METADATA,
   METAPLEX_ID,
   PYTH_PULL_FEEDS,
+  CENTRAL_STATE,
 } from "./constants";
 import { check } from "./utils/check";
 import { getDomainKeySync } from "./utils/getDomainKeySync";
@@ -288,10 +289,6 @@ export const registerDomainName = async (
   if (name.includes(".") || name.trim().toLowerCase() !== name) {
     throw new InvalidDomainError("The domain name is malformed");
   }
-  const [cs] = PublicKey.findProgramAddressSync(
-    [REGISTER_PROGRAM_ID.toBuffer()],
-    REGISTER_PROGRAM_ID,
-  );
 
   const hashed = getHashedNameSync(name);
   const nameAccount = getNameAccountKeySync(
@@ -301,7 +298,10 @@ export const registerDomainName = async (
   );
 
   const hashedReverseLookup = getHashedNameSync(nameAccount.toBase58());
-  const reverseLookupAccount = getNameAccountKeySync(hashedReverseLookup, cs);
+  const reverseLookupAccount = getNameAccountKeySync(
+    hashedReverseLookup,
+    CENTRAL_STATE,
+  );
 
   const [derived_state] = PublicKey.findProgramAddressSync(
     [nameAccount.toBuffer()],
@@ -347,7 +347,7 @@ export const registerDomainName = async (
     nameAccount,
     reverseLookupAccount,
     SystemProgram.programId,
-    cs,
+    CENTRAL_STATE,
     buyer,
     buyerTokenAccount,
     PYTH_MAPPING_ACC,
@@ -388,10 +388,6 @@ export const registerDomainNameV2 = async (
   if (name.includes(".") || name.trim().toLowerCase() !== name) {
     throw new InvalidDomainError("The domain name is malformed");
   }
-  const [cs] = PublicKey.findProgramAddressSync(
-    [REGISTER_PROGRAM_ID.toBuffer()],
-    REGISTER_PROGRAM_ID,
-  );
 
   const hashed = getHashedNameSync(name);
   const nameAccount = getNameAccountKeySync(
@@ -401,7 +397,10 @@ export const registerDomainNameV2 = async (
   );
 
   const hashedReverseLookup = getHashedNameSync(nameAccount.toBase58());
-  const reverseLookupAccount = getNameAccountKeySync(hashedReverseLookup, cs);
+  const reverseLookupAccount = getNameAccountKeySync(
+    hashedReverseLookup,
+    CENTRAL_STATE,
+  );
 
   const [derived_state] = PublicKey.findProgramAddressSync(
     [nameAccount.toBuffer()],
@@ -449,7 +448,7 @@ export const registerDomainNameV2 = async (
     nameAccount,
     reverseLookupAccount,
     SystemProgram.programId,
-    cs,
+    CENTRAL_STATE,
     buyer,
     buyer,
     buyer,
@@ -482,15 +481,10 @@ export const createReverseName = async (
   parentName?: PublicKey,
   parentNameOwner?: PublicKey,
 ) => {
-  let [centralState] = await PublicKey.findProgramAddress(
-    [REGISTER_PROGRAM_ID.toBuffer()],
-    REGISTER_PROGRAM_ID,
-  );
-
   let hashedReverseLookup = getHashedNameSync(nameAccount.toBase58());
   let reverseLookupAccount = getNameAccountKeySync(
     hashedReverseLookup,
-    centralState,
+    CENTRAL_STATE,
     parentName,
   );
 
@@ -502,7 +496,7 @@ export const createReverseName = async (
     ROOT_DOMAIN_ACCOUNT,
     reverseLookupAccount,
     SystemProgram.programId,
-    centralState,
+    CENTRAL_STATE,
     feePayer,
     SYSVAR_RENT_PUBKEY,
     parentName,

@@ -33,6 +33,8 @@ export const REVERSE_LOOKUP_CLASS = new PublicKey(
   "33m47vH6Eav6jr5Ry86XjhRft2jRBLDnDgPSHoquXi2Z",
 );
 
+export const CENTRAL_STATE = REVERSE_LOOKUP_CLASS;
+
 /**
  * The `.twitter` TLD authority
  */
