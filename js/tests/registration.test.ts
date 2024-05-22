@@ -129,7 +129,6 @@ test("Register V2", async () => {
   tx.recentBlockhash = blockhash;
   tx.feePayer = VAULT_OWNER;
   const res = await connection.simulateTransaction(tx);
-  console.log(res.value.unitsConsumed, "Consummed");
   expect(res.value.err).toBe(null);
 });
 

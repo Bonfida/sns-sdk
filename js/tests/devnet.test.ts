@@ -50,7 +50,6 @@ test("Registration V2", async () => {
   tx.recentBlockhash = blockhash;
   tx.feePayer = OWNER2;
   const res = await connection.simulateTransaction(tx);
-  console.log(res.value.logs);
   expect(res.value.err).toBe(null);
 });
 

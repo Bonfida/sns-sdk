@@ -1,7 +1,7 @@
 require("dotenv").config();
 import { test, jest, expect } from "@jest/globals";
 import * as record from "../src/record";
-import { Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
+import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Record } from "../src/types/record";
 import { createRecordInstruction } from "../src/bindings";
 import { resolveSolRecordV1 } from "../src/resolve";
