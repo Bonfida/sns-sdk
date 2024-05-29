@@ -396,7 +396,10 @@ async fn process_lookup(rpc_client: &RpcClient, domains: Vec<String>) -> CliResu
     table.add_row(row!["Domain", "Domain key", "Parent", "Owner", "Data"]);
     let pb = progress_bar(domains.len());
     for (idx, domain) in domains.into_iter().enumerate() {
-        let domain_key = sns_sdk::derivation::get_domain_key(&domain)?;
+        let sns_sdk::derivation::DomainKeyWithParent {
+            key: domain_key,
+            parent,
+        } = sns_sdk::derivation::get_domain_key_with_parent(&domain)?;
         let row = match resolve::resolve_name_registry(rpc_client, &domain_key).await? {
             Some((header, data)) => {
                 let data = String::from_utf8(data)?;
@@ -408,7 +411,7 @@ async fn process_lookup(rpc_client: &RpcClient, domains: Vec<String>) -> CliResu
                     data
                 ]
             }
-            _ => row![format_domain(&domain), domain_key],
+            _ => row![format_domain(&domain), domain_key, parent, "N/A", "N/A"],
         };
         table.add_row(row);
         pb.set_position(idx as u64);
