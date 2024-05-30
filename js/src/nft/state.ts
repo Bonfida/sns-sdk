@@ -1,25 +1,7 @@
 import { deserialize } from "borsh";
-import {
-  Connection,
-  GetProgramAccountsFilter,
-  PublicKey,
-} from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import { Buffer } from "buffer";
 import { NftRecordNotFoundError } from "../error";
-
-export const NAME_TOKENIZER_ID = new PublicKey(
-  "nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk",
-);
-
-export const MINT_PREFIX = Buffer.from("tokenized_name");
-
-export const getDomainMint = (domain: PublicKey) => {
-  const [mint] = PublicKey.findProgramAddressSync(
-    [MINT_PREFIX, domain.toBuffer()],
-    NAME_TOKENIZER_ID,
-  );
-  return mint;
-};
 
 export enum Tag {
   Uninitialized = 0,
@@ -80,38 +62,10 @@ export class NftRecord {
       programId,
     );
   }
+  static findKeySync(nameAccount: PublicKey, programId: PublicKey) {
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from("nft_record"), nameAccount.toBuffer()],
+      programId,
+    );
+  }
 }
-
-/**
- * This function can be used to retrieve a NFT Record given a mint
- *
- * @param connection A solana RPC connection
- * @param mint The mint of the NFT Record
- * @returns
- */
-export const getRecordFromMint = async (
-  connection: Connection,
-  mint: PublicKey,
-) => {
-  const filters: GetProgramAccountsFilter[] = [
-    { dataSize: NftRecord.LEN },
-    {
-      memcmp: {
-        offset: 0,
-        bytes: "3",
-      },
-    },
-    {
-      memcmp: {
-        offset: 1 + 1 + 32 + 32,
-        bytes: mint.toBase58(),
-      },
-    },
-  ];
-
-  const result = await connection.getProgramAccounts(NAME_TOKENIZER_ID, {
-    filters,
-  });
-
-  return result;
-};

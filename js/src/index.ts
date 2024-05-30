@@ -66,8 +66,15 @@ export * from "./instructions/transferInstruction";
 export * from "./instructions/updateInstruction";
 export * from "./instructions/types";
 
-export * from "./nft";
-export { getDomainMint } from "./nft/name-tokenizer";
+export * from "./nft/getDomainMint";
+export * from "./nft/retrieveNftOwnerV2";
+export * from "./nft/retrieveNftOwner";
+export * from "./nft/retrieveNfts";
+export * from "./nft/getRecordFromMint";
+export * from "./nft/retrieveRecords";
+export * from "./nft/const";
+export * from "./nft/state";
+
 export * from "./favorite-domain";
 export * from "./constants";
 export * from "./int";

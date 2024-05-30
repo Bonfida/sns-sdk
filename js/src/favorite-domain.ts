@@ -9,7 +9,7 @@ import { deserializeReverse } from "./utils/deserializeReverse";
 import { getReverseKeyFromDomainKey } from "./utils/getReverseKeyFromDomainKey";
 import { reverseLookup } from "./utils/reverseLookup";
 import { FavouriteDomainNotFoundError } from "./error";
-import { getDomainMint } from "./nft/name-tokenizer";
+import { getDomainMint } from "./nft/getDomainMint";
 import { NameRegistryState } from "./state";
 
 export const NAME_OFFERS_ID = new PublicKey(

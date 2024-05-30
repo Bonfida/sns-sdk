@@ -6,7 +6,7 @@ import { nodeResolve } from "@rollup/plugin-node-resolve";
 import replace from "@rollup/plugin-replace";
 import babel from "@rollup/plugin-babel";
 import { visualizer } from "rollup-plugin-visualizer";
-import multiInput from 'rollup-plugin-multi-input';
+import multiInput from "rollup-plugin-multi-input";
 
 /**
  * @type {import('rollup').RollupOptions}
@@ -19,6 +19,7 @@ export default {
     "src/twitter/**/*.ts",
     "src/resolve/**/*.ts",
     "src/record/**/*.ts",
+    "src/nft/**/*.ts",
     "src/bindings/**/*.ts",
     "src/instructions/**/*.ts",
   ],
@@ -28,8 +29,8 @@ export default {
       dir: "dist/",
       format: "esm",
       sourcemap: true,
-      entryFileNames: '[name].mjs',
-      exports: "named"
+      entryFileNames: "[name].mjs",
+      exports: "named",
     },
     { dir: "dist/", format: "cjs", sourcemap: true },
   ],

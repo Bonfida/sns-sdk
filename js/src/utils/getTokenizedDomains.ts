@@ -1,5 +1,5 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { retrieveRecords } from "../nft";
+import { retrieveRecords } from "../nft/retrieveRecords";
 import { reverseLookupBatch } from "./reverseLookupBatch";
 
 /**

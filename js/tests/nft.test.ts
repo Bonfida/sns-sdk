@@ -3,7 +3,7 @@ import { test, jest } from "@jest/globals";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { getDomainKeySync } from "../src/utils/getDomainKeySync";
 import { getTokenizedDomains } from "../src/utils/getTokenizedDomains";
-import { getDomainMint } from "../src/nft/name-tokenizer";
+import { getDomainMint } from "../src/nft/getDomainMint";
 
 jest.setTimeout(10_000);
 const connection = new Connection(process.env.RPC_URL!);

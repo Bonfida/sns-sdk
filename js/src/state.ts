@@ -1,5 +1,5 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { retrieveNftOwnerV2 } from "./nft";
+import { retrieveNftOwnerV2 } from "./nft/retrieveNftOwnerV2";
 import { Buffer } from "buffer";
 import { deserialize } from "borsh";
 import { AccountDoesNotExistError } from "./error";

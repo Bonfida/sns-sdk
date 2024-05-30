@@ -33,7 +33,7 @@
     "src/*",
     "src/.ts",
     "src/deprecated/.ts",
-    "src/nft/index.ts",
+    "src/nft/retrieveRecords.ts",
     "src/record_v2/index.ts"
   ],
   "exclude": ["src/**/*.test.ts", "**/node_modules", "dist", "benchmarks"]

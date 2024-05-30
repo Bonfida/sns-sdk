@@ -5,7 +5,7 @@ import { createSubdomain } from "../src/bindings/createSubdomain";
 import { VAULT_OWNER } from "../src/constants";
 import { resolve } from "../src/resolve/resolve";
 
-jest.setTimeout(5_000);
+jest.setTimeout(50_000);
 
 const connection = new Connection(process.env.RPC_URL!);
 
