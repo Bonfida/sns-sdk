@@ -53,5 +53,5 @@ export const updateSolRecordInstruction = async (
     signer,
   );
 
-  return [ix];
+  return ix;
 };

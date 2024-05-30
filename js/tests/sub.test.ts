@@ -15,7 +15,7 @@ const connection = new Connection(process.env.RPC_URL!);
 
 test("Create sub", async () => {
   const tx = new Transaction();
-  const [, ix] = await createSubdomain(
+  const ix = await createSubdomain(
     connection,
     randomBytes(10).toString("hex") + ".bonfida",
     new PublicKey("HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA"),
@@ -78,7 +78,7 @@ test("Create sub - Fee payer ", async () => {
   const feePayer = VAULT_OWNER;
 
   const parentOwner = await resolve(connection, parent);
-  const [, ix] = await createSubdomain(
+  const ix = await createSubdomain(
     connection,
     sub + "." + parent,
     parentOwner,

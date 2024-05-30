@@ -23,7 +23,7 @@ const VAULT_OWNER = new PublicKey(
 
 test("Registration", async () => {
   const tx = new Transaction();
-  const [, ix] = await registerDomainName(
+  const ix = await registerDomainName(
     connection,
     randomBytes(10).toString("hex"),
     1_000,
@@ -41,7 +41,7 @@ test("Registration", async () => {
 
 test("Registration with ref", async () => {
   const tx = new Transaction();
-  const [, ix] = await registerDomainName(
+  const ix = await registerDomainName(
     connection,
     randomBytes(10).toString("hex"),
     1_000,
@@ -93,7 +93,7 @@ test("Register with NFT", async () => {
 test("Indempotent ATA creation ref", async () => {
   const tx = new Transaction();
   for (let i = 0; i < 3; i++) {
-    const [, ix] = await registerDomainName(
+    const ix = await registerDomainName(
       connection,
       randomBytes(10).toString("hex"),
       1_000,

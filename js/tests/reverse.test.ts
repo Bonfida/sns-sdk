@@ -14,7 +14,7 @@ test("Create sub", async () => {
   const parent = "bonfida.sol";
 
   const parentOwner = await resolve(connection, parent);
-  const [, ix] = await createSubdomain(
+  const ix = await createSubdomain(
     connection,
     sub + "." + parent,
     parentOwner,

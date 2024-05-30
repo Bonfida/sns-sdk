@@ -49,5 +49,5 @@ export const createReverseName = async (
 
   let instructions = [initCentralStateInstruction];
 
-  return [[], instructions];
+  return instructions;
 };

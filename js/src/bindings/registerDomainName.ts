@@ -123,5 +123,5 @@ export const registerDomainName = async (
   );
   ixs.push(ix);
 
-  return [[], ixs];
+  return ixs;
 };

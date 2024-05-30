@@ -18,5 +18,5 @@ export const registerFavorite = (nameAccount: PublicKey, owner: PublicKey) => {
     owner,
     SystemProgram.programId,
   );
-  return [ix];
+  return ix;
 };

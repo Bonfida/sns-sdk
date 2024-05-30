@@ -49,5 +49,5 @@ export const createSolRecordInstruction = async (
     signer,
   );
 
-  return [ix];
+  return ix;
 };

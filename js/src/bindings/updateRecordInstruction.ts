@@ -56,5 +56,5 @@ export const updateRecordInstruction = async (
     owner,
   );
 
-  return [ix];
+  return ix;
 };

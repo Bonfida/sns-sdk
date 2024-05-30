@@ -51,7 +51,7 @@ export const createSubdomain = async (
   const reverseKey = getReverseKeySync(subdomain, true);
   const info = await connection.getAccountInfo(reverseKey);
   if (!info?.data) {
-    const [, ix_reverse] = await createReverseName(
+    const ix_reverse = await createReverseName(
       pubkey,
       "\0".concat(sub),
       feePayer || owner,
@@ -61,5 +61,5 @@ export const createSubdomain = async (
     ixs.push(...ix_reverse);
   }
 
-  return [[], ixs];
+  return ixs;
 };
