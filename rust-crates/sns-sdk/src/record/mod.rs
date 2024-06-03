@@ -2,6 +2,7 @@ use crate::{
     derivation::{derive, get_prefix, trim_tld, Domain, ROOT_DOMAIN_ACCOUNT},
     error::SnsError,
 };
+use sns_records::state::validation::Validation;
 use solana_program::pubkey;
 use {bech32::u5, solana_program::pubkey::Pubkey};
 pub mod record_v1;
@@ -35,6 +36,7 @@ pub enum Record {
     AAAA,
     CNAME,
     TXT,
+    BASE,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -70,6 +72,7 @@ impl Record {
             Record::AAAA => "AAAA",
             Record::CNAME => "CNAME",
             Record::TXT => "TXT",
+            Record::BASE => "BASE",
         }
     }
 
@@ -99,6 +102,7 @@ impl Record {
             "AAAA" => Ok(Record::AAAA),
             "CNAME" => Ok(Record::CNAME),
             "TXT" => Ok(Record::TXT),
+            "BASE" => Ok(Record::TXT),
             _ => Err(SnsError::UnrecognizedRecord),
         }
     }
@@ -124,6 +128,14 @@ impl Record {
                 | Record::TXT
                 | Record::CNAME
         )
+    }
+
+    pub fn roa_validation(&self) -> Validation {
+        match self {
+            Record::Sol => Validation::Solana,
+            Record::Injective | Record::Eth | Record::Bsc | Record::BASE => Validation::Ethereum,
+            _ => Validation::None,
+        }
     }
 }
 
