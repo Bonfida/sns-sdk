@@ -34,6 +34,9 @@ pub enum SnsError {
     NftRecordDoesNotExist,
     Casting,
     TryFromSlice(std::array::TryFromSliceError),
+    RecordsError(sns_records::error::SnsRecordsError),
+    StaleRecord,
+    UnverifiedRecord,
 }
 
 impl From<ClientError> for SnsError {
@@ -87,5 +90,11 @@ impl From<bytemuck::PodCastError> for SnsError {
 impl From<TryFromSliceError> for SnsError {
     fn from(e: std::array::TryFromSliceError) -> Self {
         Self::TryFromSlice(e)
+    }
+}
+
+impl From<sns_records::error::SnsRecordsError> for SnsError {
+    fn from(value: sns_records::error::SnsRecordsError) -> Self {
+        Self::RecordsError(value)
     }
 }
