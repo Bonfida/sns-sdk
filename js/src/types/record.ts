@@ -28,6 +28,7 @@ export enum Record {
   TXT = "TXT",
   Background = "background",
   BASE = "BASE",
+  IPNS = "IPNS",
 }
 
 export const RECORD_V1_SIZE: Map<Record, number> = new Map([

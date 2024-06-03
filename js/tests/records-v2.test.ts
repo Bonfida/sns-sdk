@@ -58,6 +58,10 @@ test("Records V2 des/ser", () => {
       content: "username",
       record: Record.Discord,
     },
+    {
+      content: "k51qzi5uqu5dlvj2baxnqndepeb86cbk3ng7n3i46uzyxzyqj2xjonzllnv0v8",
+      record: Record.IPNS,
+    },
   ];
 
   items.forEach((e) => {
