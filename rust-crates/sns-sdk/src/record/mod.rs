@@ -102,7 +102,7 @@ impl Record {
             "AAAA" => Ok(Record::AAAA),
             "CNAME" => Ok(Record::CNAME),
             "TXT" => Ok(Record::TXT),
-            "BASE" => Ok(Record::TXT),
+            "BASE" => Ok(Record::BASE),
             _ => Err(SnsError::UnrecognizedRecord),
         }
     }
@@ -132,7 +132,7 @@ impl Record {
 
     pub fn roa_validation(&self) -> Validation {
         match self {
-            Record::Sol => Validation::Solana,
+            Record::Sol | Record::CNAME | Record::Url => Validation::Solana,
             Record::Injective | Record::Eth | Record::Bsc | Record::BASE => Validation::Ethereum,
             _ => Validation::None,
         }
