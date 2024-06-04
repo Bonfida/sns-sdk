@@ -3,7 +3,7 @@ use sns_records::state::{
     record_header::RecordHeader,
     validation::{get_validation_length, Validation},
 };
-use solana_program::program_pack::Pack;
+use solana_program::{program_pack::Pack, pubkey};
 
 use super::{convert_u5_array, get_record_key, Record};
 use crate::{
@@ -26,6 +26,8 @@ pub struct ParsedRecord<'a> {
     pub staleness_id: &'a [u8],
     pub content: String,
 }
+
+pub const GUARDIAN_ID: Pubkey = pubkey!("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3");
 
 impl<'a> ParsedRecord<'a> {
     pub fn verify_staleness(
@@ -71,6 +73,9 @@ impl<'a> ParsedRecord<'a> {
     pub fn verify_roa(&self) -> Result<(), SnsError> {
         let validation = self.kind.roa_validation();
         if validation as u16 != self.header.right_of_association_validation {
+            return Err(SnsError::UnverifiedRecord);
+        }
+        if matches!(self.kind, Record::CNAME | Record::Url) && self.roa_id != GUARDIAN_ID.as_ref() {
             return Err(SnsError::UnverifiedRecord);
         }
         Ok(())
