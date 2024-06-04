@@ -29,7 +29,7 @@ bonfida-utils = "0.4.4"
 spl-associated-token-account = { version = "2.3.0", features = ["no-entrypoint"] }
 bech32 = "0.9.1"
 punycode = "0.4.1"
-name-tokenizer = { git = "https://github.com/Bonfida/name-tokenizer", features = ["no-entrypoint"]}
+name-tokenizer = { version = "2.0.0", features = ["no-entrypoint"]}
 sns-records = "0.1.0"
 
 futures = "0.3.28"
