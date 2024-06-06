@@ -33,6 +33,11 @@ export enum ErrorType {
   InvalidPda = "InvalidPda",
   InvalidParrent = "InvalidParrent",
   NftRecordNotFound = "NftRecordNotFound",
+  PdaOwnerNotAllowed = "PdaOwnerNotAllowed",
+  DomainDoesNotExist = "DomainDoesNotExist",
+  RecordMalformed = "RecordMalformed",
+  CouldNotFindNftOwner = "CouldNotFindNftOwner",
+  WrongValidation = "WrongValidation",
 }
 
 export class SNSError extends Error {
@@ -249,5 +254,35 @@ export class InvalidParrentError extends SNSError {
 export class NftRecordNotFoundError extends SNSError {
   constructor(message?: string) {
     super(ErrorType.NftRecordNotFound, message);
+  }
+}
+
+export class PdaOwnerNotAllowed extends SNSError {
+  constructor(message?: string) {
+    super(ErrorType.PdaOwnerNotAllowed, message);
+  }
+}
+
+export class DomainDoesNotExist extends SNSError {
+  constructor(message?: string) {
+    super(ErrorType.DomainDoesNotExist, message);
+  }
+}
+
+export class RecordMalformed extends SNSError {
+  constructor(message?: string) {
+    super(ErrorType.RecordMalformed, message);
+  }
+}
+
+export class CouldNotFindNftOwner extends SNSError {
+  constructor(message?: string) {
+    super(ErrorType.CouldNotFindNftOwner, message);
+  }
+}
+
+export class WrongValidation extends SNSError {
+  constructor(message?: string) {
+    super(ErrorType.WrongValidation, message);
   }
 }
