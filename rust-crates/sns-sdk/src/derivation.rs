@@ -63,6 +63,17 @@ pub fn derive(domain: &str, parent: &Pubkey, name_class: Option<Pubkey>) -> Pubk
     key
 }
 
+pub fn derive_reverse(domain_key: &Pubkey, parent: Option<&Pubkey>) -> Pubkey {
+    let hashed = get_hashed_name(&domain_key.to_string());
+    let (key, _) = get_seeds_and_key(
+        &spl_name_service::ID,
+        hashed,
+        Some(&REVERSE_LOOKUP_CLASS),
+        parent,
+    );
+    key
+}
+
 pub fn trim_tld(domain: &str) -> &str {
     domain.strip_suffix(".sol").unwrap_or(domain)
 }
