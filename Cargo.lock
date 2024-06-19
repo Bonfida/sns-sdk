@@ -3880,7 +3880,7 @@ checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
 name = "sns-cli"
-version = "1.5.0"
+version = "1.5.1"
 dependencies = [
  "anyhow",
  "base64 0.21.7",
@@ -3929,7 +3929,7 @@ dependencies = [
 
 [[package]]
 name = "sns-sdk"
-version = "1.5.0"
+version = "1.5.1"
 dependencies = [
  "bech32",
  "bonfida-utils 0.4.4",
