@@ -1,3 +1,10 @@
+use borsh::BorshDeserialize;
+use sns_records::state::{
+    record_header::RecordHeader,
+    validation::{get_validation_length, Validation},
+};
+use solana_program::{program_pack::Pack, pubkey};
+
 use super::{convert_u5_array, get_record_key, Record};
 use crate::{
     error::SnsError,
@@ -11,6 +18,102 @@ use {
     std::net::{Ipv4Addr, Ipv6Addr},
     std::str::FromStr,
 };
+
+pub struct ParsedRecord<'a> {
+    pub kind: Record,
+    pub header: RecordHeader,
+    pub roa_id: &'a [u8],
+    pub staleness_id: &'a [u8],
+    pub content: String,
+}
+
+pub const GUARDIAN_ID: Pubkey = pubkey!("ExXjtfdQe8JacoqP9Z535WzQKjF4CzW1TTRKRgpxvya3");
+
+impl<'a> ParsedRecord<'a> {
+    pub fn verify_staleness(
+        &self,
+        domain_owner_key: Pubkey,
+        domain_owner_account_data: Option<&[u8]>,
+    ) -> Result<(), SnsError> {
+        if domain_owner_key == sns_warp_common::constants::EMITTER_KEY {
+            // The domain is XChain-owned
+            if self.header.staleness_validation != Validation::XChain as u16 {
+                return Err(SnsError::StaleRecord);
+            }
+            let domain_owner_account_data =
+                domain_owner_account_data.ok_or(SnsError::StaleRecord)?;
+            let xchain_record = sns_warp_common::state::x_domain::XDomain::try_from_slice(
+                domain_owner_account_data,
+            )?;
+            let expected_owner_chain = u16::from_le_bytes(
+                self.staleness_id
+                    .get(..2)
+                    .ok_or(SnsError::InvalidRecordData)?
+                    .try_into()
+                    .unwrap(),
+            );
+            let expected_owner_address = self
+                .staleness_id
+                .get(2..)
+                .ok_or(SnsError::InvalidRecordData)?;
+            if expected_owner_chain != xchain_record.owner_chain
+                || expected_owner_address != xchain_record.owner_address
+            {
+                return Err(SnsError::StaleRecord);
+            }
+        }
+        if self.header.staleness_validation != Validation::Solana as u16
+            || self.staleness_id != domain_owner_key.as_ref()
+        {
+            return Err(SnsError::StaleRecord);
+        }
+        Ok(())
+    }
+
+    pub fn verify_roa(&self) -> Result<(), SnsError> {
+        let validation = self.kind.roa_validation();
+        if validation as u16 != self.header.right_of_association_validation {
+            return Err(SnsError::UnverifiedRecord);
+        }
+        if matches!(self.kind, Record::CNAME | Record::Url) && self.roa_id != GUARDIAN_ID.as_ref() {
+            return Err(SnsError::UnverifiedRecord);
+        }
+        Ok(())
+    }
+}
+
+pub async fn parse_record_v2(
+    record: Record,
+    account_data: &[u8],
+) -> Result<ParsedRecord, SnsError> {
+    let record_header = RecordHeader::from_buffer(account_data);
+    let mut offset = spl_name_service::state::NameRecordHeader::LEN + RecordHeader::LEN;
+    let roa_validation = Validation::try_from(record_header.right_of_association_validation)?;
+    let staleness_validation = Validation::try_from(record_header.staleness_validation)?;
+    let mut length = get_validation_length(roa_validation) as usize;
+    let roa_id = account_data
+        .get(offset..offset + length)
+        .ok_or(SnsError::InvalidRecordData)?;
+    offset += length;
+    length = get_validation_length(staleness_validation) as usize;
+    let staleness_id = account_data
+        .get(offset..offset + length)
+        .ok_or(SnsError::InvalidRecordData)?;
+    offset += length;
+    let content = deserialize_record_v2_content(
+        account_data
+            .get(offset..)
+            .ok_or(SnsError::InvalidRecordData)?,
+        record,
+    )?;
+    Ok(ParsedRecord {
+        kind: record,
+        header: record_header,
+        roa_id,
+        staleness_id,
+        content,
+    })
+}
 
 pub async fn retrieve_record_v2(
     rpc_client: RpcClient,
@@ -71,7 +174,7 @@ pub fn deserialize_record_v2_content(content: &[u8], record: Record) -> Result<S
             let des = bech32::encode("inj", content.to_base32(), bech32::Variant::Bech32)?;
             Ok(des)
         }
-        Record::Bsc | Record::Eth => {
+        Record::Bsc | Record::Eth | Record::BASE => {
             let des = format!("0x{}", hex::encode(content));
             Ok(des)
         }
@@ -131,7 +234,7 @@ pub fn serialize_record_v2_content(content: &str, record: Record) -> Result<Vec<
             }
             Ok(data)
         }
-        Record::Bsc | Record::Eth => {
+        Record::Bsc | Record::Eth | Record::BASE => {
             if !content.starts_with("0x") {
                 return Err(SnsError::InvalidEvmAddress);
             }

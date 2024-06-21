@@ -63,23 +63,45 @@ pub fn derive(domain: &str, parent: &Pubkey, name_class: Option<Pubkey>) -> Pubk
     key
 }
 
+pub fn derive_reverse(domain_key: &Pubkey, parent: Option<&Pubkey>) -> Pubkey {
+    let hashed = get_hashed_name(&domain_key.to_string());
+    let (key, _) = get_seeds_and_key(
+        &spl_name_service::ID,
+        hashed,
+        Some(&REVERSE_LOOKUP_CLASS),
+        parent,
+    );
+    key
+}
+
 pub fn trim_tld(domain: &str) -> &str {
     domain.strip_suffix(".sol").unwrap_or(domain)
 }
 
+#[inline(always)]
 pub fn get_domain_key(domain: &str) -> Result<Pubkey, SnsError> {
+    get_domain_key_with_parent(domain).map(|d| d.key)
+}
+pub struct DomainKeyWithParent {
+    pub key: Pubkey,
+    pub parent: Pubkey,
+}
+pub fn get_domain_key_with_parent(domain: &str) -> Result<DomainKeyWithParent, SnsError> {
     let domain = trim_tld(domain);
     let splitted = domain.split('.').collect::<Vec<_>>();
     match splitted.len() {
         1 => {
             let key = derive(domain, &ROOT_DOMAIN_ACCOUNT, None);
-            Ok(key)
+            Ok(DomainKeyWithParent {
+                key,
+                parent: ROOT_DOMAIN_ACCOUNT,
+            })
         }
         2 => {
             let parent = derive(splitted[1], &ROOT_DOMAIN_ACCOUNT, None);
             let sub_domain = get_prefix(Domain::Sub) + splitted[0];
             let key = derive(&sub_domain, &parent, None);
-            Ok(key)
+            Ok(DomainKeyWithParent { key, parent })
         }
         // 3 => {
         //     let parent = derive(splitted[2], &ROOT_DOMAIN_ACCOUNT);

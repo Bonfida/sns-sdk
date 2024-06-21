@@ -11,6 +11,9 @@ const DEGEN_POET_KEY = new PublicKey(
 const RBG_0x00_KEY = new PublicKey(
   "CSWvuDHXExVGEMR9kP8xYAHuNjXogeRck9Cnr312CC9g",
 );
+const RETARDIO_KEY = new PublicKey(
+  "J2Q2j6kpSg7tq8JzueCHNTQNcyNnQkvr85RhsFnYZWeG",
+);
 
 export const getCustomBgKeys = (domain: string, customBg: CustomBg) => {
   const hashedBg = getHashedNameSync(customBg);
@@ -32,6 +35,12 @@ export const getArtistPubkey = (bg: CustomBg): PublicKey => {
       return DEGEN_POET_KEY;
     case CustomBg.Rgb0x001:
       return RBG_0x00_KEY;
+    case CustomBg.Retardio1:
+      return RETARDIO_KEY;
+    case CustomBg.Retardio2:
+      return RETARDIO_KEY;
+    case CustomBg.Retardio3:
+      return RETARDIO_KEY;
     default:
       throw new InvalidCustomBgError("The given background is invalid");
   }

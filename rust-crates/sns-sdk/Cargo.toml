@@ -1,6 +1,6 @@
 [package]
 name = "sns-sdk"
-version = "1.4.0"
+version = "1.5.1"
 edition = "2021"
 description = "The Rust SDK provides everything you need for resolving domain ownership and records within the Solana Name Service (SNS)"
 homepage = "https://www.sns.id/"
@@ -12,7 +12,7 @@ authors = ["Bonfida <contact@bonfida.com>"]
 
 [features]
 blocking = []
-devnet = []
+devnet = ["sns-warp-common/devnet"]
 
 [dependencies]
 spl-name-service = { version = "0.3.0", features = ["no-entrypoint"] }
@@ -29,12 +29,14 @@ bonfida-utils = "0.4.4"
 spl-associated-token-account = { version = "2.3.0", features = ["no-entrypoint"] }
 bech32 = "0.9.1"
 punycode = "0.4.1"
-name-tokenizer = { git = "https://github.com/Bonfida/name-tokenizer", features = ["no-entrypoint"]}
+name-tokenizer = { version = "2.0.0", features = ["no-entrypoint"]}
+sns-records = "0.1.0"
 
 futures = "0.3.28"
 bytemuck = "1.13.1"
 num-derive = "0.4.0"
 num-traits = "0.2.16"
+sns-warp-common = { version = "0.1.0", features = ["solana"] }
 
 [dev-dependencies]
 tokio = {version = "1.26.0", features = ["full"]}
