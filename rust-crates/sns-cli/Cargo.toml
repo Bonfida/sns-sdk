@@ -28,6 +28,8 @@ console = "0.15.5"
 sns-sdk = { version = "1.5.1", path = "../sns-sdk" }
 bincode = "1.3.3"
 borsh = "0.10.3"
+sns-records = { version = "0.1.0", features = ["no-entrypoint"] }
+solana-account-decoder = "*"
 
 [[bin]]
 name = "sns"

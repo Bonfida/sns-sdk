@@ -1,5 +1,16 @@
-use sns_sdk::{favourite_domain::register_favourite::Accounts, record, NAME_OFFERS_PROGRAM_ID};
+use serde::Serialize;
+use sns_sdk::{
+    favourite_domain::register_favourite::Accounts,
+    record::{self, get_record_v2_key},
+    NAME_OFFERS_PROGRAM_ID,
+};
+use solana_account_decoder::UiAccountEncoding;
+use solana_client::{
+    rpc_config::{RpcAccountInfoConfig, RpcProgramAccountsConfig},
+    rpc_filter::{Memcmp, RpcFilterType},
+};
 use solana_sdk::{bs58, signature::Keypair, system_program};
+use std::collections::HashMap;
 
 use {
     anyhow::anyhow,
@@ -169,6 +180,10 @@ enum Commands {
 pub struct RecordCommand {
     #[command(subcommand)]
     pub cmd: RecordSubCommand,
+    #[clap(long, help = "Use records V2", default_value_t)]
+    v2: bool,
+    #[arg(long, short, help = "Optional custom RPC URL")]
+    url: Option<String>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -191,6 +206,8 @@ pub enum RecordSubCommand {
         #[clap(long, help = "The path of keypair ownning the domain")]
         keypair: String,
     },
+    #[command(about = "Dump records system info")]
+    SystemDump,
 }
 
 const RPC_URL: &str = "https://api.mainnet-beta.solana.com";
@@ -680,13 +697,22 @@ async fn process_record_set(
     Ok(())
 }
 
-async fn process_record_get(rpc_client: &RpcClient, domain: &str, record_str: &str) -> CliResult {
+async fn process_record_get(
+    rpc_client: &RpcClient,
+    domain: &str,
+    record_str: &str,
+    v2: bool,
+) -> CliResult {
     let record = Record::try_from_str(record_str)?;
 
     let key = record::get_record_key(
         domain,
         Record::try_from_str(record_str)?,
-        record::RecordVersion::V1,
+        if v2 {
+            record::RecordVersion::V2
+        } else {
+            record::RecordVersion::V1
+        },
     )?;
     let mut table = Table::new();
     if let Some((_, data)) = resolve::resolve_name_registry(rpc_client, &key).await? {
@@ -697,6 +723,79 @@ async fn process_record_get(rpc_client: &RpcClient, domain: &str, record_str: &s
     }
     Term::stdout().clear_to_end_of_screen()?;
     table.printstd();
+    Ok(())
+}
+
+#[derive(Serialize)]
+pub struct SystemDumpRecord {
+    domain: String,
+    record_type: Option<String>,
+    record_key: String,
+}
+
+pub async fn process_system_dump(rpc_client: &RpcClient) -> CliResult {
+    let record_v2_accounts = rpc_client
+        .get_program_accounts_with_config(
+            &spl_name_service::ID,
+            RpcProgramAccountsConfig {
+                filters: Some(vec![RpcFilterType::Memcmp(Memcmp::new_raw_bytes(
+                    64,
+                    sns_records::central_state::KEY.as_ref().to_vec(),
+                ))]),
+                account_config: RpcAccountInfoConfig {
+                    encoding: Some(UiAccountEncoding::Base64),
+                    data_slice: None,
+                    commitment: None,
+                    min_context_slot: None,
+                },
+                with_context: None,
+            },
+        )
+        .await?;
+    eprintln!("Found {} v2 records", record_v2_accounts.len());
+    let mut by_parent: HashMap<Pubkey, Vec<Pubkey>> = HashMap::new();
+    for (k, a) in record_v2_accounts {
+        let spl_header = NameRecordHeader::unpack_unchecked(&a.data[..NameRecordHeader::LEN])?;
+        let entry = by_parent.entry(spl_header.parent_name);
+        match entry {
+            std::collections::hash_map::Entry::Occupied(mut o) => o.get_mut().push(k),
+            std::collections::hash_map::Entry::Vacant(v) => {
+                v.insert(vec![k]);
+            }
+        }
+    }
+    let parent_domains = by_parent.keys().cloned().collect::<Vec<_>>();
+    eprintln!("From a total of {} domains", by_parent.keys().len());
+    let reverse_lookup_keys =
+        sns_sdk::non_blocking::resolve::resolve_reverse_batch(rpc_client, &parent_domains).await?;
+    for (domain, name) in parent_domains
+        .into_iter()
+        .zip(reverse_lookup_keys.into_iter())
+    {
+        if name.is_none() {
+            continue;
+        }
+        let name = name.unwrap();
+        use Record::*;
+        let possible_records = [
+            Ipfs, Arwv, Sol, Eth, Btc, Ltc, Doge, Email, Url, Discord, Github, Reddit, Twitter,
+            Telegram, Pic, Shdw, Point, Bsc, Injective, Backpack, A, AAAA, CNAME, TXT, BASE,
+        ]
+        .into_iter()
+        .map(|r| get_record_v2_key(&name, r).map(|res| (res, r)))
+        .collect::<Result<HashMap<_, _>, _>>()?;
+        for record in by_parent.get(&domain).unwrap() {
+            let record_type = possible_records.get(record);
+            println!(
+                "{}",
+                serde_json::to_string(&SystemDumpRecord {
+                    domain: name.clone(),
+                    record_type: record_type.map(|r| r.as_str().to_owned()),
+                    record_key: record.to_string()
+                })?
+            )
+        }
+    }
     Ok(())
 }
 
@@ -732,9 +831,9 @@ async fn main() {
         Commands::RegisterFavourite { owner, domain, url } => {
             process_register_favourite(&get_rpc_client(url), &owner, &domain).await
         }
-        Commands::Record(RecordCommand { cmd }) => match cmd {
+        Commands::Record(RecordCommand { cmd, v2, url }) => match cmd {
             RecordSubCommand::Get { domain, record } => {
-                process_record_get(&get_rpc_client(None), &domain, &record).await
+                process_record_get(&get_rpc_client(url), &domain, &record, v2).await
             }
             RecordSubCommand::Set {
                 domain,
@@ -742,9 +841,14 @@ async fn main() {
                 content,
                 keypair,
             } => {
-                process_record_set(&get_rpc_client(None), &domain, &record, &content, &keypair)
-                    .await
+                if v2 {
+                    unimplemented!()
+                } else {
+                    process_record_set(&get_rpc_client(url), &domain, &record, &content, &keypair)
+                        .await
+                }
             }
+            RecordSubCommand::SystemDump {} => process_system_dump(&get_rpc_client(url)).await,
         },
     };
 
