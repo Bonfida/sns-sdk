@@ -26,7 +26,6 @@ regex = "1.7.1"
 anyhow = "1.0.69"
 console = "0.15.5"
 sns-sdk = { version = "1.5.1", path = "../sns-sdk" }
-walkdir = "2.3.3"
 bincode = "1.3.3"
 borsh = "0.10.3"
 
