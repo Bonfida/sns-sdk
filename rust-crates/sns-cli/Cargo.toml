@@ -1,6 +1,6 @@
 [package]
 name = "sns-cli"
-version = "1.5.1"
+version = "2.0.0"
 edition = "2021"
 homepage = "https://www.sns.id/"
 repository = "https://github.com/Bonfida/sns-sdk"
