@@ -23,7 +23,6 @@ export default {
     "src/bindings/**/*.ts",
     "src/instructions/**/*.ts",
   ],
-  treeshake: true,
   output: [
     {
       dir: "dist/",
@@ -37,15 +36,15 @@ export default {
   external: ["@solana/web3.js"],
   plugins: [
     multiInput.default(),
-    typescript(),
-    commonjs(),
-    babel({ babelHelpers: "bundled" }),
-    json(),
     nodeResolve({
       browser: true,
       preferBuiltins: false,
       dedupe: ["borsh", "@solana/spl-token", "bn.js", "buffer"],
     }),
+    commonjs(),
+    typescript(),
+    babel({ babelHelpers: "bundled" }),
+    json(),
     replace({
       "process.env.NODE_ENV": JSON.stringify("production"),
       preventAssignment: false,
