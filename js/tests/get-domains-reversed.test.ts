@@ -1,6 +1,6 @@
 require("dotenv").config();
 import { test, expect, jest } from "@jest/globals";
-import { getDomainKeysWithReverses } from "../src/utils";
+import { getDomainKeysWithReverses } from "../src/utils/getDomainKeysWithReverses";
 import { PublicKey, Connection } from "@solana/web3.js";
 
 jest.setTimeout(10_000);

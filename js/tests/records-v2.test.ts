@@ -1,22 +1,18 @@
 require("dotenv").config();
 import { test, expect } from "@jest/globals";
-import {
-  deserializeRecordV2Content,
-  getMultipleRecordsV2,
-  getRecordV2,
-  getRecordV2Key,
-  serializeRecordV2Content,
-} from "../src/record_v2";
+import { deserializeRecordV2Content } from "../src/record_v2/deserializeRecordV2Content";
+import { getMultipleRecordsV2 } from "../src/record_v2/getMultipleRecordsV2";
+import { getRecordV2 } from "../src/record_v2/getRecordV2";
+import { getRecordV2Key } from "../src/record_v2/getRecordV2Key";
+import { serializeRecordV2Content } from "../src/record_v2/serializeRecordV2Content";
 import { Record } from "../src/types/record";
 import { Keypair, Connection, PublicKey, Transaction } from "@solana/web3.js";
-import {
-  createRecordV2Instruction,
-  deleteRecordV2,
-  ethValidateRecordV2Content,
-  updateRecordV2Instruction,
-  validateRecordV2Content,
-  writRoaRecordV2,
-} from "../src/bindings";
+import { createRecordV2Instruction } from "../src/bindings/createRecordV2Instruction";
+import { deleteRecordV2 } from "../src/bindings/deleteRecordV2";
+import { ethValidateRecordV2Content } from "../src/bindings/ethValidateRecordV2Content";
+import { updateRecordV2Instruction } from "../src/bindings/updateRecordV2Instruction";
+import { validateRecordV2Content } from "../src/bindings/validateRecordV2Content";
+import { writRoaRecordV2 } from "../src/bindings/writRoaRecordV2";
 
 jest.setTimeout(50_000);
 
@@ -61,6 +57,10 @@ test("Records V2 des/ser", () => {
     {
       content: "username",
       record: Record.Discord,
+    },
+    {
+      content: "k51qzi5uqu5dlvj2baxnqndepeb86cbk3ng7n3i46uzyxzyqj2xjonzllnv0v8",
+      record: Record.IPNS,
     },
   ];
 

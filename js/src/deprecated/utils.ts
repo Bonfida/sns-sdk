@@ -8,7 +8,11 @@ import {
 import { NameRegistryState } from "../state";
 import { REVERSE_LOOKUP_CLASS } from "../constants";
 import { Buffer } from "buffer";
-import { SNSError, ErrorType } from "../error";
+import {
+  AccountDoesNotExistError,
+  InvalidInputError,
+  NoAccountDataError,
+} from "../error";
 
 /**
  * @deprecated Use {@link resolve} instead
@@ -19,7 +23,7 @@ export async function getNameOwner(
 ) {
   const nameAccount = await connection.getAccountInfo(nameAccountKey);
   if (!nameAccount) {
-    throw new SNSError(ErrorType.AccountDoesNotExist);
+    throw new AccountDoesNotExistError("The name account does exist");
   }
   return NameRegistryState.retrieve(connection, nameAccountKey);
 }
@@ -81,7 +85,7 @@ export async function performReverseLookup(
     reverseLookupAccount,
   );
   if (!registry.data) {
-    throw new SNSError(ErrorType.NoAccountData);
+    throw new NoAccountDataError("The registry data is empty");
   }
   const nameLength = registry.data.slice(0, 4).readUInt32LE(0);
   return registry.data.slice(4, 4 + nameLength).toString();
@@ -162,7 +166,7 @@ export const getDomainKey = async (domain: string, record = false) => {
     const result = await _derive(recordPrefix.concat(splitted[0]), subKey);
     return { ...result, isSub: true, parent: parentKey, isSubRecord: true };
   } else if (splitted.length >= 3) {
-    throw new SNSError(ErrorType.InvalidInput);
+    throw new InvalidInputError("The domain is malformed");
   }
   const result = await _derive(domain, ROOT_DOMAIN_ACCOUNT);
   return { ...result, isSub: false, parent: undefined };

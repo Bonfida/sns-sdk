@@ -5,7 +5,7 @@ import {
 } from "@pythnetwork/client";
 import { Connection } from "@solana/web3.js";
 import { PYTH_FEEDS, PYTH_PULL_FEEDS, TOKENS_SYM_MINT } from "../src/constants";
-import { getPythFeedAccountKey } from "../src/utils";
+import { getPythFeedAccountKey } from "../src/utils/getPythFeedAccountKey";
 
 const connection = new Connection(process.env.RPC_URL!);
 

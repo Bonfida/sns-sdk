@@ -1,7 +1,7 @@
 require("dotenv").config();
-import { test, expect, jest } from "@jest/globals";
-import { getAllDomains } from "../src/utils";
 import { PublicKey, Connection } from "@solana/web3.js";
+import { test, expect, jest } from "@jest/globals";
+import { getAllDomains } from "../src/utils/getAllDomains";
 
 jest.setTimeout(10_000);
 
@@ -24,7 +24,7 @@ const connection = new Connection(process.env.RPC_URL!);
 test("Get domains", async () => {
   for (let item of items) {
     const domains = (await getAllDomains(connection, item.user)).map((e) =>
-      e.toBase58()
+      e.toBase58(),
     );
     domains.sort();
     expect(domains).toEqual(item.domain);

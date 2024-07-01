@@ -1,18 +1,15 @@
 import { Buffer } from "buffer";
-import { deserialize, Schema } from "borsh";
-import {
-  deserializeReverse,
-  getReverseKeyFromDomainKey,
-  reverseLookup,
-} from "./utils";
+import { deserialize } from "borsh";
 import { PublicKey, Connection } from "@solana/web3.js";
-import { ErrorType, SNSError } from "./error";
-import { resolve } from "./resolve";
-import { getDomainMint } from "./nft/name-tokenizer";
 import {
   AccountLayout,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
+import { deserializeReverse } from "./utils/deserializeReverse";
+import { getReverseKeyFromDomainKey } from "./utils/getReverseKeyFromDomainKey";
+import { reverseLookup } from "./utils/reverseLookup";
+import { FavouriteDomainNotFoundError } from "./error";
+import { getDomainMint } from "./nft/getDomainMint";
 import { NameRegistryState } from "./state";
 
 export const NAME_OFFERS_ID = new PublicKey(
@@ -52,7 +49,9 @@ export class FavouriteDomain {
   static async retrieve(connection: Connection, key: PublicKey) {
     const accountInfo = await connection.getAccountInfo(key);
     if (!accountInfo || !accountInfo.data) {
-      throw new SNSError(ErrorType.FavouriteDomainNotFound);
+      throw new FavouriteDomainNotFoundError(
+        "The favourite account does not exist",
+      );
     }
     return this.deserialize(accountInfo.data);
   }
