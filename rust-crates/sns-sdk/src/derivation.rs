@@ -3,31 +3,30 @@ use {
     spl_name_service::state::{get_seeds_and_key, HASH_PREFIX},
 };
 
+use crate::Cluster;
+
 use crate::{error::SnsError, record::RecordVersion};
 
-pub use constants::*;
-#[cfg(not(feature = "devnet"))]
-mod constants {
-    use super::*;
+cluster_constants! {
+    mod constants;
+    mainnet {
+        pub const ROOT_DOMAIN_ACCOUNT: Pubkey = pubkey!("58PwtjSDuFHuUkYjH9BYnnQKHfwo9reZhC2zMJv9JPkx");
+        pub const REVERSE_LOOKUP_CLASS: Pubkey =
+            pubkey!("33m47vH6Eav6jr5Ry86XjhRft2jRBLDnDgPSHoquXi2Z");
 
-    pub const ROOT_DOMAIN_ACCOUNT: Pubkey = pubkey!("58PwtjSDuFHuUkYjH9BYnnQKHfwo9reZhC2zMJv9JPkx");
-    pub const REVERSE_LOOKUP_CLASS: Pubkey =
-        pubkey!("33m47vH6Eav6jr5Ry86XjhRft2jRBLDnDgPSHoquXi2Z");
+        pub const MINT_PREFIX: &[u8; 14] = b"tokenized_name";
+        pub const NAME_TOKENIZER_ID: Pubkey = pubkey!("nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk");
+    }
 
-    pub const MINT_PREFIX: &[u8; 14] = b"tokenized_name";
-    pub const NAME_TOKENIZER_ID: Pubkey = pubkey!("nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk");
-}
-#[cfg(feature = "devnet")]
-mod constants {
-    use super::*;
+    devnet {
+        pub const ROOT_DOMAIN_ACCOUNT: Pubkey = pubkey!("5eoDkP6vCQBXqDV9YN2NdUs3nmML3dMRNmEYpiyVNBm2");
+        pub const REVERSE_LOOKUP_CLASS: Pubkey =
+            pubkey!("7NbD1vprif6apthEZAqhRfYuhrqnuderB8qpnfXGCc8H");
 
-    pub const ROOT_DOMAIN_ACCOUNT: Pubkey = pubkey!("5eoDkP6vCQBXqDV9YN2NdUs3nmML3dMRNmEYpiyVNBm2");
-    pub const REVERSE_LOOKUP_CLASS: Pubkey =
-        pubkey!("7NbD1vprif6apthEZAqhRfYuhrqnuderB8qpnfXGCc8H");
-
-    pub const MINT_PREFIX: &[u8; 14] = b"tokenized_name";
-    // TODO
-    pub const NAME_TOKENIZER_ID: Pubkey = pubkey!("nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk");
+        pub const MINT_PREFIX: &[u8; 14] = b"tokenized_name";
+        // TODO
+        pub const NAME_TOKENIZER_ID: Pubkey = pubkey!("nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk");
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -63,6 +62,7 @@ pub fn derive(domain: &str, parent: &Pubkey, name_class: Option<Pubkey>) -> Pubk
     key
 }
 
+#[cfg(not(feature = "cluster-generics"))]
 pub fn derive_reverse(domain_key: &Pubkey, parent: Option<&Pubkey>) -> Pubkey {
     let hashed = get_hashed_name(&domain_key.to_string());
     let (key, _) = get_seeds_and_key(
@@ -74,18 +74,39 @@ pub fn derive_reverse(domain_key: &Pubkey, parent: Option<&Pubkey>) -> Pubkey {
     key
 }
 
+#[cfg(feature = "cluster-generics")]
+pub fn derive_reverse<CLUSTER: Cluster>(domain_key: &Pubkey, parent: Option<&Pubkey>) -> Pubkey {
+    let hashed = get_hashed_name(&domain_key.to_string());
+    let (key, _) = get_seeds_and_key(
+        &spl_name_service::ID,
+        hashed,
+        Some(&REVERSE_LOOKUP_CLASS[CLUSTER::ID]),
+        parent,
+    );
+    key
+}
+
 pub fn trim_tld(domain: &str) -> &str {
     domain.strip_suffix(".sol").unwrap_or(domain)
 }
 
 #[inline(always)]
+#[cfg(not(feature = "cluster-generics"))]
 pub fn get_domain_key(domain: &str) -> Result<Pubkey, SnsError> {
     get_domain_key_with_parent(domain).map(|d| d.key)
+}
+
+#[inline(always)]
+#[cfg(feature = "cluster-generics")]
+pub fn get_domain_key<CLUSTER: crate::Cluster>(domain: &str) -> Result<Pubkey, SnsError> {
+    get_domain_key_with_parent::<CLUSTER>(domain).map(|d| d.key)
 }
 pub struct DomainKeyWithParent {
     pub key: Pubkey,
     pub parent: Pubkey,
 }
+
+#[cfg(not(feature = "cluster-generics"))]
 pub fn get_domain_key_with_parent(domain: &str) -> Result<DomainKeyWithParent, SnsError> {
     let domain = trim_tld(domain);
     let splitted = domain.split('.').collect::<Vec<_>>();
@@ -115,6 +136,39 @@ pub fn get_domain_key_with_parent(domain: &str) -> Result<DomainKeyWithParent, S
     }
 }
 
+#[cfg(feature = "cluster-generics")]
+pub fn get_domain_key_with_parent<CLUSTER: Cluster>(
+    domain: &str,
+) -> Result<DomainKeyWithParent, SnsError> {
+    let domain = trim_tld(domain);
+    let splitted = domain.split('.').collect::<Vec<_>>();
+    match splitted.len() {
+        1 => {
+            let key = derive(domain, &ROOT_DOMAIN_ACCOUNT[CLUSTER::ID], None);
+            Ok(DomainKeyWithParent {
+                key,
+                parent: ROOT_DOMAIN_ACCOUNT[CLUSTER::ID],
+            })
+        }
+        2 => {
+            let parent = derive(splitted[1], &ROOT_DOMAIN_ACCOUNT[CLUSTER::ID], None);
+            let sub_domain = get_prefix(Domain::Sub) + splitted[0];
+            let key = derive(&sub_domain, &parent, None);
+            Ok(DomainKeyWithParent { key, parent })
+        }
+        // 3 => {
+        //     let parent = derive(splitted[2], &ROOT_DOMAIN_ACCOUNT);
+        //     let sub_domain = get_prefix(Domain::Sub) + splitted[1];
+        //     let sub_key = derive(&sub_domain, &parent);
+        //     let record = get_prefix(Domain::Record(record)) + splitted[0];
+        //     let key = derive(&record, &sub_key);
+        //     Ok(key)
+        // }
+        _ => Err(SnsError::InvalidDomain),
+    }
+}
+
+#[cfg(not(feature = "cluster-generics"))]
 pub fn get_reverse_key(domain: &str) -> Result<Pubkey, SnsError> {
     let domain = trim_tld(domain);
     let splitted = domain.split('.').collect::<Vec<_>>();
@@ -146,11 +200,53 @@ pub fn get_reverse_key(domain: &str) -> Result<Pubkey, SnsError> {
     }
 }
 
+#[cfg(feature = "cluster-generics")]
+pub fn get_reverse_key<CLUSTER: Cluster>(domain: &str) -> Result<Pubkey, SnsError> {
+    let domain = trim_tld(domain);
+    let splitted = domain.split('.').collect::<Vec<_>>();
+    match splitted.len() {
+        1 => {
+            let domain_key = get_domain_key::<CLUSTER>(domain)?;
+            let hashed = get_hashed_name(&domain_key.to_string());
+            let (key, _) = get_seeds_and_key(
+                &spl_name_service::ID,
+                hashed,
+                Some(&REVERSE_LOOKUP_CLASS[CLUSTER::ID]),
+                None,
+            );
+            Ok(key)
+        }
+        2 => {
+            let parent_key = get_domain_key::<CLUSTER>(splitted[1])?;
+            let domain_key = get_domain_key::<CLUSTER>(domain)?;
+            let hashed = get_hashed_name(&domain_key.to_string());
+            let (key, _) = get_seeds_and_key(
+                &spl_name_service::ID,
+                hashed,
+                Some(&REVERSE_LOOKUP_CLASS[CLUSTER::ID]),
+                Some(&parent_key),
+            );
+            Ok(key)
+        }
+        _ => Err(SnsError::InvalidDomain),
+    }
+}
+
+#[cfg(not(feature = "cluster-generics"))]
 pub fn get_domain_mint(domain_key: &Pubkey) -> Pubkey {
     Pubkey::find_program_address(&[MINT_PREFIX, &domain_key.to_bytes()], &NAME_TOKENIZER_ID).0
 }
 
-#[cfg(test)]
+#[cfg(feature = "cluster-generics")]
+pub fn get_domain_mint<CLUSTER: crate::Cluster>(domain_key: &Pubkey) -> Pubkey {
+    Pubkey::find_program_address(
+        &[MINT_PREFIX[CLUSTER::ID], &domain_key.to_bytes()],
+        &NAME_TOKENIZER_ID[CLUSTER::ID],
+    )
+    .0
+}
+
+#[cfg(all(test, not(feature = "cluster-generics")))]
 mod tests {
     use super::*;
 

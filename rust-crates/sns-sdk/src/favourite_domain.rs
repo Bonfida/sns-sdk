@@ -7,10 +7,20 @@ use solana_sdk::instruction::Instruction;
 
 use crate::NAME_OFFERS_PROGRAM_ID;
 
+#[cfg(not(feature = "cluster-generics"))]
 pub fn derive_favourite_domain_key(owner: &Pubkey) -> Pubkey {
     Pubkey::find_program_address(
         &[b"favourite_domain", &owner.to_bytes()],
         &NAME_OFFERS_PROGRAM_ID,
+    )
+    .0
+}
+
+#[cfg(feature = "cluster-generics")]
+pub fn derive_favourite_domain_key<CLUSTER: crate::Cluster>(owner: &Pubkey) -> Pubkey {
+    Pubkey::find_program_address(
+        &[b"favourite_domain", &owner.to_bytes()],
+        &NAME_OFFERS_PROGRAM_ID[CLUSTER::ID],
     )
     .0
 }

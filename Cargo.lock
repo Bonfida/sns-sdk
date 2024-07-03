@@ -3935,6 +3935,7 @@ dependencies = [
  "name-tokenizer",
  "num-derive 0.4.2",
  "num-traits",
+ "paste",
  "punycode",
  "rand 0.8.5",
  "sns-records",

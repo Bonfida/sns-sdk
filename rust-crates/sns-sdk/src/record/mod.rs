@@ -8,6 +8,7 @@ use {bech32::u5, solana_program::pubkey::Pubkey};
 pub mod record_v1;
 pub mod record_v2;
 
+// TODO: Devnet
 pub const CENTRAL_STATE_RECORD_V2: Pubkey = pubkey!("2pMnqHvei2N5oDcVGCRdZx48gqti199wr5CsyTTafsbo");
 
 #[derive(Copy, Clone, Debug)]

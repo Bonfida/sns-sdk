@@ -1,5 +1,11 @@
 use solana_program::{pubkey, pubkey::Pubkey};
 
+#[macro_use]
+pub(crate) mod cluster_utils;
+#[cfg(feature = "cluster-generics")]
+pub use cluster_utils::Cluster;
+pub use cluster_utils::{DefaultCluster, Devnet, Mainnet};
+
 pub mod derivation;
 pub mod error;
 pub mod favourite_domain;
@@ -14,8 +20,12 @@ pub mod non_blocking;
 #[cfg(feature = "blocking")]
 pub mod blocking;
 
-#[cfg(not(feature = "devnet"))]
-pub const NAME_OFFERS_PROGRAM_ID: Pubkey = pubkey!("85iDfUvr3HJyLM2zcq5BXSiDvUWfw6cSE1FfNBo8Ap29");
-
-#[cfg(feature = "devnet")]
-pub const NAME_OFFERS_PROGRAM_ID: Pubkey = pubkey!("nameaSUMPQLdPzSimWStRKQyuwwiKscgWnZ6FSsT4zn");
+cluster_constants! {
+    mod name_offers;
+    mainnet {
+        pub const NAME_OFFERS_PROGRAM_ID: Pubkey = pubkey!("85iDfUvr3HJyLM2zcq5BXSiDvUWfw6cSE1FfNBo8Ap29");
+    }
+    devnet {
+        pub const NAME_OFFERS_PROGRAM_ID: Pubkey = pubkey!("nameaSUMPQLdPzSimWStRKQyuwwiKscgWnZ6FSsT4zn");
+    }
+}
