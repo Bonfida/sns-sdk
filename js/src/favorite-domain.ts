@@ -11,6 +11,7 @@ import { reverseLookup } from "./utils/reverseLookup";
 import { FavouriteDomainNotFoundError } from "./error";
 import { getDomainMint } from "./nft/getDomainMint";
 import { NameRegistryState } from "./state";
+import { NAME_PROGRAM_ID, ROOT_DOMAIN_ACCOUNT } from "./constants";
 
 export const NAME_OFFERS_ID = new PublicKey(
   "85iDfUvr3HJyLM2zcq5BXSiDvUWfw6cSE1FfNBo8Ap29",
@@ -83,6 +84,8 @@ export class FavouriteDomain {
   }
 }
 
+export { FavouriteDomain as PrimaryDomain };
+
 /**
  * This function can be used to retrieve the favorite domain of a user
  * @param connection The Solana RPC connection object
@@ -97,15 +100,25 @@ export const getFavoriteDomain = async (
     NAME_OFFERS_ID,
     new PublicKey(owner),
   );
-
   const favorite = await FavouriteDomain.retrieve(connection, favKey);
-
-  const reverse = await reverseLookup(connection, favorite.nameAccount);
   const { registry, nftOwner } = await NameRegistryState.retrieve(
     connection,
     favorite.nameAccount,
   );
   const domainOwner = nftOwner || registry.owner;
+
+  let reverse = await reverseLookup(
+    connection,
+    favorite.nameAccount,
+    registry.parentName.equals(ROOT_DOMAIN_ACCOUNT)
+      ? undefined
+      : registry.parentName,
+  );
+
+  if (!registry.parentName.equals(ROOT_DOMAIN_ACCOUNT)) {
+    const parentReverse = await reverseLookup(connection, registry.parentName);
+    reverse += `.${parentReverse}`;
+  }
 
   return {
     domain: favorite.nameAccount,
@@ -113,6 +126,8 @@ export const getFavoriteDomain = async (
     stale: !owner.equals(domainOwner),
   };
 };
+
+export { getFavoriteDomain as getPrimaryDomain };
 
 /**
  * This function can be used to retrieve the favorite domains for multiple wallets, up to a maximum of 100.
@@ -139,22 +154,38 @@ export const getMultipleFavoriteDomains = async (
       return PublicKey.default;
     },
   );
-  const revKeys = favDomains.map((e) => getReverseKeyFromDomainKey(e));
+
+  const domainInfos = await connection.getMultipleAccountsInfo(favDomains);
+  const parentRevKeys: PublicKey[] = [];
+  const revKeys = domainInfos.map((e, idx) => {
+    const parent = new PublicKey(e?.data.slice(0, 32) ?? Buffer.alloc(32));
+    const isSub =
+      e?.owner.equals(NAME_PROGRAM_ID) && !parent.equals(ROOT_DOMAIN_ACCOUNT);
+    parentRevKeys.push(
+      isSub ? getReverseKeyFromDomainKey(parent) : PublicKey.default,
+    );
+    return getReverseKeyFromDomainKey(
+      favDomains[idx],
+      isSub ? parent : undefined,
+    );
+  });
   const atas = favDomains.map((e, idx) => {
     const mint = getDomainMint(e);
     const ata = getAssociatedTokenAddressSync(mint, wallets[idx], true);
     return ata;
   });
 
-  const [domainInfos, revs, tokenAccs] = await Promise.all([
-    connection.getMultipleAccountsInfo(favDomains),
+  const [revs, tokenAccs, parentRevs] = await Promise.all([
     connection.getMultipleAccountsInfo(revKeys),
     connection.getMultipleAccountsInfo(atas),
+    connection.getMultipleAccountsInfo(parentRevKeys),
   ]);
 
   for (let i = 0; i < wallets.length; i++) {
+    let parentRev = "";
     const domainInfo = domainInfos[i];
     const rev = revs[i];
+    const parentRevAccount = parentRevs[i];
     const tokenAcc = tokenAccs[i];
 
     if (!domainInfo || !rev) {
@@ -162,10 +193,15 @@ export const getMultipleFavoriteDomains = async (
       continue;
     }
 
+    if (parentRevAccount && parentRevAccount.owner.equals(NAME_PROGRAM_ID)) {
+      const des = deserializeReverse(parentRevAccount.data.slice(96));
+      parentRev += `.${des}`;
+    }
+
     const nativeOwner = new PublicKey(domainInfo?.data.slice(32, 64));
 
     if (nativeOwner.equals(wallets[i])) {
-      result.push(deserializeReverse(rev?.data.slice(96)));
+      result.push(deserializeReverse(rev?.data.slice(96)) + parentRev);
       continue;
     }
     // Either tokenized or stale
@@ -177,7 +213,7 @@ export const getMultipleFavoriteDomains = async (
     const decoded = AccountLayout.decode(tokenAcc.data);
     // Tokenized
     if (Number(decoded.amount) === 1) {
-      result.push(deserializeReverse(rev?.data.slice(96)));
+      result.push(deserializeReverse(rev?.data.slice(96)) + parentRev);
       continue;
     }
 
@@ -187,3 +223,5 @@ export const getMultipleFavoriteDomains = async (
 
   return result;
 };
+
+export { getMultipleFavoriteDomains as getMultiplePrimaryDomains };

@@ -22,6 +22,7 @@ export class registerFavoriteInstruction {
     favouriteAccount: PublicKey,
     owner: PublicKey,
     systemProgram: PublicKey,
+    optParent?: PublicKey,
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys: AccountKey[] = [];
@@ -45,6 +46,13 @@ export class registerFavoriteInstruction {
       isSigner: false,
       isWritable: false,
     });
+    if (!!optParent) {
+      keys.push({
+        pubkey: optParent,
+        isSigner: false,
+        isWritable: false,
+      });
+    }
     return new TransactionInstruction({
       keys,
       programId,

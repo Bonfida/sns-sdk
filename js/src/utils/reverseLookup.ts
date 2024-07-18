@@ -1,11 +1,8 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { NameRegistryState } from "../state";
-import { REVERSE_LOOKUP_CLASS } from "../constants";
 import { NoAccountDataError } from "../error";
-
-import { getHashedNameSync } from "./getHashedNameSync";
-import { getNameAccountKeySync } from "./getNameAccountKeySync";
 import { deserializeReverse } from "./deserializeReverse";
+import { getReverseKeyFromDomainKey } from "./getReverseKeyFromDomainKey";
 
 /**
  * This function can be used to perform a reverse look up
@@ -16,17 +13,11 @@ import { deserializeReverse } from "./deserializeReverse";
 export async function reverseLookup(
   connection: Connection,
   nameAccount: PublicKey,
+  parent?: PublicKey,
 ): Promise<string> {
-  const hashedReverseLookup = getHashedNameSync(nameAccount.toBase58());
-  const reverseLookupAccount = getNameAccountKeySync(
-    hashedReverseLookup,
-    REVERSE_LOOKUP_CLASS,
-  );
+  const reverseKey = getReverseKeyFromDomainKey(nameAccount, parent);
 
-  const { registry } = await NameRegistryState.retrieve(
-    connection,
-    reverseLookupAccount,
-  );
+  const { registry } = await NameRegistryState.retrieve(connection, reverseKey);
   if (!registry.data) {
     throw new NoAccountDataError("The registry data is empty");
   }
