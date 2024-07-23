@@ -63,9 +63,9 @@ This hook can be used to retrieve all the domains owned by a wallet
 
 This hook can be used to retrive the size of a domain name account
 
-### `useFavoriteDomain`
+### `usePrimaryDomain`
 
-This hook can be used to retrieve the favorite domain of a wallet if it exists
+This hook can be used to retrieve the primary domain of a wallet if it exists. Previously known as `useFavoriteDomain`.
 
 ### `useProfilePic`
 

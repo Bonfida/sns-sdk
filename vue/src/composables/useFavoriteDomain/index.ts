@@ -1,11 +1,11 @@
-import { computed, MaybeRef, unref } from "vue";
+import { MaybeRef, unref } from "vue";
 import { getFavoriteDomain } from "@bonfida/spl-name-service";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { toKey } from "@/utils/pubkey";
 import { useLoadingFactory } from "@/utils/use-loading-factory";
 
 /**
- * Returns the favorite domain if it exists.
+ * Returns the primary (formerly known as favorite) domain if it exists.
  * @param connection The Solana RPC connection object
  * @param owner The owner public key base58 encoded or as a `PublicKey` object
  * @returns The public key of the favorite domain and it's reverse (i.e human readable)
@@ -31,3 +31,5 @@ export const useFavoriteDomain = (
     () => [unref(connection), unref(owner)],
   );
 };
+
+export { useFavoriteDomain as usePrimaryDomain };
