@@ -1,11 +1,20 @@
 {
   "name": "@bonfida/sns-vue",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A set of Vue hooks to interact with the Solana Name Service",
-  "keywords": ["bonfida", "vue", "composables", "hooks", "web3", "web3-domains"],
+  "keywords": [
+    "bonfida",
+    "vue",
+    "composables",
+    "hooks",
+    "web3",
+    "web3-domains"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "publishConfig": {"access": "public"},
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "vite build"
   },
