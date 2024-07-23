@@ -9,7 +9,7 @@ type FavoriteDomainResult =
   | undefined;
 
 /**
- * Returns the favorite domain if it exists.
+ * Returns the primary (formerly known as favorite) domain if it exists.
  * @param connection The Solana RPC connection object
  * @param owner The owner public key base58 encoded or as a `PublicKey` object
  * @returns The public key of the favorite domain and it's reverse (i.e human readable)
@@ -39,3 +39,5 @@ export const useFavoriteDomain = (
     queryFn: fn,
   });
 };
+
+export { useFavoriteDomain as usePrimaryDomain };

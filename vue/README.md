@@ -43,7 +43,7 @@ Below is a brief description of the composables available in this library. Detai
 - `useDomainOwner` - allows to resolve the owner of a domain name.
 - `useDomainsForOwner` - allows to retrieve all the domains owned by a wallet
 - `useDomainSize` - allows to retrive the size of a domain name account
-- `useFavoriteDomain` - allows to retrieve the favorite domain of a wallet if it exists
+- `usePrimaryDomain` - allows to retrieve the favorite domain of a wallet if it exists (previously known as `useFavoriteDomain`)
 - `useProfilePic` - allows to retrieve the profile picture of a domain name if it exists
 - `useRecords` - allows to retrieve the content of multiple records
 - `useReverseLookup` - allows to retrieve the reverse of domain name from this public key
