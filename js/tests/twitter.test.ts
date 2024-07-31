@@ -1,14 +1,14 @@
 require("dotenv").config();
 import { test, expect } from "@jest/globals";
-import {
-  getTwitterHandleandRegistryKeyViaFilters,
-  getHandleAndRegistryKey,
-  createVerifiedTwitterRegistry,
-  deleteTwitterRegistry,
-  getTwitterRegistryKey,
-  getTwitterRegistry,
-  ReverseTwitterRegistryState,
-} from "../src/twitter_bindings";
+
+import { getTwitterHandleandRegistryKeyViaFilters } from "../src/twitter/getTwitterHandleandRegistryKeyViaFilters";
+import { getHandleAndRegistryKey } from "../src/twitter/getHandleAndRegistryKey";
+import { createVerifiedTwitterRegistry } from "../src/twitter/createVerifiedTwitterRegistry";
+import { deleteTwitterRegistry } from "../src/twitter/deleteTwitterRegistry";
+import { getTwitterRegistryKey } from "../src/twitter/getTwitterRegistryKey";
+import { getTwitterRegistry } from "../src/twitter/getTwitterRegistry";
+
+import { ReverseTwitterRegistryState } from "../src/twitter/ReverseTwitterRegistryState";
 import { Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { randomBytes } from "crypto";
 import { TWITTER_ROOT_PARENT_REGISTRY_KEY } from "../src/constants";

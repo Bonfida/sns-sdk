@@ -1,5 +1,5 @@
 import { Buffer } from "buffer";
-import { ErrorType, SNSError } from "./error";
+import { InvalidBufferLengthError, U64OverflowError } from "./error";
 export class Numberu32 {
   value: bigint;
 
@@ -21,8 +21,7 @@ export class Numberu32 {
    */
   static fromBuffer(buffer: Buffer): Numberu32 {
     if (buffer.length !== 4) {
-      throw new SNSError(
-        ErrorType.InvalidBufferLength,
+      throw new InvalidBufferLengthError(
         `Invalid buffer length: ${buffer.length}`,
       );
     }
@@ -61,10 +60,7 @@ export class Numberu64 {
    */
   static fromBuffer(buffer: Buffer): Numberu64 {
     if (buffer.length !== 8) {
-      throw new SNSError(
-        ErrorType.U64Overflow,
-        `Invalid buffer length: ${buffer.length}`,
-      );
+      new U64OverflowError(`Invalid buffer length: ${buffer.length}`);
     }
 
     const value = buffer.readBigUInt64LE(0);

@@ -6,28 +6,45 @@ import { nodeResolve } from "@rollup/plugin-node-resolve";
 import replace from "@rollup/plugin-replace";
 import babel from "@rollup/plugin-babel";
 import { visualizer } from "rollup-plugin-visualizer";
+import multiInput from "rollup-plugin-multi-input";
 
+/**
+ * @type {import('rollup').RollupOptions}
+ */
 export default {
-  input: "src/index.ts",
+  input: [
+    "src/index.ts",
+    "src/record_v2/**/*.ts",
+    "src/utils/**/*.ts",
+    "src/twitter/**/*.ts",
+    "src/resolve/**/*.ts",
+    "src/record/**/*.ts",
+    "src/nft/**/*.ts",
+    "src/bindings/**/*.ts",
+    "src/instructions/**/*.ts",
+  ],
   output: [
     {
-      file: "dist/index.mjs",
+      dir: "dist/",
       format: "esm",
       sourcemap: true,
+      entryFileNames: "[name].mjs",
+      exports: "named",
     },
-    { file: "dist/index.cjs", format: "cjs", sourcemap: true },
+    { dir: "dist/", format: "cjs", sourcemap: true },
   ],
   external: ["@solana/web3.js"],
   plugins: [
-    typescript(),
-    commonjs(),
-    babel({ babelHelpers: "bundled" }),
-    json(),
+    multiInput.default(),
     nodeResolve({
       browser: true,
       preferBuiltins: false,
       dedupe: ["borsh", "@solana/spl-token", "bn.js", "buffer"],
     }),
+    commonjs(),
+    typescript(),
+    babel({ babelHelpers: "bundled" }),
+    json(),
     replace({
       "process.env.NODE_ENV": JSON.stringify("production"),
       preventAssignment: false,
@@ -35,6 +52,10 @@ export default {
     terser(),
     visualizer(),
   ],
+  treeshake: {
+    moduleSideEffects: false,
+    preset: "smallest",
+  },
   onwarn: function (warning, handler) {
     if (warning.code === "THIS_IS_UNDEFINED") return;
     handler(warning);

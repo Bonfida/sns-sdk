@@ -1,8 +1,9 @@
 import { PublicKey } from "@solana/web3.js";
 import { CUSTOM_BG_TLD } from "./constants";
 import { CustomBg } from "./types/custom-bg";
-import { getHashedNameSync, getNameAccountKeySync } from "./utils";
-import { ErrorType, SNSError } from "./error";
+import { getHashedNameSync } from "./utils/getHashedNameSync";
+import { getNameAccountKeySync } from "./utils/getNameAccountKeySync";
+import { InvalidCustomBgError } from "./error";
 
 const DEGEN_POET_KEY = new PublicKey(
   "ART5dr4bDic2sQVZoFheEmUxwQq5VGSx9he7JxHcXNQD",
@@ -41,6 +42,6 @@ export const getArtistPubkey = (bg: CustomBg): PublicKey => {
     case CustomBg.Retardio3:
       return RETARDIO_KEY;
     default:
-      throw new SNSError(ErrorType.InvalidCustomBg);
+      throw new InvalidCustomBgError("The given background is invalid");
   }
 };

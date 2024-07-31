@@ -1,15 +1,14 @@
 require("dotenv").config();
 import { test, jest } from "@jest/globals";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
-import {
-  registerDomainName,
-  registerDomainNameV2,
-  registerWithNft,
-} from "../src/bindings";
+import { registerDomainName } from "../src/bindings/registerDomainName";
+import { registerDomainNameV2 } from "../src/bindings/registerDomainNameV2";
+import { registerWithNft } from "../src/bindings/registerWithNft";
 import { randomBytes } from "crypto";
 import { REFERRERS, USDC_MINT } from "../src/constants";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
-import { getDomainKeySync, getReverseKeySync } from "../src/utils";
+import { getDomainKeySync } from "../src/utils/getDomainKeySync";
+import { getReverseKeySync } from "../src/utils/getReverseKeySync";
 import { Metaplex } from "@metaplex-foundation/js";
 
 jest.setTimeout(20_000);
@@ -24,7 +23,7 @@ const VAULT_OWNER = new PublicKey(
 
 test("Registration", async () => {
   const tx = new Transaction();
-  const [, ix] = await registerDomainName(
+  const ix = await registerDomainName(
     connection,
     randomBytes(10).toString("hex"),
     1_000,
@@ -42,7 +41,7 @@ test("Registration", async () => {
 
 test("Registration with ref", async () => {
   const tx = new Transaction();
-  const [, ix] = await registerDomainName(
+  const ix = await registerDomainName(
     connection,
     randomBytes(10).toString("hex"),
     1_000,
@@ -94,7 +93,7 @@ test("Register with NFT", async () => {
 test("Indempotent ATA creation ref", async () => {
   const tx = new Transaction();
   for (let i = 0; i < 3; i++) {
-    const [, ix] = await registerDomainName(
+    const ix = await registerDomainName(
       connection,
       randomBytes(10).toString("hex"),
       1_000,
@@ -128,7 +127,6 @@ test("Register V2", async () => {
   tx.recentBlockhash = blockhash;
   tx.feePayer = VAULT_OWNER;
   const res = await connection.simulateTransaction(tx);
-  console.log(res.value.unitsConsumed, "Consummed");
   expect(res.value.err).toBe(null);
 });
 

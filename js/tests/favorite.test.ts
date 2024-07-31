@@ -5,8 +5,8 @@ import {
   getMultipleFavoriteDomains,
 } from "../src/favorite-domain";
 import { PublicKey, Connection, Keypair, Transaction } from "@solana/web3.js";
-import { registerFavorite } from "../src/bindings";
-import { getDomainKeySync } from "../src/utils";
+import { registerFavorite } from "../src/bindings/registerFavorite";
+import { getDomainKeySync } from "../src/utils/getDomainKeySync";
 
 jest.setTimeout(10_000);
 
@@ -27,6 +27,14 @@ test("Favorite domain", async () => {
       favorite: {
         domain: new PublicKey("Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb"),
         reverse: "bonfida",
+        stale: false,
+      },
+    },
+    {
+      user: new PublicKey("A41TAGFpQkFpJidLwH37ydunE7Q3jpBaS228RkoXiRQk"),
+      favorite: {
+        domain: new PublicKey("BaQq8Uib3Aw5SPBedC8MdYCvpfEC9iLkUMHc5M74sAjv"),
+        reverse: "1.00728",
         stale: false,
       },
     },
@@ -59,6 +67,10 @@ test("Multiple favorite domains", async () => {
       wallet: new PublicKey("36Dn3RWhB8x4c83W6ebQ2C2eH9sh5bQX2nMdkP2cWaA4"),
       domain: "fav-tokenized",
     },
+    {
+      wallet: new PublicKey("A41TAGFpQkFpJidLwH37ydunE7Q3jpBaS228RkoXiRQk"),
+      domain: "1.00728",
+    },
   ];
   const result = await getMultipleFavoriteDomains(
     connection,
@@ -70,8 +82,12 @@ test("Multiple favorite domains", async () => {
 test("Register fav", async () => {
   const owner = new PublicKey("Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8");
   const tx = new Transaction();
-  const ix = registerFavorite(getDomainKeySync("wallet-guide-3").pubkey, owner);
-  tx.add(...ix);
+  const ix = await registerFavorite(
+    connection,
+    getDomainKeySync("wallet-guide-3").pubkey,
+    owner,
+  );
+  tx.add(ix);
   const { blockhash } = await connection.getLatestBlockhash();
   tx.recentBlockhash = blockhash;
   tx.feePayer = owner;

@@ -1,7 +1,7 @@
 require("dotenv").config();
 import { test, jest } from "@jest/globals";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
-import { burnDomain } from "../src/bindings";
+import { burnDomain } from "../src/bindings/burnDomain";
 
 jest.setTimeout(20_000);
 

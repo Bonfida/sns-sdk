@@ -1,8 +1,8 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { retrieveNftOwner } from "./nft";
+import { retrieveNftOwnerV2 } from "./nft/retrieveNftOwnerV2";
 import { Buffer } from "buffer";
-import { ErrorType, SNSError } from "./error";
 import { deserialize } from "borsh";
+import { AccountDoesNotExistError } from "./error";
 
 export class NameRegistryState {
   static HEADER_LEN = 96;
@@ -42,7 +42,7 @@ export class NameRegistryState {
   ) {
     const nameAccount = await connection.getAccountInfo(nameAccountKey);
     if (!nameAccount) {
-      throw new SNSError(ErrorType.AccountDoesNotExist);
+      throw new AccountDoesNotExistError(`The name account does not exist`);
     }
 
     const res = new NameRegistryState(
@@ -50,7 +50,7 @@ export class NameRegistryState {
     );
     res.data = nameAccount.data?.slice(this.HEADER_LEN);
 
-    const nftOwner = await retrieveNftOwner(connection, nameAccountKey);
+    const nftOwner = await retrieveNftOwnerV2(connection, nameAccountKey);
 
     return { registry: res, nftOwner };
   }
