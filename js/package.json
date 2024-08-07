@@ -1,19 +1,19 @@
 {
   "name": "@bonfida/spl-name-service",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "license": "MIT",
   "files": [
     "dist"
   ],
   "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.mjs",
+  "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/cjs/index.cjs",
+      "types": "./dist/types/index.d.ts"
     }
   },
   "repository": {
@@ -23,15 +23,14 @@
   "homepage": "https://sns.guide",
   "scripts": {
     "dev": "tsc && node --trace-warnings dist/test.js",
-    "build": "rm -rf dist && rollup -c",
-    "prepublish": "rm -rf dist && rollup -c",
-    "prepack": "rm -rf dist && rollup -c",
+    "build": "rm -rf dist && rollup -c && tsc --emitDeclarationOnly --outDir dist/types",
+    "prepublish": "rm -rf dist && rollup -c && tsc --emitDeclarationOnly --outDir dist/types",
+    "prepack": "rm -rf dist && rollup -c && tsc --emitDeclarationOnly --outDir dist/types",
     "lint": "yarn pretty && eslint .",
     "lint:fix": "yarn pretty:fix && eslint . --fix",
     "pretty": "prettier --check 'src/*.[jt]s'",
     "pretty:fix": "prettier --write 'src/*.[jt]s'",
-    "test": "jest ./tests",
-    "doc": "yarn typedoc src/index.ts"
+    "test": "jest ./tests"
   },
   "devDependencies": {
     "@bonfida/prettier-config": "^1.0.0",

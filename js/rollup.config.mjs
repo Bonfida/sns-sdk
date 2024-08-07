@@ -25,13 +25,23 @@ export default {
   ],
   output: [
     {
-      dir: "dist/",
+      dir: "dist/esm",
       format: "esm",
       sourcemap: true,
       entryFileNames: "[name].mjs",
       exports: "named",
+      preserveModules: true,
+      preserveModulesRoot: "src",
     },
-    { dir: "dist/", format: "cjs", sourcemap: true },
+    {
+      dir: "dist/cjs",
+      format: "cjs",
+      sourcemap: true,
+      entryFileNames: "[name].cjs",
+      exports: "named",
+      preserveModules: true,
+      preserveModulesRoot: "src",
+    },
   ],
   external: ["@solana/web3.js"],
   plugins: [
@@ -42,7 +52,12 @@ export default {
       dedupe: ["borsh", "@solana/spl-token", "bn.js", "buffer"],
     }),
     commonjs(),
-    typescript(),
+    typescript({
+      tsconfig: "./tsconfig.json",
+      declaration: false,
+      outDir: null,
+      declarationDir: null,
+    }),
     babel({ babelHelpers: "bundled" }),
     json(),
     replace({
