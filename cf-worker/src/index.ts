@@ -18,6 +18,7 @@ import {
   getTwitterRegistry,
   getHandleAndRegistryKey,
   getRecordV2,
+  getMultipleRecordsV2,
   getMultipleFavoriteDomains,
   NameRegistryState,
   GUARDIANS,
@@ -241,21 +242,26 @@ app.get("/record-v2/:domain/:record", async (c) => {
           .getRoAId()
           .equals(res.retrievedRecord.getContent()) &&
         res.retrievedRecord.header.rightOfAssociationValidation ===
-          Validation.Solana;
-    } else if ([Record.ETH, Record.BSC, Record.Injective].includes(record)) {
+        Validation.Solana;
+    } else if ([
+      Record.ETH,
+      Record.BSC,
+      Record.Injective,
+      Record.BASE
+    ].includes(record)) {
       roa =
         res.retrievedRecord
           .getRoAId()
           .equals(res.retrievedRecord.getContent()) &&
         res.retrievedRecord.header.rightOfAssociationValidation ===
-          Validation.Ethereum;
+        Validation.Ethereum;
     } else if ([Record.Url]) {
       const guardian = GUARDIANS.get(record);
       if (guardian) {
         roa =
           res.retrievedRecord.getRoAId().equals(guardian.toBuffer()) &&
           res.retrievedRecord.header.rightOfAssociationValidation ===
-            Validation.Solana;
+          Validation.Solana;
       }
     }
 
@@ -403,6 +409,96 @@ app.get("/records/:domain", async (c) => {
 });
 
 /**
+ * Returns a list of deserialized V2 records. The list of records passed by URL query param must be comma separated.
+ * In the case where a record does not exist, the data will not be included in the result.
+ */
+app.get("/records-v2/:domain", async (c) => {
+  try {
+    const { domain } = c.req.param();
+    const rpc = c.req.query("rpc");
+
+    const parsedRecords = c.req.query("records")?.split(",");
+    const recordSchema = z.array(z.nativeEnum(Record));
+    const records = recordSchema.parse(parsedRecords);
+
+    if (!records || records.length === 0) {
+      return c.json(response(false, "Missing records in URL query params"));
+    }
+
+    const connection = getConnection(c, rpc);
+    const { registry } = await NameRegistryState.retrieve(
+      connection,
+      getDomainKeySync(domain).pubkey
+    );
+    const owner = registry.owner;
+    const results = [];
+
+    const recordsV2 = await getMultipleRecordsV2(connection, domain, records, {
+      deserialize: true,
+    });
+
+    for (const res of recordsV2) {
+      if (res === undefined) break;
+
+      const stale = !res.retrievedRecord
+        .getStalenessId()
+        .equals(owner.toBuffer());
+      const { record } = res;
+      let roa = undefined;
+
+      if (Record.SOL === record) {
+        roa =
+          res.retrievedRecord
+            .getRoAId()
+            .equals(res.retrievedRecord.getContent()) &&
+          res.retrievedRecord.header.rightOfAssociationValidation ===
+          Validation.Solana;
+      } else if ([
+        Record.ETH,
+        Record.BSC,
+        Record.Injective,
+        Record.BASE
+      ].includes(record)) {
+        roa =
+          res.retrievedRecord
+            .getRoAId()
+            .equals(res.retrievedRecord.getContent()) &&
+          res.retrievedRecord.header.rightOfAssociationValidation ===
+          Validation.Ethereum;
+      } else if ([Record.Url]) {
+        const guardian = GUARDIANS.get(record);
+        if (guardian) {
+          roa =
+            res.retrievedRecord.getRoAId().equals(guardian.toBuffer()) &&
+            res.retrievedRecord.header.rightOfAssociationValidation ===
+            Validation.Solana;
+        }
+      }
+
+      results.push({
+        type: res.record,
+        deserialized: res.deserializedContent,
+        stale,
+        roa,
+        record: {
+          header: res.retrievedRecord.header,
+          data: res.retrievedRecord.data.toString("base64"),
+        },
+      });
+    };
+
+    return c.json(response(true, results));
+  } catch (err) {
+    console.log(err);
+    if (err instanceof z.ZodError) {
+      return c.json(response(false, "Invalid input"), 400);
+    } else {
+      return c.json(response(false, "Internal error"), 500);
+    }
+  }
+});
+
+/**
  * Returns twitter handle
  */
 
@@ -532,7 +628,7 @@ app.get("/create-sub", async (c) => {
     const connection = getConnection(c, rpc);
     const ixs: TransactionInstruction[] = [];
 
-    const [, ix] = await createSubdomain(
+    const ix = await createSubdomain(
       connection,
       subdomain,
       new PublicKey(owner),
