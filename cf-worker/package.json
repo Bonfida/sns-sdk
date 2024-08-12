@@ -13,9 +13,9 @@
   },
   "dependencies": {
     "@bonfida/sns-records": "^0.0.1",
-    "@bonfida/spl-name-service": "^2.5.0",
-    "@solana/spl-token": "^0.3.7",
-    "@solana/web3.js": "^1.73.3",
+    "@bonfida/spl-name-service": "^3.0.1",
+    "@solana/spl-token": "^0.4.8",
+    "@solana/web3.js": "^1.95.2",
     "hono": "^3.12.6",
     "zod": "^3.22.4"
   }
