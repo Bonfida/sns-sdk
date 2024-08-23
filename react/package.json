@@ -24,7 +24,7 @@
   },
   "exports": {
     ".": {
-      "require": "./dist/index.csj",
+      "require": "./dist/index.cjs",
       "import": "./dist/index.mjs",
       "types": "./dist/index.d.ts"
     }
