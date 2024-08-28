@@ -15,6 +15,10 @@ const RETARDIO_KEY = new PublicKey(
   "J2Q2j6kpSg7tq8JzueCHNTQNcyNnQkvr85RhsFnYZWeG",
 );
 
+const NUMBER_ART_KEY = new PublicKey(
+  "6vwnZJZNQjtY4zR93YUuyeDUBhacLLH2mQaZiJAvVwzu",
+);
+
 export const getCustomBgKeys = (domain: string, customBg: CustomBg) => {
   const hashedBg = getHashedNameSync(customBg);
   const hashedDomain = getHashedNameSync(domain);
@@ -41,6 +45,17 @@ export const getArtistPubkey = (bg: CustomBg): PublicKey => {
       return RETARDIO_KEY;
     case CustomBg.Retardio3:
       return RETARDIO_KEY;
+    case CustomBg.NumberArt0:
+    case CustomBg.NumberArt1:
+    case CustomBg.NumberArt2:
+    case CustomBg.NumberArt3:
+    case CustomBg.NumberArt4:
+    case CustomBg.NumberArt5:
+    case CustomBg.NumberArt6:
+    case CustomBg.NumberArt7:
+    case CustomBg.NumberArt8:
+    case CustomBg.NumberArt9:
+      return NUMBER_ART_KEY;
     default:
       throw new InvalidCustomBgError("The given background is invalid");
   }
