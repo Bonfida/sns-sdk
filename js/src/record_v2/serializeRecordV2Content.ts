@@ -11,7 +11,7 @@ import {
   InvalidInjectiveAddressError,
   InvalidRecordInputError,
 } from "../error";
-
+import { Buffer } from "buffer";
 import { UTF8_ENCODED, EVM_RECORDS } from "./const";
 
 /**
