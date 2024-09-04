@@ -7,6 +7,7 @@ import replace from "@rollup/plugin-replace";
 import babel from "@rollup/plugin-babel";
 import { visualizer } from "rollup-plugin-visualizer";
 import multiInput from "rollup-plugin-multi-input";
+import inject from "@rollup/plugin-inject";
 
 /**
  * @type {import('rollup').RollupOptions}
@@ -43,15 +44,29 @@ export default {
       preserveModulesRoot: "src",
     },
   ],
-  external: ["@solana/web3.js"],
+  external: [
+    "@solana/web3.js",
+    "@solana/buffer-layout-utils",
+    "@solana/buffer-layout",
+  ],
   plugins: [
     multiInput.default(),
     nodeResolve({
       browser: true,
       preferBuiltins: false,
-      dedupe: ["borsh", "@solana/spl-token", "bn.js", "buffer"],
+      dedupe: [
+        "borsh",
+        "@solana/spl-token",
+        "bn.js",
+        "buffer",
+        "@solana/buffer-layout-utils",
+        "@solana/buffer-layout",
+      ],
     }),
     commonjs(),
+    inject({
+      Buffer: ["buffer", "Buffer"],
+    }),
     typescript({
       tsconfig: "./tsconfig.json",
       declaration: false,
