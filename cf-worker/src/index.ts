@@ -242,26 +242,23 @@ app.get("/record-v2/:domain/:record", async (c) => {
           .getRoAId()
           .equals(res.retrievedRecord.getContent()) &&
         res.retrievedRecord.header.rightOfAssociationValidation ===
-        Validation.Solana;
-    } else if ([
-      Record.ETH,
-      Record.BSC,
-      Record.Injective,
-      Record.BASE
-    ].includes(record)) {
+          Validation.Solana;
+    } else if (
+      [Record.ETH, Record.BSC, Record.Injective, Record.BASE].includes(record)
+    ) {
       roa =
         res.retrievedRecord
           .getRoAId()
           .equals(res.retrievedRecord.getContent()) &&
         res.retrievedRecord.header.rightOfAssociationValidation ===
-        Validation.Ethereum;
+          Validation.Ethereum;
     } else if ([Record.Url]) {
       const guardian = GUARDIANS.get(record);
       if (guardian) {
         roa =
           res.retrievedRecord.getRoAId().equals(guardian.toBuffer()) &&
           res.retrievedRecord.header.rightOfAssociationValidation ===
-          Validation.Solana;
+            Validation.Solana;
       }
     }
 
@@ -681,6 +678,31 @@ app.get("/create-sub", async (c) => {
     } else {
       return c.json(response(false, "Internal error"), 500);
     }
+  }
+});
+
+/**
+ * Returns the base64 encoded data of a .sol domain
+ */
+app.get("/domain-data/:domain", async (c) => {
+  try {
+    const { domain } = c.req.param();
+    const rpc = c.req.query("rpc");
+    const connection = getConnection(c, rpc);
+
+    const { pubkey: domainKey } = getDomainKeySync(domain);
+    const info = await connection.getAccountInfo(domainKey);
+
+    if (!info) {
+      return c.json(response(false, "Domain not found"));
+    }
+
+    const base64Data = info.data.toString("base64");
+
+    return c.json(response(true, base64Data));
+  } catch (err) {
+    console.log(err);
+    return c.json(response(false, "Error fetching domain data"));
   }
 });
 
