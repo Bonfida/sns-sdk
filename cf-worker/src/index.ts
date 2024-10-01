@@ -697,7 +697,7 @@ app.get("/domain-data/:domain", async (c) => {
       return c.json(response(false, "Domain not found"));
     }
 
-    const base64Data = info.data.toString("base64");
+    const base64Data = info.data.slice(96).toString("base64");
 
     return c.json(response(true, base64Data));
   } catch (err) {
