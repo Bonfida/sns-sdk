@@ -66,6 +66,7 @@ export const REFERRERS: PublicKey[] = [
   new PublicKey("7vWSqSw1eCXZXXUubuHWssXELNQ8MLaDgAs2ErEfCKxn"), // 585.eth
   new PublicKey("5F6gcdzpw7wUjNEugdsD4aLJdEQ4Wt8d6E85vaQXZQSJ"), // wdotsol
   new PublicKey("XEy9o73JBN2pEuN7aspe8mVLaWbL4ozjJs1tNRxx8bL"), // GoDID
+  new PublicKey("ADerMGLXr9rioDFtHWLHQikKGvywXh1SAUB6akQc2Z9g"), // Vision
 ];
 
 export const TOKENS_SYM_MINT = new Map<string, string>([
