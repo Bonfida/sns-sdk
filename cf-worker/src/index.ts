@@ -1,4 +1,4 @@
-import { Hono, Context } from "hono";
+import { Context, Hono, Next } from "hono";
 import {
   getDomainKeySync,
   resolve,
@@ -57,13 +57,24 @@ const booleanSchema = z
   .union([z.boolean(), z.literal("true"), z.literal("false")])
   .transform((value) => value === true || value === "true");
 
-const getConnection = (c: Context<any>, clientRpc: string | undefined) => {
-  return new Connection(clientRpc || (c.env?.RPC_URL as string), "processed");
+const getConnection = (clientRpc: string) => {
+  return new Connection(clientRpc, "processed");
 };
 
 function response<T>(success: boolean, result: T) {
   return { s: success ? "ok" : "error", result };
 }
+
+const checkRpcMiddleware = async (c: Context, next: Next) => {
+  const rpc = c.req.query("rpc");
+  if (!rpc) {
+    return c.text(
+      "Please provide your own RPC endpoint - Visit https://github.com/Bonfida/sns-sdk",
+      400
+    );
+  }
+  await next();
+};
 
 const app = new Hono();
 
@@ -75,11 +86,11 @@ app.get("/", async (c) => c.text("Visit https://github.com/Bonfida/sns-sdk"));
 /**
  * Resolves to the current owner of the domain
  */
-app.get("/resolve/:domain", async (c) => {
+app.get("/resolve/:domain", checkRpcMiddleware, async (c) => {
   const { domain } = c.req.param();
-  const rpc = c.req.query("rpc");
+  const rpc = c.req.query("rpc")!;
   try {
-    const res = await resolve(getConnection(c, rpc), domain);
+    const res = await resolve(getConnection(rpc), domain);
     return c.json(response(true, res));
   } catch (err) {
     console.log(err);
@@ -113,18 +124,15 @@ app.get("/domain-key/:domain", (c) => {
 /**
  * Returns all the domains of the specified owner
  */
-app.get("/domains/:owner", async (c) => {
+app.get("/domains/:owner", checkRpcMiddleware, async (c) => {
   try {
     const { owner } = c.req.param();
-    const rpc = c.req.query("rpc");
-    const res = await getAllDomains(
-      getConnection(c, rpc),
-      new PublicKey(owner)
-    );
-    const revs = await reverseLookupBatch(getConnection(c, rpc), res);
+    const rpc = c.req.query("rpc")!;
+    const res = await getAllDomains(getConnection(rpc), new PublicKey(owner));
+    const revs = await reverseLookupBatch(getConnection(rpc), res);
 
     const tokenized = await getTokenizedDomains(
-      getConnection(c, rpc),
+      getConnection(rpc),
       new PublicKey(owner)
     );
 
@@ -194,10 +202,10 @@ app.get("/record/:domain/:record", async (c) => {
     const Query = z.object({
       domain: z.string(),
       record: z.nativeEnum(Record),
-      rpc: z.string().optional(),
+      rpc: z.string(),
     });
     const { domain, record, rpc } = Query.parse(c.req.param());
-    const res = await getRecord(getConnection(c, rpc), domain, record);
+    const res = await getRecord(getConnection(rpc), domain, record);
     return c.json(response(true, res?.data?.toString("base64")));
   } catch (err) {
     console.log(err);
@@ -217,10 +225,10 @@ app.get("/record-v2/:domain/:record", async (c) => {
     const Query = z.object({
       domain: z.string(),
       record: z.nativeEnum(Record),
-      rpc: z.string().optional(),
+      rpc: z.string(),
     });
     const { domain, record, rpc } = Query.parse(c.req.param());
-    const connection = getConnection(c, rpc);
+    const connection = getConnection(rpc);
     const { registry } = await NameRegistryState.retrieve(
       connection,
       getDomainKeySync(domain).pubkey
@@ -286,12 +294,12 @@ app.get("/record-v2/:domain/:record", async (c) => {
 /**
  * Returns the favorite domain for the specified owner and null if it does not exist
  */
-app.get("/favorite-domain/:owner", async (c) => {
+app.get("/favorite-domain/:owner", checkRpcMiddleware, async (c) => {
   try {
     const { owner } = c.req.param();
-    const rpc = c.req.query("rpc");
+    const rpc = c.req.query("rpc")!;
     const res = await getFavoriteDomain(
-      getConnection(c, rpc),
+      getConnection(rpc),
       new PublicKey(owner)
     );
     return c.json(
@@ -311,12 +319,12 @@ app.get("/favorite-domain/:owner", async (c) => {
 /**
  * Returns the favorite domain for the specified owners (comma separated) and undefined if it does not exist
  */
-app.get("/multiple-favorite-domains/:owners", async (c) => {
+app.get("/multiple-favorite-domains/:owners", checkRpcMiddleware, async (c) => {
   try {
     const { owners } = c.req.param();
-    const rpc = c.req.query("rpc");
+    const rpc = c.req.query("rpc")!;
     const parsed = owners.split(",").map((e) => new PublicKey(e));
-    const res = await getMultipleFavoriteDomains(getConnection(c, rpc), parsed);
+    const res = await getMultipleFavoriteDomains(getConnection(rpc), parsed);
     return c.json(response(true, res));
   } catch (err) {
     console.log(err);
@@ -339,14 +347,11 @@ app.get("/types/record", (c) => {
 /**
  * Returns the reverse domain for the specified public key
  */
-app.get("/reverse-lookup/:pubkey", async (c) => {
+app.get("/reverse-lookup/:pubkey", checkRpcMiddleware, async (c) => {
   try {
     const { pubkey } = c.req.param();
-    const rpc = c.req.query("rpc");
-    const res = await reverseLookup(
-      getConnection(c, rpc),
-      new PublicKey(pubkey)
-    );
+    const rpc = c.req.query("rpc")!;
+    const res = await reverseLookup(getConnection(rpc), new PublicKey(pubkey));
     return c.json(response(true, res));
   } catch (err) {
     console.log(err);
@@ -357,12 +362,12 @@ app.get("/reverse-lookup/:pubkey", async (c) => {
 /**
  * Returns the subdomains for the specified parent
  */
-app.get("/subdomains/:parent", async (c) => {
+app.get("/subdomains/:parent", checkRpcMiddleware, async (c) => {
   try {
     const { parent } = c.req.param();
-    const rpc = c.req.query("rpc");
+    const rpc = c.req.query("rpc")!;
     const subs = await findSubdomains(
-      getConnection(c, rpc),
+      getConnection(rpc),
       getDomainKeySync(parent).pubkey
     );
     return c.json(response(true, subs));
@@ -376,10 +381,10 @@ app.get("/subdomains/:parent", async (c) => {
  * Returns a list of deserialized records. The list of records passed by URL query param must be comma separated.
  * In the case where a record does not exist, the data will be undefined
  */
-app.get("/records/:domain", async (c) => {
+app.get("/records/:domain", checkRpcMiddleware, async (c) => {
   try {
     const { domain } = c.req.param();
-    const rpc = c.req.query("rpc");
+    const rpc = c.req.query("rpc")!;
 
     const parsedRecords = c.req.query("records")?.split(",");
     const recordSchema = z.array(z.nativeEnum(Record));
@@ -389,7 +394,7 @@ app.get("/records/:domain", async (c) => {
       return c.json(response(false, "Missing records in URL query params"));
     }
 
-    const res = await getRecords(getConnection(c, rpc), domain, records);
+    const res = await getRecords(getConnection(rpc), domain, records);
 
     const result = res.map((e, idx) => {
       return { record: records[idx], data: e?.data?.toString("utf-8") };
@@ -499,11 +504,11 @@ app.get("/records-v2/:domain", async (c) => {
  * Returns twitter handle
  */
 
-app.get("/twitter/get-handle-by-key/:key", async (c) => {
+app.get("/twitter/get-handle-by-key/:key", checkRpcMiddleware, async (c) => {
   try {
     const { key } = c.req.param();
-    const rpc = c.req.query("rpc");
-    const connection = getConnection(c, rpc);
+    const rpc = c.req.query("rpc")!;
+    const connection = getConnection(rpc);
     const [handle] = await getHandleAndRegistryKey(
       connection,
       new PublicKey(key)
@@ -515,11 +520,11 @@ app.get("/twitter/get-handle-by-key/:key", async (c) => {
   }
 });
 
-app.get("/twitter/get-key-by-handle/:handle", async (c) => {
+app.get("/twitter/get-key-by-handle/:handle", checkRpcMiddleware, async (c) => {
   try {
     const { handle } = c.req.param();
-    const rpc = c.req.query("rpc");
-    const connection = getConnection(c, rpc);
+    const rpc = c.req.query("rpc")!;
+    const connection = getConnection(rpc);
     const registry = await getTwitterRegistry(connection, handle);
     return c.json(response(true, registry.owner.toBase58()));
   } catch (err) {
@@ -544,7 +549,7 @@ app.get("/register", async (c) => {
       serialize: booleanSchema.optional(),
       refKey: z.string().refine(isPubkey).optional(),
       mintStr: z.string().refine(isPubkey).optional(),
-      rpc: z.string().optional(),
+      rpc: z.string(),
     });
 
     const { buyerStr, domain, space, serialize, refKey, mintStr, rpc } =
@@ -555,7 +560,7 @@ app.get("/register", async (c) => {
 
     const ata = await getAssociatedTokenAddress(mint, buyer, true);
 
-    const connection = getConnection(c, rpc);
+    const connection = getConnection(rpc);
 
     const ixs = await registerDomainNameV2(
       connection,
@@ -613,7 +618,7 @@ app.get("/create-sub", async (c) => {
     const Query = z.object({
       owner: z.string().refine(isPubkey),
       subdomain: z.string(),
-      rpc: z.string().optional(),
+      rpc: z.string(),
       serialize: booleanSchema.optional(),
       finalOwner: z.string().refine(isPubkey).optional(),
     });
@@ -622,7 +627,7 @@ app.get("/create-sub", async (c) => {
       c.req.query()
     );
 
-    const connection = getConnection(c, rpc);
+    const connection = getConnection(rpc);
     const ixs: TransactionInstruction[] = [];
 
     const ix = await createSubdomain(
