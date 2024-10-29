@@ -1,6 +1,6 @@
 {
   "name": "@bonfida/sns-vue",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "A set of Vue hooks to interact with the Solana Name Service",
   "keywords": [
     "bonfida",
