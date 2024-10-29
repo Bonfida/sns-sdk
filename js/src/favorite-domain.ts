@@ -201,7 +201,7 @@ export const getMultipleFavoriteDomains = async (
     const nativeOwner = new PublicKey(domainInfo?.data.slice(32, 64));
 
     if (nativeOwner.equals(wallets[i])) {
-      result.push(deserializeReverse(rev?.data.slice(96)) + parentRev);
+      result.push(deserializeReverse(rev?.data.slice(96), true) + parentRev);
       continue;
     }
     // Either tokenized or stale

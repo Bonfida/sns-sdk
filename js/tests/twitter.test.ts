@@ -22,9 +22,9 @@ test("Resolution & derivation", async () => {
   const expected = {
     handle: "plenthor",
     registry: "HrguVp54KnhQcRPaEBULTRhC2PWcyGTQBfwBNVX9SW2i",
-    reverse: "RyRmCEVW4wq8xaRGh3sPvp2HDDzb3BgGGMavnXZrbWG",
+    reverse: "C2MB7RDr4wdwSHAPZ8f5qmScYSUHdPKTL6t5meYdcjjW",
   };
-  const owner = new PublicKey("FSMFjujJ1Xi2CN424e4wfFsSMNcdYDGktsuxunazsnjd");
+  const owner = new PublicKey("JB27XSKgYFBsuxee5yAS2yi1NKSU6WV5GZrKdrzeTHYC");
 
   ////////////////////////////////////////////////////////////////////////
 
@@ -74,7 +74,7 @@ test("Create instruction", async () => {
 
   const handle = randomBytes(10).toString("hex");
   const user = Keypair.generate().publicKey;
-  const payer = new PublicKey("FSMFjujJ1Xi2CN424e4wfFsSMNcdYDGktsuxunazsnjd");
+  const payer = new PublicKey("JB27XSKgYFBsuxee5yAS2yi1NKSU6WV5GZrKdrzeTHYC");
 
   const ix = await createVerifiedTwitterRegistry(
     connection,
@@ -98,7 +98,7 @@ test("Create & delete instruction", async () => {
 
   const handle = randomBytes(10).toString("hex");
   const user = Keypair.generate().publicKey;
-  const payer = new PublicKey("FSMFjujJ1Xi2CN424e4wfFsSMNcdYDGktsuxunazsnjd");
+  const payer = new PublicKey("JB27XSKgYFBsuxee5yAS2yi1NKSU6WV5GZrKdrzeTHYC");
 
   tx.add(
     ...(await createVerifiedTwitterRegistry(

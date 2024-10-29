@@ -22,5 +22,5 @@ export async function reverseLookup(
     throw new NoAccountDataError("The registry data is empty");
   }
 
-  return deserializeReverse(registry.data);
+  return deserializeReverse(registry.data, !!parent);
 }
