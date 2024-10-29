@@ -9,7 +9,7 @@ interface GetRecordV2Options {
   deserialize?: boolean;
 }
 
-interface RecordResult {
+export interface RecordResult {
   retrievedRecord: SnsRecord;
   record: Record;
   deserializedContent?: string;
