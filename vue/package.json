@@ -1,6 +1,6 @@
 {
   "name": "@bonfida/sns-vue",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "A set of Vue hooks to interact with the Solana Name Service",
   "keywords": [
     "bonfida",
@@ -52,7 +52,7 @@
     "vite-plugin-dts": "^3.6.4"
   },
   "dependencies": {
-    "@bonfida/spl-name-service": "^1.6.1",
+    "@bonfida/spl-name-service": "3.0.6",
     "@solana/web3.js": "^1.87.6",
     "vue": "^3.3.9"
   },
