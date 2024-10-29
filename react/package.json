@@ -57,7 +57,7 @@
     "typescript": "^5.3.2"
   },
   "dependencies": {
-    "@bonfida/spl-name-service": "2.3.6"
+    "@bonfida/spl-name-service": "3.0.6"
   },
   "volta": {
     "node": "20.10.0"
