@@ -50,7 +50,7 @@ export const findSubdomains = async (
   const map = new Map<string, string | undefined>(
     reverses.map((e) => [
       e.pubkey.toBase58(),
-      deserializeReverse(e.account.data.slice(96)),
+      deserializeReverse(e.account.data.slice(96), true),
     ]),
   );
 
@@ -59,7 +59,7 @@ export const findSubdomains = async (
     const revKey = getReverseKeyFromDomainKey(e.pubkey, parentKey).toBase58();
     const rev = map.get(revKey);
     if (!!rev) {
-      result.push(rev.replace("\0", ""));
+      result.push(rev);
     }
   });
 

@@ -11,6 +11,7 @@ import { getReverseKeySync } from "../src/utils/getReverseKeySync";
 import { Metaplex } from "@metaplex-foundation/js";
 
 jest.setTimeout(20_000);
+jest.retryTimes(3);
 const FIDA_MINT = new PublicKey("EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp");
 const PYTH_MINT = new PublicKey("HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3");
 
