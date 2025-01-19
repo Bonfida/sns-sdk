@@ -68,6 +68,7 @@ export const REFERRERS: PublicKey[] = [
   new PublicKey("XEy9o73JBN2pEuN7aspe8mVLaWbL4ozjJs1tNRxx8bL"), // GoDID
   new PublicKey("D5cLoAGjNTHKU1UGv2bYwbnyRoGTMe3sbpLtJW3fRq91"), // SuiNS
   new PublicKey("FePcCmrr7vgjeFXcXtJHqShSXydaTrga2wfHRt9RrYvP"), // Nansen
+  new PublicKey("5D2zKog251d6KPCyFyLMt3KroWwXXPWSgTPyhV22K2gR"), // SNS
 ];
 
 export const TOKENS_SYM_MINT = new Map<string, string>([
@@ -81,6 +82,7 @@ export const TOKENS_SYM_MINT = new Map<string, string>([
   ["HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3", "PYTH"],
   ["bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1", "BSOL"],
   ["6McPRfPV6bY1e9hLxWyG54W9i9Epq75QBvXg2oetBVTB", "INJ"],
+  ["6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN", "TRUMP"],
 ]);
 
 export const PYTH_FEEDS = new Map<string, { price: string; product: string }>([
@@ -255,6 +257,13 @@ export const PYTH_PULL_FEEDS = new Map<string, number[]>([
     [
       122, 91, 193, 210, 181, 106, 208, 41, 4, 140, 214, 57, 100, 179, 173, 39,
       118, 234, 223, 129, 46, 220, 26, 67, 163, 20, 6, 203, 84, 191, 245, 146,
+    ],
+  ],
+  [
+    "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+    [
+      135, 149, 81, 2, 24, 83, 238, 199, 167, 220, 130, 117, 120, 232, 230, 157,
+      167, 228, 250, 129, 72, 51, 154, 160, 211, 213, 41, 100, 5, 190, 75, 26,
     ],
   ],
 ]);
