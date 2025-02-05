@@ -78,35 +78,40 @@ export const resolve = async (
 
   // Check SOL record V2
   recordV2: if (solRecordV2Info?.data) {
-    const recordV2 = RecordV2.deserialize(solRecordV2Info.data);
-    const stalenessId = recordV2.getStalenessId();
-    const roaId = recordV2.getRoAId();
-    const content = recordV2.getContent();
+    try {
+      const recordV2 = RecordV2.deserialize(solRecordV2Info.data);
+      const stalenessId = recordV2.getStalenessId();
+      const roaId = recordV2.getRoAId();
+      const content = recordV2.getContent();
 
-    if (content.length !== 32) {
-      throw new RecordMalformed(`Record is malformed`);
+      if (content.length !== 32) {
+        throw new RecordMalformed(`Record is malformed`);
+      }
+
+      if (
+        recordV2.header.rightOfAssociationValidation !== Validation.Solana ||
+        recordV2.header.stalenessValidation !== Validation.Solana
+      ) {
+        throw new WrongValidation();
+      }
+
+      if (!stalenessId.equals(registry.owner.toBuffer())) {
+        break recordV2;
+      }
+
+      if (roaId.equals(content)) {
+        return new PublicKey(content);
+      }
+
+      throw new InvalidRoAError(
+        `The RoA ID shoudl be ${new PublicKey(
+          content,
+        ).toBase58()} but is ${new PublicKey(roaId).toBase58()} `,
+      );
+    } catch (error) {
+      console.error("Error in V2 record", error);
+      return registry.owner;
     }
-
-    if (
-      recordV2.header.rightOfAssociationValidation !== Validation.Solana ||
-      recordV2.header.stalenessValidation !== Validation.Solana
-    ) {
-      throw new WrongValidation();
-    }
-
-    if (!stalenessId.equals(registry.owner.toBuffer())) {
-      break recordV2;
-    }
-
-    if (roaId.equals(content)) {
-      return new PublicKey(content);
-    }
-
-    throw new InvalidRoAError(
-      `The RoA ID shoudl be ${new PublicKey(
-        content,
-      ).toBase58()} but is ${new PublicKey(roaId).toBase58()} `,
-    );
   }
 
   // Check SOL record V1
