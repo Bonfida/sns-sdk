@@ -1,5 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
-import { CUSTOM_BG_TLD } from "./constants";
+import { CUSTOM_BG_TLD, VAULT_OWNER } from "./constants";
 import { CustomBg } from "./types/custom-bg";
 import { getHashedNameSync } from "./utils/getHashedNameSync";
 import { getNameAccountKeySync } from "./utils/getNameAccountKeySync";
@@ -56,6 +56,8 @@ export const getArtistPubkey = (bg: CustomBg): PublicKey => {
     case CustomBg.NumberArt8:
     case CustomBg.NumberArt9:
       return NUMBER_ART_KEY;
+    case CustomBg.ValentineDay2025:
+      return VAULT_OWNER;
     default:
       throw new InvalidCustomBgError("The given background is invalid");
   }
