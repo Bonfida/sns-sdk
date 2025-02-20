@@ -48,6 +48,8 @@ export const UTF8_ENCODED = new Set<Record>([
   Record.CNAME,
   Record.BTC,
   Record.IPNS,
+  Record.Location,
+  Record.Bio,
 ]);
 
 /**
