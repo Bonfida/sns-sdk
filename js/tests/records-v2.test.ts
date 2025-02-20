@@ -1,5 +1,5 @@
 require("dotenv").config();
-import { test, expect } from "@jest/globals";
+import { test, expect, jest } from "@jest/globals";
 import { deserializeRecordV2Content } from "../src/record_v2/deserializeRecordV2Content";
 import { getMultipleRecordsV2 } from "../src/record_v2/getMultipleRecordsV2";
 import { getRecordV2 } from "../src/record_v2/getRecordV2";
@@ -61,6 +61,15 @@ test("Records V2 des/ser", () => {
     {
       content: "k51qzi5uqu5dlvj2baxnqndepeb86cbk3ng7n3i46uzyxzyqj2xjonzllnv0v8",
       record: Record.IPNS,
+    },
+    {
+      content: "AlabamaArkansas",
+      record: Record.Location,
+    },
+    {
+      content:
+        "Hey there my name is SNS! I want to get your web3 identity in your hands now!",
+      record: Record.Bio,
     },
   ];
 
