@@ -1,5 +1,5 @@
 require("dotenv").config();
-import { test, jest } from "@jest/globals";
+import { test, jest, expect } from "@jest/globals";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { registerDomainNameV2 } from "../src/bindings/registerDomainNameV2";
 import { registerWithNft } from "../src/bindings/registerWithNft";

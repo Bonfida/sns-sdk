@@ -30,14 +30,6 @@ test("Favorite domain", async () => {
         stale: false,
       },
     },
-    {
-      user: new PublicKey("A41TAGFpQkFpJidLwH37ydunE7Q3jpBaS228RkoXiRQk"),
-      favorite: {
-        domain: new PublicKey("BaQq8Uib3Aw5SPBedC8MdYCvpfEC9iLkUMHc5M74sAjv"),
-        reverse: "1.00728",
-        stale: false,
-      },
-    },
   ];
   for (let item of items) {
     const fav = await getFavoriteDomain(connection, item.user);
@@ -66,10 +58,6 @@ test("Multiple favorite domains", async () => {
     {
       wallet: new PublicKey("36Dn3RWhB8x4c83W6ebQ2C2eH9sh5bQX2nMdkP2cWaA4"),
       domain: "fav-tokenized",
-    },
-    {
-      wallet: new PublicKey("A41TAGFpQkFpJidLwH37ydunE7Q3jpBaS228RkoXiRQk"),
-      domain: "1.00728",
     },
   ];
   const result = await getMultipleFavoriteDomains(

@@ -1,5 +1,5 @@
 require("dotenv").config();
-import { test, expect } from "@jest/globals";
+import { test, expect, jest, describe } from "@jest/globals";
 import { deserializeRecordV2Content } from "../src/record_v2/deserializeRecordV2Content";
 import { getMultipleRecordsV2 } from "../src/record_v2/getMultipleRecordsV2";
 import { getRecordV2 } from "../src/record_v2/getRecordV2";
