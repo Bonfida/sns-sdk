@@ -1,5 +1,5 @@
 require("dotenv").config();
-import { test, jest } from "@jest/globals";
+import { test, jest, expect, describe } from "@jest/globals";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { getDomainKeySync } from "../src/utils/getDomainKeySync";
 import { getTokenizedDomains } from "../src/utils/getTokenizedDomains";

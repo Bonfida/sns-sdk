@@ -1,5 +1,5 @@
 require("dotenv").config();
-import { test, jest } from "@jest/globals";
+import { test, jest, expect } from "@jest/globals";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { createSubdomain } from "../src/bindings/createSubdomain";
 import { transferSubdomain } from "../src/bindings/transferSubdomain";
@@ -31,13 +31,13 @@ test("Create sub", async () => {
 
 test("Transfer sub", async () => {
   let tx = new Transaction();
-  const owner = new PublicKey("A41TAGFpQkFpJidLwH37ydunE7Q3jpBaS228RkoXiRQk");
+  const owner = new PublicKey("HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA");
   const parentOwner = new PublicKey(
-    "A41TAGFpQkFpJidLwH37ydunE7Q3jpBaS228RkoXiRQk",
+    "HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA",
   );
   let ix = await transferSubdomain(
     connection,
-    "test.0x33.sol",
+    "test.bonfida.sol",
     PublicKey.default,
     false,
   );
@@ -66,9 +66,9 @@ test("Transfer sub", async () => {
 test("Find sub domain", async () => {
   const subs = await findSubdomains(
     connection,
-    getDomainKeySync("bonfida").pubkey,
+    getDomainKeySync("67679").pubkey,
   );
-  const expectedSub = ["dex", "naming", "test"];
+  const expectedSub = ["booya", "bullish", "hollaaa", "testing"];
   subs.sort().forEach((e, idx) => expect(e).toBe(expectedSub[idx]));
 });
 
