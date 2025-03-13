@@ -1,0 +1,108 @@
+import { describe, expect, jest, test } from "@jest/globals";
+import {
+  Address,
+  createDefaultRpcTransport,
+  createSolanaRpcFromTransport,
+} from "@solana/kit";
+import * as dotenv from "dotenv";
+
+import { getNftsForAddress } from "../src/address/getNftsForAddress";
+import { getPrimaryDomain } from "../src/address/getPrimaryDomain";
+import { getPrimaryDomainsBatch } from "../src/address/getPrimaryDomainsBatch";
+import { RANDOM_ADDRESS } from "./constants";
+
+dotenv.config();
+
+jest.setTimeout(5_000);
+
+// Create an HTTP transport or any custom transport of your choice.
+const transport = createDefaultRpcTransport({
+  url: process.env.RPC_URL!,
+});
+
+// Create an RPC client using that transport.
+const rpc = createSolanaRpcFromTransport(transport);
+describe("Address methods", () => {
+  describe("getPrimaryDomain", () => {
+    test.each([
+      {
+        user: "FidaeBkZkvDqi1GXNEwB8uWmj9Ngx2HXSS5nyGRuVFcZ" as Address,
+        primary: {
+          domain: "Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb" as Address,
+          reverse: "bonfida",
+          stale: true,
+        },
+      },
+      {
+        user: "HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA" as Address,
+        primary: {
+          domain: "Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb" as Address,
+          reverse: "bonfida",
+          stale: false,
+        },
+      },
+    ])("get primary domain (single)", async (e) => {
+      const primary = await getPrimaryDomain(rpc, e.user);
+      expect(primary.domain).toBe(e.primary.domain);
+      expect(primary.reverse).toBe("bonfida");
+      expect(primary.stale).toBe(e.primary.stale);
+    });
+  });
+
+  test("getPrimaryDomainBatch", async () => {
+    const items = [
+      // Random pubkey
+      {
+        address: RANDOM_ADDRESS,
+      },
+      // Non tokenized
+      {
+        address: "HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA" as Address,
+        domain: "bonfida",
+      },
+      // Stale non tokenized
+      {
+        address: "FidaeBkZkvDqi1GXNEwB8uWmj9Ngx2HXSS5nyGRuVFcZ" as Address,
+        domain: undefined,
+      },
+      // Tokenized
+      {
+        address: "36Dn3RWhB8x4c83W6ebQ2C2eH9sh5bQX2nMdkP2cWaA4" as Address,
+        domain: "fav-tokenized",
+      },
+    ];
+
+    const result = await getPrimaryDomainsBatch(
+      rpc,
+      items.map((item) => item.address)
+    );
+    expect(result).toStrictEqual(items.map((item) => item.domain));
+  });
+
+  describe("getNftsForAddress", () => {
+    test("", async () => {
+      const result = await getNftsForAddress(rpc, RANDOM_ADDRESS);
+      expect(result).toStrictEqual([]);
+    });
+
+    test.each([
+      {
+        address: RANDOM_ADDRESS,
+        nfts: [],
+      },
+      {
+        address: "ALd1XSrQMCPSRayYUoUZnp6KcP6gERfJhWzkP49CkXKs" as Address,
+        nfts: [
+          {
+            domain: "sns-ip-5-wallet-1",
+            domainAddress: "6qJtQdAJvAiSfGXWAuHDteAes6vnFcxtHmLzw1TStCrd",
+            mint: "8dJNBsnM5Zo8RUy94Y9Te1EJa77NXG1T556zpMp8UYnv",
+          },
+        ],
+      },
+    ])("nfts for $address retrieved correctly", async (item) => {
+      const result = await getNftsForAddress(rpc, item.address);
+      expect(result).toStrictEqual(item.nfts);
+    });
+  });
+});
