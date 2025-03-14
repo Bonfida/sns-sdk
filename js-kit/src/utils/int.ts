@@ -1,0 +1,99 @@
+import { Buffer } from "buffer";
+
+import { InvalidBufferLengthError, U64OverflowError } from "./error";
+
+export class Numberu32 {
+  value: bigint;
+
+  constructor(value: number | string | bigint) {
+    this.value = BigInt(value);
+  }
+
+  /**
+   * Convert to Buffer representation
+   */
+  toBuffer(): Buffer {
+    const a = Buffer.alloc(4);
+    a.writeUInt32LE(Number(this.value));
+    return a;
+  }
+
+  /**
+   * Convert to Uint8Array representation
+   */
+  toUint8Array(): Uint8Array {
+    const buffer = new ArrayBuffer(4);
+    const view = new DataView(buffer);
+    view.setUint32(0, Number(this.value), true);
+    return new Uint8Array(buffer);
+  }
+
+  /**
+   * Construct a Numberu32 from Buffer representation
+   */
+  static fromBuffer(buffer: Buffer): Numberu32 {
+    if (buffer.length !== 4) {
+      throw new InvalidBufferLengthError(
+        `Invalid buffer length: ${buffer.length}`
+      );
+    }
+
+    const value = BigInt(buffer.readUInt32LE(0));
+    return new Numberu32(value);
+  }
+
+  toNumber(): number {
+    return Number(this.value);
+  }
+
+  toString(): string {
+    return String(this.value);
+  }
+}
+
+export class Numberu64 {
+  value: bigint;
+
+  constructor(value: number | string | bigint) {
+    this.value = BigInt(value);
+  }
+
+  /**
+   * Convert to Buffer representation
+   */
+  toBuffer(): Buffer {
+    const a = Buffer.alloc(8);
+    a.writeBigUInt64LE(this.value);
+    return a;
+  }
+
+  /**
+   * Convert to Uint8Array representation
+   */
+  toUint8Array(): Uint8Array {
+    const buffer = new ArrayBuffer(8);
+    const view = new DataView(buffer);
+    view.setBigUint64(0, this.value, true);
+    return new Uint8Array(buffer);
+  }
+
+  /**
+   * Construct a Numberu64 from Buffer representation
+   */
+  static fromBuffer(buffer: Buffer): Numberu64 {
+    if (buffer.length !== 8) {
+      new U64OverflowError(`Invalid buffer length: ${buffer.length}`);
+    }
+
+    const value = buffer.readBigUInt64LE(0);
+    return new Numberu64(value);
+  }
+
+  toNumber(): number {
+    return Number(this.value);
+  }
+
+  toString(): string {
+    return String(this.value);
+  }
+}
