@@ -1,8 +1,5 @@
-import { PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { AccountRole, Address, IAccountMeta, IInstruction } from "@solana/kit";
 import { serialize } from "borsh";
-import { Buffer } from "buffer";
-
-import type { AccountKey } from "./types";
 
 export class createReverseInstruction {
   tag: number;
@@ -18,67 +15,74 @@ export class createReverseInstruction {
     this.tag = 12;
     this.name = obj.name;
   }
+
   serialize(): Uint8Array {
     return serialize(createReverseInstruction.schema, this);
   }
+
   getInstruction(
-    programId: PublicKey,
-    namingServiceProgram: PublicKey,
-    rootDomain: PublicKey,
-    reverseLookup: PublicKey,
-    systemProgram: PublicKey,
-    centralState: PublicKey,
-    feePayer: PublicKey,
-    rentSysvar: PublicKey,
-    parentName?: PublicKey,
-    parentNameOwner?: PublicKey
-  ): TransactionInstruction {
-    const data = Buffer.from(this.serialize());
-    let keys: AccountKey[] = [];
-    keys.push({
-      pubkey: namingServiceProgram,
-      role: AccountRole.READONLY,
-    });
-    keys.push({
-      pubkey: rootDomain,
-      role: AccountRole.READONLY,
-    });
-    keys.push({
-      pubkey: reverseLookup,
-      role: AccountRole.WRITABLE,
-    });
-    keys.push({
-      pubkey: systemProgram,
-      role: AccountRole.READONLY,
-    });
-    keys.push({
-      pubkey: centralState,
-      role: AccountRole.READONLY,
-    });
-    keys.push({
-      pubkey: feePayer,
-      role: AccountRole.WRITABLE_SIGNER,
-    });
-    keys.push({
-      pubkey: rentSysvar,
-      role: AccountRole.READONLY,
-    });
-    if (!!parentName) {
-      keys.push({
-        pubkey: parentName,
+    programAddress: Address,
+    namingServiceProgram: Address,
+    rootDomain: Address,
+    reverseLookup: Address,
+    systemProgram: Address,
+    centralState: Address,
+    feePayer: Address,
+    rentSysvar: Address,
+    parentName?: Address,
+    parentNameOwner?: Address
+  ): IInstruction {
+    const data = this.serialize();
+
+    const accounts: IAccountMeta[] = [
+      {
+        address: namingServiceProgram,
+        role: AccountRole.READONLY,
+      },
+      {
+        address: rootDomain,
+        role: AccountRole.READONLY,
+      },
+      {
+        address: reverseLookup,
+        role: AccountRole.WRITABLE,
+      },
+      {
+        address: systemProgram,
+        role: AccountRole.READONLY,
+      },
+      {
+        address: centralState,
+        role: AccountRole.READONLY,
+      },
+      {
+        address: feePayer,
+        role: AccountRole.WRITABLE_SIGNER,
+      },
+      {
+        address: rentSysvar,
+        role: AccountRole.READONLY,
+      },
+    ];
+
+    if (parentName) {
+      accounts.push({
+        address: parentName,
         role: AccountRole.WRITABLE,
       });
     }
-    if (!!parentNameOwner) {
-      keys.push({
-        pubkey: parentNameOwner,
+
+    if (parentNameOwner) {
+      accounts.push({
+        address: parentNameOwner,
         role: AccountRole.WRITABLE_SIGNER,
       });
     }
-    return new TransactionInstruction({
-      keys,
-      programId,
+
+    return {
+      programAddress,
+      accounts,
       data,
-    });
+    };
   }
 }

@@ -1,7 +1,5 @@
-import { Buffer } from "buffer";
-import { PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { AccountRole, Address, IAccountMeta, IInstruction } from "@solana/kit";
 import { serialize } from "borsh";
-import type { AccountKey } from "./types";
 
 export class registerFavoriteInstruction {
   tag: number;
@@ -10,48 +8,54 @@ export class registerFavoriteInstruction {
       tag: "u8",
     },
   };
+
   constructor() {
     this.tag = 6;
   }
+
   serialize(): Uint8Array {
     return serialize(registerFavoriteInstruction.schema, this);
   }
+
   getInstruction(
-    programId: PublicKey,
-    nameAccount: PublicKey,
-    favouriteAccount: PublicKey,
-    owner: PublicKey,
-    systemProgram: PublicKey,
-    optParent?: PublicKey,
-  ): TransactionInstruction {
-    const data = Buffer.from(this.serialize());
-    let keys: AccountKey[] = [];
-    keys.push({
-      pubkey: nameAccount,
-       role: AccountRole.READONLY,
-    });
-    keys.push({
-      pubkey: favouriteAccount,
-       role: AccountRole.WRITABLE,
-    });
-    keys.push({
-      pubkey: owner,
-       role: AccountRole.WRITABLE_SIGNER,
-    });
-    keys.push({
-      pubkey: systemProgram,
-       role: AccountRole.READONLY,
-    });
-    if (!!optParent) {
-      keys.push({
-        pubkey: optParent,
-        role: AccountRole.READONLY,,
+    programAddress: Address,
+    nameAccount: Address,
+    favouriteAccount: Address,
+    owner: Address,
+    systemProgram: Address,
+    optParent?: Address
+  ): IInstruction {
+    const data = this.serialize();
+    const accounts: IAccountMeta[] = [
+      {
+        address: nameAccount,
+        role: AccountRole.READONLY,
+      },
+      {
+        address: favouriteAccount,
+        role: AccountRole.WRITABLE,
+      },
+      {
+        address: owner,
+        role: AccountRole.WRITABLE_SIGNER,
+      },
+      {
+        address: systemProgram,
+        role: AccountRole.READONLY,
+      },
+    ];
+
+    if (optParent) {
+      accounts.push({
+        address: optParent,
+        role: AccountRole.READONLY,
       });
     }
-    return new TransactionInstruction({
-      keys,
-      programId,
+
+    return {
+      programAddress,
+      accounts,
       data,
-    });
+    };
   }
 }

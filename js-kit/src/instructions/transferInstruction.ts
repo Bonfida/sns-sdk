@@ -1,53 +1,58 @@
-import { Buffer } from "buffer";
-import { PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { AccountRole, Address, IInstruction } from "@solana/kit";
+
+import { addressCodec } from "../codecs";
+import { DEFAULT_ADDRESS } from "../constants/addresses";
+import { uint8ArraysConcat } from "../utils/uint8Array/uint8ArraysConcat";
 
 export function transferInstruction(
-  nameProgramId: PublicKey,
-  nameAccountKey: PublicKey,
-  newOwnerKey: PublicKey,
-  currentNameOwnerKey: PublicKey,
-  nameClassKey?: PublicKey,
-  nameParent?: PublicKey,
-  parentOwner?: PublicKey,
-): TransactionInstruction {
-  const buffers = [Buffer.from(Int8Array.from([2])), newOwnerKey.toBuffer()];
+  programAddress: Address,
+  nameAccountKey: Address,
+  newOwnerKey: Address,
+  currentNameOwnerKey: Address,
+  nameClassKey?: Address,
+  nameParent?: Address,
+  parentOwner?: Address
+): IInstruction {
+  const data = uint8ArraysConcat([
+    Uint8Array.from([2]),
+    addressCodec.encode(newOwnerKey),
+  ]);
 
-  const data = Buffer.concat(buffers);
-
-  const keys = [
+  const accounts = [
     {
-      pubkey: nameAccountKey,
-       role: AccountRole.WRITABLE,
+      address: nameAccountKey,
+      role: AccountRole.WRITABLE,
     },
     {
-      pubkey: parentOwner ? parentOwner : currentNameOwnerKey,
-       role: AccountRole.READONLY_SIGNER,
+      address: parentOwner ? parentOwner : currentNameOwnerKey,
+      role: AccountRole.READONLY_SIGNER,
     },
   ];
 
   if (nameClassKey) {
-    keys.push({
-      pubkey: nameClassKey,
-       role: AccountRole.READONLY_SIGNER,
+    accounts.push({
+      address: nameClassKey,
+      role: AccountRole.READONLY_SIGNER,
     });
   }
 
   if (parentOwner && nameParent) {
     if (!nameClassKey) {
-      keys.push({
-        pubkey: PublicKey.default,
-        role: AccountRole.READONLY,,
+      accounts.push({
+        address: DEFAULT_ADDRESS,
+        role: AccountRole.READONLY,
       });
     }
-    keys.push({
-      pubkey: nameParent,
-       role: AccountRole.READONLY,
+
+    accounts.push({
+      address: nameParent,
+      role: AccountRole.READONLY,
     });
   }
 
-  return new TransactionInstruction({
-    keys,
-    programId: nameProgramId,
+  return {
+    programAddress,
+    accounts,
     data,
-  });
+  };
 }

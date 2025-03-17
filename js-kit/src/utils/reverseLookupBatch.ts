@@ -2,7 +2,7 @@ import { Address, GetMultipleAccountsApi, Rpc } from "@solana/kit";
 
 import { RegistryState } from "../states/registry";
 import { deserializeReverse } from "./deserializers/deserializeReverse";
-import { getReverseAddress } from "./getReverseAddress";
+import { getReverseAddressFromDomainAddress } from "./getReverseAddressFromDomainAddress";
 
 /**
  * Perform a batch reverse lookup for given domain addresses.
@@ -17,7 +17,7 @@ export async function reverseLookupBatch(
   addresses: Address[]
 ): Promise<(string | undefined)[]> {
   const reverseLookupAddresses: Address[] = await Promise.all(
-    addresses.map((address) => getReverseAddress(address))
+    addresses.map((address) => getReverseAddressFromDomainAddress(address))
   );
   const states = await RegistryState.retrieveBatch(rpc, reverseLookupAddresses);
 

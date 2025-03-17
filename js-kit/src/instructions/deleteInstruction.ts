@@ -1,33 +1,31 @@
-import { PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { Buffer } from "buffer";
+import { AccountRole, Address, IInstruction } from "@solana/kit";
 
 export function deleteInstruction(
-  nameProgramId: PublicKey,
-  nameAccountKey: PublicKey,
-  refundTargetKey: PublicKey,
-  nameOwnerKey: PublicKey
-): TransactionInstruction {
-  const buffers = [Buffer.from(Int8Array.from([3]))];
+  programAddress: Address,
+  nameAccountKey: Address,
+  refundTargetKey: Address,
+  nameOwnerKey: Address
+): IInstruction {
+  const data = Uint8Array.from([3]);
 
-  const data = Buffer.concat(buffers);
-  const keys = [
+  const accounts = [
     {
-      pubkey: nameAccountKey,
+      address: nameAccountKey,
       role: AccountRole.WRITABLE,
     },
     {
-      pubkey: nameOwnerKey,
+      address: nameOwnerKey,
       role: AccountRole.READONLY_SIGNER,
     },
     {
-      pubkey: refundTargetKey,
+      address: refundTargetKey,
       role: AccountRole.WRITABLE,
     },
   ];
 
-  return new TransactionInstruction({
-    keys,
-    programId: nameProgramId,
+  return {
+    programAddress,
+    accounts,
     data,
-  });
+  };
 }

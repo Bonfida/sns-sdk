@@ -18,7 +18,7 @@ import { getNftMint } from "../nft/getNftMint";
 import { PrimaryDomainState } from "../states/primaryDomain";
 import { RegistryState } from "../states/registry";
 import { deserializeReverse } from "../utils/deserializers/deserializeReverse";
-import { getReverseAddress } from "../utils/getReverseAddress";
+import { getReverseAddressFromDomainAddress } from "../utils/getReverseAddressFromDomainAddress";
 
 interface ValidPrimary {
   index: number;
@@ -62,10 +62,15 @@ export const getPrimaryDomainsBatch = async (
     const isSub = registry!.parentName !== ROOT_DOMAIN_ACCOUNT;
 
     parentRevAddressesPromises.push(
-      isSub ? getReverseAddress(registry!.parentName) : DEFAULT_ADDRESS
+      isSub
+        ? getReverseAddressFromDomainAddress(registry!.parentName)
+        : DEFAULT_ADDRESS
     );
     revAddressesPromises.push(
-      getReverseAddress(address, isSub ? registry!.parentName : undefined)
+      getReverseAddressFromDomainAddress(
+        address,
+        isSub ? registry!.parentName : undefined
+      )
     );
     atasPromises.push(
       getNftMint(address)

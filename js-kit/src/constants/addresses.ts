@@ -2,6 +2,9 @@ import { Address } from "@solana/addresses";
 
 export const SYSTEM_PROGRAM = "11111111111111111111111111111111" as Address;
 
+export const SYSVAR_RENT_PUBKEY =
+  "SysvarRent111111111111111111111111111111111" as Address;
+
 export const DEFAULT_ADDRESS = "11111111111111111111111111111111" as Address;
 
 /** Address of the SPL Token program */
@@ -15,21 +18,34 @@ export const NAME_PROGRAM_ID =
   "namesLPneVptA9Z5rqUDD9tMTWEJwofgaYwp8cawRkX" as Address;
 
 /**
- * Hash prefix used to derive domain name addresses
- */
-export const HASH_PREFIX = "SPL Name Service";
-
-/**
  * The `.sol` TLD
  */
 export const ROOT_DOMAIN_ACCOUNT =
   "58PwtjSDuFHuUkYjH9BYnnQKHfwo9reZhC2zMJv9JPkx" as Address;
 
 /**
- * The Registry program ID
+ * The SNS Registry program ID
  */
-export const REGISTER_PROGRAM_ID =
+export const REGISTRY_PROGRAM_ID =
   "jCebN34bUfdeUYJT13J1yG16XWQpt5PDx6Mse9GUqhR" as Address;
+
+/**
+ * The SNS Name Tokenizer program ID
+ */
+export const NAME_TOKENIZER_ID =
+  "nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk" as Address;
+
+/**
+ * The SNS Offers program ID
+ */
+export const NAME_OFFERS_ID =
+  "85iDfUvr3HJyLM2zcq5BXSiDvUWfw6cSE1FfNBo8Ap29" as Address;
+
+/**
+ * The SNS Records program ID
+ */
+export const RECORDS_PROGRAM_ID =
+  "HP3D4D1ZCmohQGFVms2SS4LCANgJyksBf5s1F77FuFjZ" as Address;
 
 /**
  * The reverse look up class
@@ -59,11 +75,3 @@ export const TWITTER_ROOT_PARENT_REGISTRY_KEY =
 
 export const USDC_MINT =
   "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" as Address;
-
-// NFT constants
-export const NAME_TOKENIZER_ID =
-  "nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk" as Address;
-
-// Offers constants
-export const NAME_OFFERS_ID =
-  "85iDfUvr3HJyLM2zcq5BXSiDvUWfw6cSE1FfNBo8Ap29" as Address;

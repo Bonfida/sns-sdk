@@ -1,41 +1,40 @@
-import { PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { Buffer } from "buffer";
+import { AccountRole, Address, IInstruction } from "@solana/kit";
 
-import { Numberu32 } from "../int";
+import { Numberu32 } from "../utils/int";
+import { uint8ArraysConcat } from "../utils/uint8Array/uint8ArraysConcat";
 
 export function reallocInstruction(
-  nameProgramId: PublicKey,
-  systemProgramId: PublicKey,
-  payerKey: PublicKey,
-  nameAccountKey: PublicKey,
-  nameOwnerKey: PublicKey,
+  programAddress: Address,
+  systemProgramId: Address,
+  payerKey: Address,
+  nameAccountKey: Address,
+  nameOwnerKey: Address,
   space: Numberu32
-): TransactionInstruction {
-  const buffers = [Buffer.from(Int8Array.from([4])), space.toBuffer()];
+): IInstruction {
+  const data = uint8ArraysConcat([Uint8Array.from([4]), space.toUint8Array()]);
 
-  const data = Buffer.concat(buffers);
-  const keys = [
+  const accounts = [
     {
-      pubkey: systemProgramId,
+      address: systemProgramId,
       role: AccountRole.READONLY,
     },
     {
-      pubkey: payerKey,
+      address: payerKey,
       role: AccountRole.WRITABLE_SIGNER,
     },
     {
-      pubkey: nameAccountKey,
+      address: nameAccountKey,
       role: AccountRole.WRITABLE,
     },
     {
-      pubkey: nameOwnerKey,
+      address: nameOwnerKey,
       role: AccountRole.READONLY_SIGNER,
     },
   ];
 
-  return new TransactionInstruction({
-    keys,
-    programId: nameProgramId,
+  return {
+    programAddress,
+    accounts,
     data,
-  });
+  };
 }

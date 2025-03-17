@@ -1,37 +1,36 @@
-import { PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { Buffer } from "buffer";
+import { AccountRole, Address, IInstruction } from "@solana/kit";
 
-import { Numberu32 } from "../int";
+import { Numberu32 } from "../utils/int";
+import { uint8ArraysConcat } from "../utils/uint8Array/uint8ArraysConcat";
 
 export function updateInstruction(
-  nameProgramId: PublicKey,
-  nameAccountKey: PublicKey,
+  programAddress: Address,
+  nameAccountKey: Address,
   offset: Numberu32,
-  input_data: Buffer,
-  nameUpdateSigner: PublicKey
-): TransactionInstruction {
-  const buffers = [
-    Buffer.from(Int8Array.from([1])),
-    offset.toBuffer(),
-    new Numberu32(input_data.length).toBuffer(),
+  input_data: Uint8Array,
+  nameUpdateSigner: Address
+): IInstruction {
+  const data = uint8ArraysConcat([
+    Uint8Array.from([1]),
+    offset.toUint8Array(),
+    new Numberu32(input_data.length).toUint8Array(),
     input_data,
-  ];
+  ]);
 
-  const data = Buffer.concat(buffers);
-  const keys = [
+  const accounts = [
     {
-      pubkey: nameAccountKey,
+      address: nameAccountKey,
       role: AccountRole.WRITABLE,
     },
     {
-      pubkey: nameUpdateSigner,
+      address: nameUpdateSigner,
       role: AccountRole.READONLY_SIGNER,
     },
   ];
 
-  return new TransactionInstruction({
-    keys,
-    programId: nameProgramId,
+  return {
+    programAddress,
+    accounts,
     data,
-  });
+  };
 }

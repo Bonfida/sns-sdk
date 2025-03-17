@@ -1,11 +1,7 @@
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import {
-  PublicKey,
-  SystemProgram,
-  TransactionInstruction,
-} from "@solana/web3.js";
+import { AccountRole, Address, IAccountMeta, IInstruction } from "@solana/kit";
 import { serialize } from "borsh";
-import { Buffer } from "buffer";
+
+import { SYSTEM_PROGRAM, TOKEN_PROGRAM_ID } from "../constants/addresses";
 
 export class createV2Instruction {
   tag: number;
@@ -31,74 +27,75 @@ export class createV2Instruction {
   }
 
   getInstruction(
-    programId: PublicKey,
-    rentSysvarAccount: PublicKey,
-    nameProgramId: PublicKey,
-    rootDomain: PublicKey,
-    nameAccount: PublicKey,
-    reverseLookupAccount: PublicKey,
-    centralState: PublicKey,
-    buyer: PublicKey,
-    buyerTokenAccount: PublicKey,
-    usdcVault: PublicKey,
-    state: PublicKey
-  ): TransactionInstruction {
-    const data = Buffer.from(this.serialize());
-    const keys = [
+    programAddress: Address,
+    rentSysvarAccount: Address,
+    nameProgramId: Address,
+    rootDomain: Address,
+    nameAccount: Address,
+    reverseLookupAccount: Address,
+    centralState: Address,
+    buyer: Address,
+    buyerTokenAccount: Address,
+    usdcVault: Address,
+    state: Address
+  ): IInstruction {
+    const data = this.serialize();
+
+    const accounts: IAccountMeta[] = [
       {
-        pubkey: rentSysvarAccount,
-        role: AccountRole.READONLY,,
+        address: rentSysvarAccount,
+        role: AccountRole.READONLY,
       },
       {
-        pubkey: nameProgramId,
-        role: AccountRole.READONLY,,
+        address: nameProgramId,
+        role: AccountRole.READONLY,
       },
       {
-        pubkey: rootDomain,
-        role: AccountRole.READONLY,,
+        address: rootDomain,
+        role: AccountRole.READONLY,
       },
       {
-        pubkey: nameAccount,
+        address: nameAccount,
         role: AccountRole.WRITABLE,
       },
       {
-        pubkey: reverseLookupAccount,
+        address: reverseLookupAccount,
         role: AccountRole.WRITABLE,
       },
       {
-        pubkey: SystemProgram.programId,
-        role: AccountRole.READONLY,,
+        address: SYSTEM_PROGRAM,
+        role: AccountRole.READONLY,
       },
       {
-        pubkey: centralState,
-        role: AccountRole.READONLY,,
+        address: centralState,
+        role: AccountRole.READONLY,
       },
       {
-        pubkey: buyer,
+        address: buyer,
         role: AccountRole.WRITABLE_SIGNER,
       },
       {
-        pubkey: buyerTokenAccount,
+        address: buyerTokenAccount,
         role: AccountRole.WRITABLE,
       },
       {
-        pubkey: usdcVault,
+        address: usdcVault,
         role: AccountRole.WRITABLE,
       },
       {
-        pubkey: TOKEN_PROGRAM_ID,
-        role: AccountRole.READONLY,,
+        address: TOKEN_PROGRAM_ID,
+        role: AccountRole.READONLY,
       },
       {
-        pubkey: state,
-        role: AccountRole.READONLY,,
+        address: state,
+        role: AccountRole.READONLY,
       },
     ];
 
-    return new TransactionInstruction({
-      keys,
-      programId,
+    return {
+      programAddress,
+      accounts,
       data,
-    });
+    };
   }
 }

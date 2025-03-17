@@ -1,7 +1,7 @@
 import { AccountRole, Address, IAccountMeta, IInstruction } from "@solana/kit";
 import { serialize } from "borsh";
 
-export class burnInstruction {
+export class burnDomainInstruction {
   tag: number;
 
   static schema = {
@@ -15,7 +15,7 @@ export class burnInstruction {
   }
 
   serialize(): Uint8Array {
-    return serialize(burnInstruction.schema, this);
+    return serialize(burnDomainInstruction.schema, this);
   }
 
   getInstruction(
@@ -31,7 +31,8 @@ export class burnInstruction {
     target: Address
   ): IInstruction {
     const data = this.serialize();
-    const accounts: readonly IAccountMeta[] = [
+
+    const accounts: IAccountMeta[] = [
       {
         address: nameServiceId,
         role: AccountRole.READONLY,

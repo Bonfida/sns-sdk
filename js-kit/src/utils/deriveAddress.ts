@@ -5,7 +5,9 @@ import {
 } from "@solana/kit";
 
 import { addressCodec, utf8Codec } from "../codecs";
-import { HASH_PREFIX, NAME_PROGRAM_ID } from "../constants/addresses";
+import { NAME_PROGRAM_ID } from "../constants/addresses";
+
+const HASH_PREFIX = "SPL Name Service";
 
 /**
  * Hashes a string using SHA-256.
@@ -13,7 +15,7 @@ import { HASH_PREFIX, NAME_PROGRAM_ID } from "../constants/addresses";
  * @param {string} str - The string to be hashed.
  * @returns {Promise<Uint8Array>} A promise that resolves to the hashed value as a Uint8Array.
  */
-const hash = async (str: string): Promise<Uint8Array> => {
+export const _generateHash = async (str: string): Promise<Uint8Array> => {
   const data = utf8Codec.encode(HASH_PREFIX + str);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
 
@@ -28,17 +30,17 @@ const hash = async (str: string): Promise<Uint8Array> => {
  * @param {Address} [classAddress] - The optional class address.
  * @returns {Promise<Address>} A promise that resolves to the derived address.
  */
-const getAddressFromHash = async (
+export const _getAddressFromHash = async (
   hash: Uint8Array,
   parentAddress?: Address,
-  classAddress?: Address,
+  classAddress?: Address
 ): Promise<Address> => {
   const seeds: ReadonlyUint8Array[] = [hash];
   seeds.push(
-    classAddress ? addressCodec.encode(classAddress) : new Uint8Array(32),
+    classAddress ? addressCodec.encode(classAddress) : new Uint8Array(32)
   );
   seeds.push(
-    parentAddress ? addressCodec.encode(parentAddress) : new Uint8Array(32),
+    parentAddress ? addressCodec.encode(parentAddress) : new Uint8Array(32)
   );
 
   const [address] = await getProgramDerivedAddress({
@@ -62,10 +64,10 @@ const getAddressFromHash = async (
 export const deriveAddress = async (
   str: string,
   parentAddress?: Address,
-  classAddress?: Address,
+  classAddress?: Address
 ) => {
-  const hashed = await hash(str);
-  const address = await getAddressFromHash(hashed, parentAddress, classAddress);
+  const hash = await _generateHash(str);
+  const address = await _getAddressFromHash(hash, parentAddress, classAddress);
 
   return address;
 };

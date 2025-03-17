@@ -3,7 +3,7 @@ import { Address, GetAccountInfoApi, Rpc } from "@solana/kit";
 import { NoAccountDataError } from "../errors";
 import { RegistryState } from "../states/registry";
 import { deserializeReverse } from "./deserializers/deserializeReverse";
-import { getReverseAddress } from "./getReverseAddress";
+import { getReverseAddressFromDomainAddress } from "./getReverseAddressFromDomainAddress";
 
 /**
  * Perform a reverse lookup for a given domain address.
@@ -20,7 +20,10 @@ export async function reverseLookup(
   address: Address,
   parentAddress?: Address
 ): Promise<string> {
-  const reverseAddress = await getReverseAddress(address, parentAddress);
+  const reverseAddress = await getReverseAddressFromDomainAddress(
+    address,
+    parentAddress
+  );
 
   const registry = await RegistryState.retrieve(rpc, reverseAddress);
   if (!registry.data) {

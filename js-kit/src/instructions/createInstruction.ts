@@ -1,4 +1,4 @@
-import { AccountRole, Address, IInstruction } from "@solana/kit";
+import { AccountRole, Address, IAccountMeta, IInstruction } from "@solana/kit";
 
 import { DEFAULT_ADDRESS } from "../constants/addresses";
 import { Numberu32, Numberu64 } from "../utils/int";
@@ -10,7 +10,7 @@ export function createInstruction(
   nameKey: Address,
   nameOwnerKey: Address,
   payerKey: Address,
-  hashed_name: Uint8Array,
+  nameHash: Uint8Array,
   lamports: Numberu64,
   space: Numberu32,
   nameClassKey?: Address,
@@ -19,13 +19,13 @@ export function createInstruction(
 ): IInstruction {
   const data = uint8ArraysConcat([
     Uint8Array.from([0]),
-    new Numberu32(hashed_name.length).toUint8Array(),
-    hashed_name,
+    new Numberu32(nameHash.length).toUint8Array(),
+    nameHash,
     lamports.toUint8Array(),
     space.toUint8Array(),
   ]);
 
-  const accounts = [
+  const accounts: IAccountMeta[] = [
     {
       address: systemProgramId,
       role: AccountRole.READONLY,
@@ -55,6 +55,7 @@ export function createInstruction(
       role: AccountRole.READONLY,
     });
   }
+
   if (nameParent) {
     accounts.push({
       address: nameParent,
@@ -66,6 +67,7 @@ export function createInstruction(
       role: AccountRole.READONLY,
     });
   }
+
   if (nameParentOwner) {
     accounts.push({
       address: nameParentOwner,
