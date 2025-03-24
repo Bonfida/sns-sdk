@@ -1,4 +1,4 @@
-import { test, expect } from "@jest/globals";
+import { expect, test } from "@jest/globals";
 import { getDomainKey } from "../src/deprecated/utils";
 import { getDomainKeySync } from "../src/utils/getDomainKeySync";
 

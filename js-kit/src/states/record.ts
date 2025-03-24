@@ -8,6 +8,7 @@ import {
 } from "@solana/kit";
 import { Schema, deserialize } from "borsh";
 
+import { NoRecordDataError } from "../errors";
 import { Validation } from "../types/validation";
 
 export const NAME_REGISTRY_LEN = 96;
@@ -99,7 +100,7 @@ export class RecordState {
   ): Promise<RecordState> {
     const recordAccount = await fetchEncodedAccount(rpc, address);
     if (!recordAccount.exists) {
-      throw new Error("Record account not found");
+      throw new NoRecordDataError("Record account not found");
     }
 
     return this.deserialize(recordAccount.data);

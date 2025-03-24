@@ -41,8 +41,6 @@ const getNftStatesForAddress = async (
       })
       .send();
 
-    console.log({ results });
-
     const nftStates = await Promise.all(
       results.map(({ account }) => {
         const { mint } = tokenCodec.decode(base64Codec.encode(account.data[0]));

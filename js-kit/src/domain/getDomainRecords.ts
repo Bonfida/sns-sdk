@@ -30,7 +30,6 @@ interface Result {
 
 export async function getDomainRecords<
   T extends Record[],
-   
   U extends { [K in keyof T]: ReadonlyUint8Array | undefined },
 >(
   rpc: Rpc<
