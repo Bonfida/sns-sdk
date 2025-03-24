@@ -1,7 +1,10 @@
 import { AccountRole, Address, IAccountMeta, IInstruction } from "@solana/kit";
 import { serialize } from "borsh";
 
-import { SYSTEM_PROGRAM, TOKEN_PROGRAM_ID } from "../constants/addresses";
+import {
+  SYSTEM_PROGRAM_ADDRESS,
+  TOKEN_PROGRAM_ADDRESS,
+} from "../constants/addresses";
 
 export class createV2Instruction {
   tag: number;
@@ -63,7 +66,7 @@ export class createV2Instruction {
         role: AccountRole.WRITABLE,
       },
       {
-        address: SYSTEM_PROGRAM,
+        address: SYSTEM_PROGRAM_ADDRESS,
         role: AccountRole.READONLY,
       },
       {
@@ -83,7 +86,7 @@ export class createV2Instruction {
         role: AccountRole.WRITABLE,
       },
       {
-        address: TOKEN_PROGRAM_ID,
+        address: TOKEN_PROGRAM_ADDRESS,
         role: AccountRole.READONLY,
       },
       {

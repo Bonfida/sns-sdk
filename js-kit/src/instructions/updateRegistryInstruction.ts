@@ -1,50 +1,43 @@
 import { AccountRole, Address, IAccountMeta, IInstruction } from "@solana/kit";
 import { serialize } from "borsh";
 
-export class ReallocInstruction {
+export class UpdateRegistryInstruction {
   tag: number;
-  space: number;
+  offset: number;
+  inputData: Uint8Array;
 
   static schema = {
     struct: {
       tag: "u8",
-      space: "u32",
+      offset: "u32",
+      inputData: { array: { type: "u8" } },
     },
   };
 
-  constructor(obj: { space: number }) {
-    this.tag = 4;
-    this.space = obj.space;
+  constructor(obj: { offset: number; inputDat: Uint8Array }) {
+    this.tag = 1;
+    this.offset = obj.offset;
+    this.inputData = obj.inputDat;
   }
 
   serialize(): Uint8Array {
-    return serialize(ReallocInstruction.schema, this);
+    return serialize(UpdateRegistryInstruction.schema, this);
   }
 
   getInstruction(
     programAddress: Address,
-    systemProgramId: Address,
-    payerKey: Address,
-    nameAccountKey: Address,
-    nameOwnerKey: Address
+    domainAddress: Address,
+    signer: Address
   ): IInstruction {
     const data = this.serialize();
 
     const accounts: IAccountMeta[] = [
       {
-        address: systemProgramId,
-        role: AccountRole.READONLY,
-      },
-      {
-        address: payerKey,
-        role: AccountRole.WRITABLE_SIGNER,
-      },
-      {
-        address: nameAccountKey,
+        address: domainAddress,
         role: AccountRole.WRITABLE,
       },
       {
-        address: nameOwnerKey,
+        address: signer,
         role: AccountRole.READONLY_SIGNER,
       },
     ];

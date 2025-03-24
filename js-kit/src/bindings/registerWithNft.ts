@@ -1,20 +1,23 @@
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { PublicKey, SYSVAR_RENT_PUBKEY, SystemProgram } from "@solana/web3.js";
+import { Address, getProgramDerivedAddress } from "@solana/kit";
 
+import { addressCodec } from "../codecs";
 import {
-  METAPLEX_ID,
-  NAME_PROGRAM_ID,
-  REGISTER_PROGRAM_ID,
+  METAPLEX_PROGRAM_ADDRESS,
+  NAME_PROGRAM_ADDRESS,
+  REGISTRY_PROGRAM_ADDRESS,
   REVERSE_LOOKUP_CLASS,
   ROOT_DOMAIN_ACCOUNT,
+  SYSTEM_PROGRAM_ADDRESS,
+  SYSVAR_RENT_ADDRESS,
+  TOKEN_PROGRAM_ADDRESS,
   WOLVES_COLLECTION_METADATA,
-} from "../constants";
+} from "../constants/addresses";
 import { createWithNftInstruction } from "../instructions/createWithNftInstruction";
 
-export const registerWithNft = (
+export const registerWithNft = async (
   name: string,
   space: number,
-  nameAccount: Address,
+  domainAddress: Address,
   reverseLookupAccount: Address,
   buyer: Address,
   nftSource: Address,
@@ -22,17 +25,18 @@ export const registerWithNft = (
   nftMint: Address,
   masterEdition: Address
 ) => {
-  const [state] = PublicKey.findProgramAddressSync(
-    [nameAccount.toBuffer()],
-    REGISTER_PROGRAM_ID
-  );
+  const [state] = await getProgramDerivedAddress({
+    programAddress: REGISTRY_PROGRAM_ADDRESS,
+    seeds: [addressCodec.encode(domainAddress)],
+  });
+
   const ix = new createWithNftInstruction({ space, name }).getInstruction(
-    REGISTER_PROGRAM_ID,
-    NAME_PROGRAM_ID,
+    REGISTRY_PROGRAM_ADDRESS,
+    NAME_PROGRAM_ADDRESS,
     ROOT_DOMAIN_ACCOUNT,
-    nameAccount,
+    domainAddress,
     reverseLookupAccount,
-    SystemProgram.programId,
+    SYSTEM_PROGRAM_ADDRESS,
     REVERSE_LOOKUP_CLASS,
     buyer,
     nftSource,
@@ -40,10 +44,10 @@ export const registerWithNft = (
     nftMint,
     masterEdition,
     WOLVES_COLLECTION_METADATA,
-    TOKEN_PROGRAM_ID,
-    SYSVAR_RENT_PUBKEY,
+    TOKEN_PROGRAM_ADDRESS,
+    SYSVAR_RENT_ADDRESS,
     state,
-    METAPLEX_ID
+    METAPLEX_PROGRAM_ADDRESS
   );
   return ix;
 };

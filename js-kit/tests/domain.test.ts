@@ -1,11 +1,6 @@
 import { describe, expect, jest, test } from "@jest/globals";
-import {
-  createDefaultRpcTransport,
-  createSolanaRpcFromTransport,
-} from "@solana/kit";
-import * as dotenv from "dotenv";
 
-import { SYSTEM_PROGRAM } from "../src/constants/addresses";
+import { SYSTEM_PROGRAM_ADDRESS } from "../src/constants/addresses";
 import { getDomainRecords } from "../src/domain/getDomainRecords";
 import { AllowPda, resolveDomain } from "../src/domain/resolveDomain";
 import {
@@ -15,18 +10,9 @@ import {
   PdaOwnerNotAllowedError,
 } from "../src/errors";
 import { Record } from "../src/types/record";
+import { TEST_RPC } from "./constants";
 
-dotenv.config();
-
-jest.setTimeout(50_000);
-
-// Create an HTTP transport or any custom transport of your choice.
-const transport = createDefaultRpcTransport({
-  url: process.env.RPC_URL!,
-});
-
-// Create an RPC client using that transport.
-const rpc = createSolanaRpcFromTransport(transport);
+jest.setTimeout(25_000);
 
 describe("Domain methods", () => {
   describe("resolveDomain", () => {
@@ -46,7 +32,7 @@ describe("Domain methods", () => {
       {
         domain: "sns-ip-5-wallet-5",
         result: "96GKJgm2W3P8Bae78brPrJf4Yi9AN1wtPJwg2XVQ2rMr",
-        config: { allowPda: true, programIds: [SYSTEM_PROGRAM] },
+        config: { allowPda: true, programIds: [SYSTEM_PROGRAM_ADDRESS] },
       },
       {
         domain: "sns-ip-5-wallet-5",
@@ -70,7 +56,7 @@ describe("Domain methods", () => {
       {
         domain: "sns-ip-5-wallet-10",
         result: "96GKJgm2W3P8Bae78brPrJf4Yi9AN1wtPJwg2XVQ2rMr",
-        config: { allowPda: true, programIds: [SYSTEM_PROGRAM] },
+        config: { allowPda: true, programIds: [SYSTEM_PROGRAM_ADDRESS] },
       },
       {
         domain: "sns-ip-5-wallet-10",
@@ -78,7 +64,7 @@ describe("Domain methods", () => {
         config: { allowPda: "any" as AllowPda },
       },
     ])("$domain resolves correctly", async (e) => {
-      const resolvedValue = await resolveDomain(rpc, e.domain, e?.config);
+      const resolvedValue = await resolveDomain(TEST_RPC, e.domain, e?.config);
       expect(resolvedValue.toString()).toBe(e.result);
     });
 
@@ -100,7 +86,7 @@ describe("Domain methods", () => {
         error: new InvalidRoAError(),
       },
     ])("$domain throws an error", async (e) => {
-      await expect(resolveDomain(rpc, e.domain)).rejects.toThrow(e.error);
+      await expect(resolveDomain(TEST_RPC, e.domain)).rejects.toThrow(e.error);
     });
 
     test.each([
@@ -148,7 +134,7 @@ describe("Domain methods", () => {
         owner: "36Dn3RWhB8x4c83W6ebQ2C2eH9sh5bQX2nMdkP2cWaA4",
       },
     ])("$domain resolves correctly (backward compatibility)", async (e) => {
-      const resolvedValue = await resolveDomain(rpc, e.domain);
+      const resolvedValue = await resolveDomain(TEST_RPC, e.domain);
       expect(resolvedValue.toString()).toBe(e.owner);
     });
   });
@@ -180,7 +166,7 @@ describe("Domain methods", () => {
     ];
 
     const res = await getDomainRecords(
-      rpc,
+      TEST_RPC,
       domain,
       items.map((item) => item.record),
       {
@@ -199,7 +185,7 @@ describe("Domain methods", () => {
 
     await expect(
       getDomainRecords(
-        rpc,
+        TEST_RPC,
         domain,
         items.map((item) => item.record),
         {

@@ -1,29 +1,15 @@
-import { expect, jest, test } from "@jest/globals";
-import {
-  Address,
-  createDefaultRpcTransport,
-  createSolanaRpcFromTransport,
-} from "@solana/kit";
-import * as dotenv from "dotenv";
+import { describe, expect, jest, test } from "@jest/globals";
+import { Address } from "@solana/kit";
 
 import { Record } from "../src/types/record";
 import { deserializeRecordContent } from "../src/utils/deserializers/deserializeRecordContent";
 import { reverseLookup } from "../src/utils/reverseLookup";
 import { reverseLookupBatch } from "../src/utils/reverseLookupBatch";
 import { serializeRecordContent } from "../src/utils/serializers/serializeRecordContent";
-import { RANDOM_ADDRESS } from "./constants";
+import { RANDOM_ADDRESS, TEST_RPC } from "./constants";
 
-dotenv.config();
+jest.setTimeout(25_000);
 
-jest.setTimeout(50_000);
-
-// Create an HTTP transport or any custom transport of your choice.
-const transport = createDefaultRpcTransport({
-  url: process.env.RPC_URL!,
-});
-
-// Create an RPC client using that transport.
-const rpc = createSolanaRpcFromTransport(transport);
 describe("Utils methods", () => {
   // Reverse lookup cases
   const cases = [
@@ -44,7 +30,7 @@ describe("Utils methods", () => {
   describe("reverseLookup", () => {
     test("bulk reverse lookup completed correctly ", async () => {
       const domains = await reverseLookupBatch(
-        rpc,
+        TEST_RPC,
         cases.map((c) => c.address)
       );
       await expect(domains).toStrictEqual(cases.map((c) => c.primary));
@@ -52,7 +38,7 @@ describe("Utils methods", () => {
     test.each(cases)(
       "single reverse lookup for $address completed correctly ",
       async (e) => {
-        const domain = await reverseLookup(rpc, e.address);
+        const domain = await reverseLookup(TEST_RPC, e.address);
         await expect(domain).toBe(e.primary);
       }
     );
@@ -61,7 +47,7 @@ describe("Utils methods", () => {
   describe("reverseLookupBatch", () => {
     test("bulk reverse lookup completed correctly ", async () => {
       const domains = await reverseLookupBatch(
-        rpc,
+        TEST_RPC,
         cases.map((c) => c.address)
       );
       await expect(domains).toStrictEqual(cases.map((c) => c.primary));

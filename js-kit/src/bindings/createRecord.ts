@@ -1,5 +1,6 @@
 import { Address } from "@solana/kit";
 
+import { utf8Codec } from "../codecs";
 import {
   CENTRAL_STATE_DOMAIN_RECORDS,
   NAME_PROGRAM_ADDRESS,
@@ -8,12 +9,13 @@ import {
 } from "../constants/addresses";
 import { getDomainAddress } from "../domain/getDomainAddress";
 import { InvalidParentError } from "../errors";
-import { deleteRecordInstruction } from "../instructions/deleteRecordInstructio copy";
+import { allocateAndPostRecordInstruction } from "../instructions/allocateAndPostRecordInstructio";
 import { Record, RecordVersion } from "../types/record";
 
-export const deleteRecord = async (
+export const createRecord = async (
   domain: string,
   record: Record,
+  content: string,
   owner: Address,
   payer: Address
 ) => {
@@ -32,7 +34,10 @@ export const deleteRecord = async (
     throw new InvalidParentError("Parent could not be found");
   }
 
-  const ix = new deleteRecordInstruction().getInstruction(
+  const ix = new allocateAndPostRecordInstruction({
+    record,
+    content: utf8Codec.encode(content),
+  }).getInstruction(
     RECORDS_PROGRAM_ADDRESS,
     SYSTEM_PROGRAM_ADDRESS,
     NAME_PROGRAM_ADDRESS,

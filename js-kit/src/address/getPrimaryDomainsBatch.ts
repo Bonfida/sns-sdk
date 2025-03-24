@@ -10,9 +10,10 @@ import {
 import { tokenCodec } from "../codecs";
 import {
   DEFAULT_ADDRESS,
-  NAME_PROGRAM_ID,
+  NAME_OFFERS_ADDRESS,
+  NAME_PROGRAM_ADDRESS,
   ROOT_DOMAIN_ACCOUNT,
-  TOKEN_PROGRAM_ID,
+  TOKEN_PROGRAM_ADDRESS,
 } from "../constants/addresses";
 import { getNftMint } from "../nft/getNftMint";
 import { PrimaryDomainState } from "../states/primaryDomain";
@@ -34,7 +35,9 @@ export const getPrimaryDomainsBatch = async (
     undefined
   );
   const addresses = await Promise.all(
-    walletAddresses.map((address) => PrimaryDomainState.getAddress(address))
+    walletAddresses.map((address) =>
+      PrimaryDomainState.getAddress(NAME_OFFERS_ADDRESS, address)
+    )
   );
   const primaries = await PrimaryDomainState.retrieveBatch(rpc, addresses);
 
@@ -78,7 +81,7 @@ export const getPrimaryDomainsBatch = async (
           findAssociatedTokenPda({
             mint,
             owner: walletAddresses[index],
-            tokenProgram: TOKEN_PROGRAM_ID,
+            tokenProgram: TOKEN_PROGRAM_ADDRESS,
           })
         )
         .then(([pda]) => pda)
@@ -109,7 +112,7 @@ export const getPrimaryDomainsBatch = async (
 
     if (
       parentRevAccount.exists &&
-      parentRevAccount.programAddress === NAME_PROGRAM_ID
+      parentRevAccount.programAddress === NAME_PROGRAM_ADDRESS
     ) {
       const des = deserializeReverse(parentRevAccount.data.slice(96));
       parentRev = `.${des}`;

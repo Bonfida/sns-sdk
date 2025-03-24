@@ -6,7 +6,7 @@ import {
 } from "@solana/kit";
 
 import { base64Codec, tokenCodec } from "../codecs";
-import { TOKEN_PROGRAM_ID } from "../constants/addresses";
+import { TOKEN_PROGRAM_ADDRESS } from "../constants/addresses";
 import { NftState } from "../states/nft";
 import { reverseLookupBatch } from "../utils/reverseLookupBatch";
 
@@ -29,7 +29,7 @@ const getNftStatesForAddress = async (
 ): Promise<NftState[]> => {
   try {
     const results = await rpc
-      .getProgramAccounts(TOKEN_PROGRAM_ID, {
+      .getProgramAccounts(TOKEN_PROGRAM_ADDRESS, {
         encoding: "base64",
         filters: [
           {
@@ -40,6 +40,8 @@ const getNftStatesForAddress = async (
         ],
       })
       .send();
+
+    console.log({ results });
 
     const nftStates = await Promise.all(
       results.map(({ account }) => {

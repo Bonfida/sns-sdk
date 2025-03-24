@@ -5,7 +5,7 @@ import {
 } from "@solana/kit";
 
 import { addressCodec, utf8Codec } from "../codecs";
-import { NAME_PROGRAM_ID } from "../constants/addresses";
+import { NAME_PROGRAM_ADDRESS } from "../constants/addresses";
 
 const HASH_PREFIX = "SPL Name Service";
 
@@ -44,7 +44,7 @@ export const _getAddressFromHash = async (
   );
 
   const [address] = await getProgramDerivedAddress({
-    programAddress: NAME_PROGRAM_ID,
+    programAddress: NAME_PROGRAM_ADDRESS,
     seeds,
   });
 

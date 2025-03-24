@@ -1,7 +1,7 @@
 import { AccountRole, Address, IAccountMeta, IInstruction } from "@solana/kit";
 import { serialize } from "borsh";
 
-export class burnDomainInstruction {
+export class deleteRecordInstruction {
   tag: number;
 
   static schema = {
@@ -11,63 +11,53 @@ export class burnDomainInstruction {
   };
 
   constructor() {
-    this.tag = 16;
+    this.tag = 5;
   }
 
   serialize(): Uint8Array {
-    return serialize(burnDomainInstruction.schema, this);
+    return serialize(deleteRecordInstruction.schema, this);
   }
 
   getInstruction(
     programAddress: Address,
-    nameServiceId: Address,
     systemProgram: Address,
+    splNameServiceProgram: Address,
+    payer: Address,
+    record: Address,
     domainAddress: Address,
-    reverse: Address,
-    resellingState: Address,
-    state: Address,
-    centralState: Address,
-    owner: Address,
-    target: Address
+    domainOwner: Address,
+    centralState: Address
   ): IInstruction {
     const data = this.serialize();
 
     const accounts: IAccountMeta[] = [
       {
-        address: nameServiceId,
+        address: systemProgram,
         role: AccountRole.READONLY,
       },
       {
-        address: systemProgram,
+        address: splNameServiceProgram,
         role: AccountRole.READONLY,
+      },
+      {
+        address: payer,
+        role: AccountRole.WRITABLE_SIGNER,
+      },
+      {
+        address: record,
+        role: AccountRole.WRITABLE,
       },
       {
         address: domainAddress,
         role: AccountRole.WRITABLE,
       },
       {
-        address: reverse,
-        role: AccountRole.WRITABLE,
-      },
-      {
-        address: resellingState,
-        role: AccountRole.WRITABLE,
-      },
-      {
-        address: state,
-        role: AccountRole.WRITABLE,
+        address: domainOwner,
+        role: AccountRole.WRITABLE_SIGNER,
       },
       {
         address: centralState,
         role: AccountRole.READONLY,
-      },
-      {
-        address: owner,
-        role: AccountRole.READONLY_SIGNER,
-      },
-      {
-        address: target,
-        role: AccountRole.WRITABLE,
       },
     ];
 

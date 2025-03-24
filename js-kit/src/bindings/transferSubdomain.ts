@@ -1,57 +1,48 @@
-import { Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { Address, GetAccountInfoApi, IInstruction, Rpc } from "@solana/kit";
 
-import { NAME_PROGRAM_ID } from "../constants";
-import { InvalidSubdomainError } from "../error";
-import { transferInstruction } from "../instructions/transferInstruction";
-import { NameRegistryState } from "../state";
-import { getDomainKeySync } from "../utils/getDomainKeySync";
+import { NAME_PROGRAM_ADDRESS } from "../constants/addresses";
+import { getDomainAddress } from "../domain/getDomainAddress";
+import { InvalidSubdomainError } from "../errors";
+import { TransferInstruction } from "../instructions/transferInstruction";
+import { RegistryState } from "../states/registry";
 
-/**
- * This function is used to transfer the ownership of a subdomain in the Solana Name Service.
- *
- * @param {Connection} connection - The Solana RPC connection object.
- * @param {string} subdomain - The subdomain to transfer. It can be with or without .sol suffix (e.g., 'something.bonfida.sol' or 'something.bonfida').
- * @param {PublicKey} newOwner - The public key of the new owner of the subdomain.
- * @param {boolean} [isParentOwnerSigner=false] - A flag indicating whether the parent name owner is signing this transfer.
- * @param {PublicKey} [owner] - The public key of the current owner of the subdomain. This is an optional parameter. If not provided, the owner will be resolved automatically. This can be helpful to build transactions when the subdomain does not exist yet.
- *
- * @returns {Promise<TransactionInstruction>} - A promise that resolves to a Solana instruction for the transfer operation.
- */
 export const transferSubdomain = async (
-  connection: Connection,
+  rpc: Rpc<GetAccountInfoApi>,
   subdomain: string,
   newOwner: Address,
   isParentOwnerSigner?: boolean,
-  owner?: Address
-): Promise<TransactionInstruction> => {
-  const { pubkey, isSub, parent } = getDomainKeySync(subdomain);
+  currentOwner?: Address
+): Promise<IInstruction> => {
+  const {
+    address: domainAddress,
+    isSub,
+    parentAddress: _parentAddress,
+  } = await getDomainAddress(subdomain);
 
-  if (!parent || !isSub) {
+  if (!isSub || !_parentAddress) {
     throw new InvalidSubdomainError("The subdomain is not valid");
   }
 
-  if (!owner) {
-    const { registry } = await NameRegistryState.retrieve(connection, pubkey);
-    owner = registry.owner;
+  if (!currentOwner) {
+    const registry = await RegistryState.retrieve(rpc, domainAddress);
+    currentOwner = registry.owner;
   }
 
-  let nameParent: PublicKey | undefined = undefined;
-  let nameParentOwner: PublicKey | undefined = undefined;
+  let parentAddress: Address | undefined = undefined;
+  let parentOwner: Address | undefined = undefined;
 
   if (isParentOwnerSigner) {
-    nameParent = parent;
-    nameParentOwner = (await NameRegistryState.retrieve(connection, parent))
-      .registry.owner;
+    parentAddress = _parentAddress;
+    parentOwner = (await RegistryState.retrieve(rpc, _parentAddress)).owner;
   }
 
-  const ix = transferInstruction(
-    NAME_PROGRAM_ID,
-    pubkey,
-    newOwner,
-    owner,
+  const ix = new TransferInstruction({ newOwner }).getInstruction(
+    NAME_PROGRAM_ADDRESS,
+    domainAddress,
+    currentOwner,
     undefined,
-    nameParent,
-    nameParentOwner
+    parentAddress,
+    parentOwner
   );
 
   return ix;

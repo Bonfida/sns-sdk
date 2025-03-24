@@ -1,60 +1,61 @@
 import { AccountRole, Address, IAccountMeta, IInstruction } from "@solana/kit";
 import { serialize } from "borsh";
 
-export class burnDomainInstruction {
+export class verifyWithSolSigInstruction {
   tag: number;
-
+  staleness: boolean;
   static schema = {
     struct: {
       tag: "u8",
+      staleness: "bool",
     },
   };
 
-  constructor() {
-    this.tag = 16;
+  constructor(obj: { staleness: boolean }) {
+    this.tag = 3;
+    this.staleness = obj.staleness;
   }
 
   serialize(): Uint8Array {
-    return serialize(burnDomainInstruction.schema, this);
+    return serialize(verifyWithSolSigInstruction.schema, this);
   }
 
   getInstruction(
     programAddress: Address,
-    nameServiceId: Address,
     systemProgram: Address,
-    domainAddress: Address,
-    reverse: Address,
-    resellingState: Address,
-    state: Address,
+    splNameServiceProgram: Address,
+    feePayer: Address,
+    record: Address,
+    domain: Address,
+    domainOwner: Address,
     centralState: Address,
-    owner: Address,
-    target: Address
+    verifier: Address
   ): IInstruction {
     const data = this.serialize();
 
     const accounts: IAccountMeta[] = [
       {
-        address: nameServiceId,
-        role: AccountRole.READONLY,
-      },
-      {
         address: systemProgram,
         role: AccountRole.READONLY,
       },
       {
-        address: domainAddress,
+        address: splNameServiceProgram,
+        role: AccountRole.READONLY,
+      },
+      {
+        address: feePayer,
+        role: AccountRole.WRITABLE_SIGNER,
+      },
+      {
+        address: record,
         role: AccountRole.WRITABLE,
       },
       {
-        address: reverse,
+        address: domain,
         role: AccountRole.WRITABLE,
       },
       {
-        address: resellingState,
-        role: AccountRole.WRITABLE,
-      },
-      {
-        address: state,
+        address: domainOwner,
         role: AccountRole.WRITABLE,
       },
       {
@@ -62,12 +63,8 @@ export class burnDomainInstruction {
         role: AccountRole.READONLY,
       },
       {
-        address: owner,
-        role: AccountRole.READONLY_SIGNER,
-      },
-      {
-        address: target,
-        role: AccountRole.WRITABLE,
+        address: verifier,
+        role: AccountRole.WRITABLE_SIGNER,
       },
     ];
 

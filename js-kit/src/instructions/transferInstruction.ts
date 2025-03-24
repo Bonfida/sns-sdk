@@ -1,58 +1,81 @@
-import { AccountRole, Address, IInstruction } from "@solana/kit";
+import {
+  AccountRole,
+  Address,
+  IAccountMeta,
+  IInstruction,
+  ReadonlyUint8Array,
+} from "@solana/kit";
+import { serialize } from "borsh";
 
 import { addressCodec } from "../codecs";
 import { DEFAULT_ADDRESS } from "../constants/addresses";
-import { uint8ArraysConcat } from "../utils/uint8Array/uint8ArraysConcat";
 
-export function transferInstruction(
-  programAddress: Address,
-  nameAccountKey: Address,
-  newOwnerKey: Address,
-  currentNameOwnerKey: Address,
-  nameClassKey?: Address,
-  nameParent?: Address,
-  parentOwner?: Address
-): IInstruction {
-  const data = uint8ArraysConcat([
-    Uint8Array.from([2]),
-    addressCodec.encode(newOwnerKey),
-  ]);
+export class TransferInstruction {
+  tag: number;
+  encodedNewOwnerAddress: ReadonlyUint8Array;
 
-  const accounts = [
-    {
-      address: nameAccountKey,
-      role: AccountRole.WRITABLE,
+  static schema = {
+    struct: {
+      tag: "u8",
+      encodedNewOwnerAddress: { array: { type: "u8" } },
     },
-    {
-      address: parentOwner ? parentOwner : currentNameOwnerKey,
-      role: AccountRole.READONLY_SIGNER,
-    },
-  ];
+  };
 
-  if (nameClassKey) {
-    accounts.push({
-      address: nameClassKey,
-      role: AccountRole.READONLY_SIGNER,
-    });
+  constructor(obj: { newOwner: Address }) {
+    this.tag = 2;
+    this.encodedNewOwnerAddress = addressCodec.encode(obj.newOwner);
   }
 
-  if (parentOwner && nameParent) {
-    if (!nameClassKey) {
+  serialize(): Uint8Array {
+    return serialize(TransferInstruction.schema, this);
+  }
+
+  getInstruction(
+    programAddress: Address,
+    domainAddress: Address,
+    currentOwner: Address,
+    classAddress?: Address,
+    parentAddress?: Address,
+    parentOwner?: Address
+  ): IInstruction {
+    const data = this.serialize();
+
+    const accounts: IAccountMeta[] = [
+      {
+        address: domainAddress,
+        role: AccountRole.WRITABLE,
+      },
+      {
+        address: parentOwner ? parentOwner : currentOwner,
+        role: AccountRole.READONLY_SIGNER,
+      },
+    ];
+
+    if (classAddress) {
       accounts.push({
-        address: DEFAULT_ADDRESS,
+        address: classAddress,
+        role: AccountRole.READONLY_SIGNER,
+      });
+    }
+
+    if (parentOwner && parentAddress) {
+      if (!classAddress) {
+        accounts.push({
+          address: DEFAULT_ADDRESS,
+          role: AccountRole.READONLY,
+        });
+      }
+
+      accounts.push({
+        address: parentAddress,
         role: AccountRole.READONLY,
       });
     }
 
-    accounts.push({
-      address: nameParent,
-      role: AccountRole.READONLY,
-    });
+    return {
+      programAddress,
+      accounts,
+      data,
+    };
   }
-
-  return {
-    programAddress,
-    accounts,
-    data,
-  };
 }

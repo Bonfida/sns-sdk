@@ -6,18 +6,20 @@ import {
   Rpc,
 } from "@solana/kit";
 
-import { NAME_PROGRAM_ID, SYSTEM_PROGRAM } from "../constants/addresses";
-import { createInstruction } from "../instructions/createInstruction";
+import {
+  NAME_PROGRAM_ADDRESS,
+  SYSTEM_PROGRAM_ADDRESS,
+} from "../constants/addresses";
+import { createRegistryInstruction } from "../instructions/createRegistryInstruction";
 import { RegistryState } from "../states/registry";
 import { _generateHash, _getAddressFromHash } from "../utils/deriveAddress";
-import { Numberu32, Numberu64 } from "../utils/int";
 
 export async function createNameRegistry(
   rpc: Rpc<GetAccountInfoApi & GetMinimumBalanceForRentExemptionApi>,
   domainName: string,
   space: number,
-  payerKey: Address,
-  nameOwner: Address,
+  payer: Address,
+  owner: Address,
   lamports?: bigint,
   classAddress?: Address,
   parentAddress?: Address
@@ -29,30 +31,30 @@ export async function createNameRegistry(
     classAddress
   );
 
-  const balance = lamports
-    ? lamports
-    : await rpc.getMinimumBalanceForRentExemption(BigInt(space)).send();
-  // : await connection.getMinimumBalanceForRentExemption(space);
+  lamports =
+    lamports ||
+    (await rpc.getMinimumBalanceForRentExemption(BigInt(space)).send());
 
-  let nameParentOwner: Address | undefined;
+  let parentOwner: Address | undefined;
   if (parentAddress) {
     const parentAccount = await RegistryState.retrieve(rpc, domainAddress);
-    nameParentOwner = parentAccount.owner;
+    parentOwner = parentAccount.owner;
   }
 
-  const createNameInstr = createInstruction(
-    NAME_PROGRAM_ID,
-    SYSTEM_PROGRAM,
-    domainAddress,
-    nameOwner,
-    payerKey,
+  const ix = new createRegistryInstruction({
     nameHash,
-    new Numberu64(balance),
-    new Numberu32(space),
+    lamports,
+    space,
+  }).getInstruction(
+    NAME_PROGRAM_ADDRESS,
+    SYSTEM_PROGRAM_ADDRESS,
+    domainAddress,
+    owner,
+    payer,
     classAddress,
     parentAddress,
-    nameParentOwner
+    parentOwner
   );
 
-  return createNameInstr;
+  return ix;
 }

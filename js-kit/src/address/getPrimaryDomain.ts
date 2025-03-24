@@ -5,7 +5,10 @@ import {
   Rpc,
 } from "@solana/kit";
 
-import { ROOT_DOMAIN_ACCOUNT } from "../constants/addresses";
+import {
+  NAME_OFFERS_ADDRESS,
+  ROOT_DOMAIN_ACCOUNT,
+} from "../constants/addresses";
 import { getNftOwner } from "../nft/getNftOwner";
 import { PrimaryDomainState } from "../states/primaryDomain";
 import { RegistryState } from "../states/registry";
@@ -15,7 +18,10 @@ export const getPrimaryDomain = async (
   rpc: Rpc<GetAccountInfoApi & GetTokenLargestAccountsApi>,
   walletAddress: Address
 ) => {
-  const primaryAddress = await PrimaryDomainState.getAddress(walletAddress);
+  const primaryAddress = await PrimaryDomainState.getAddress(
+    NAME_OFFERS_ADDRESS,
+    walletAddress
+  );
   const primary = await PrimaryDomainState.retrieve(rpc, primaryAddress);
   const [registry, nftOwner] = await Promise.all([
     RegistryState.retrieve(rpc, primary.nameAccount),

@@ -3,17 +3,17 @@ import { serialize } from "borsh";
 
 export class createReverseInstruction {
   tag: number;
-  name: string;
+  domain: string;
   static schema = {
     struct: {
       tag: "u8",
-      name: "string",
+      domain: "string",
     },
   };
 
-  constructor(obj: { name: string }) {
+  constructor(obj: { domain: string }) {
     this.tag = 12;
-    this.name = obj.name;
+    this.domain = obj.domain;
   }
 
   serialize(): Uint8Array {
@@ -27,10 +27,10 @@ export class createReverseInstruction {
     reverseLookup: Address,
     systemProgram: Address,
     centralState: Address,
-    feePayer: Address,
+    payer: Address,
     rentSysvar: Address,
-    parentName?: Address,
-    parentNameOwner?: Address
+    parentAddress?: Address,
+    parentOwner?: Address
   ): IInstruction {
     const data = this.serialize();
 
@@ -56,7 +56,7 @@ export class createReverseInstruction {
         role: AccountRole.READONLY,
       },
       {
-        address: feePayer,
+        address: payer,
         role: AccountRole.WRITABLE_SIGNER,
       },
       {
@@ -65,16 +65,16 @@ export class createReverseInstruction {
       },
     ];
 
-    if (parentName) {
+    if (parentAddress) {
       accounts.push({
-        address: parentName,
+        address: parentAddress,
         role: AccountRole.WRITABLE,
       });
     }
 
-    if (parentNameOwner) {
+    if (parentOwner) {
       accounts.push({
-        address: parentNameOwner,
+        address: parentOwner,
         role: AccountRole.WRITABLE_SIGNER,
       });
     }

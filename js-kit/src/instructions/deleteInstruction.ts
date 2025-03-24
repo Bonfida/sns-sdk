@@ -1,31 +1,50 @@
-import { AccountRole, Address, IInstruction } from "@solana/kit";
+import { AccountRole, Address, IAccountMeta, IInstruction } from "@solana/kit";
+import { serialize } from "borsh";
 
-export function deleteInstruction(
-  programAddress: Address,
-  nameAccountKey: Address,
-  refundTargetKey: Address,
-  nameOwnerKey: Address
-): IInstruction {
-  const data = Uint8Array.from([3]);
+export class DeleteInstruction {
+  tag: number;
 
-  const accounts = [
-    {
-      address: nameAccountKey,
-      role: AccountRole.WRITABLE,
+  static schema = {
+    struct: {
+      tag: "u8",
     },
-    {
-      address: nameOwnerKey,
-      role: AccountRole.READONLY_SIGNER,
-    },
-    {
-      address: refundTargetKey,
-      role: AccountRole.WRITABLE,
-    },
-  ];
-
-  return {
-    programAddress,
-    accounts,
-    data,
   };
+
+  constructor() {
+    this.tag = 3;
+  }
+
+  serialize(): Uint8Array {
+    return serialize(DeleteInstruction.schema, this);
+  }
+
+  getInstruction(
+    programAddress: Address,
+    domainAddress: Address,
+    refundTarget: Address,
+    owner: Address
+  ): IInstruction {
+    const data = this.serialize();
+
+    const accounts: IAccountMeta[] = [
+      {
+        address: domainAddress,
+        role: AccountRole.WRITABLE,
+      },
+      {
+        address: owner,
+        role: AccountRole.READONLY_SIGNER,
+      },
+      {
+        address: refundTarget,
+        role: AccountRole.WRITABLE,
+      },
+    ];
+
+    return {
+      programAddress,
+      accounts,
+      data,
+    };
+  }
 }

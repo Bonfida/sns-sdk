@@ -10,7 +10,6 @@ import {
 import { deserialize } from "borsh";
 
 import { addressCodec, utf8Codec } from "../codecs";
-import { NAME_OFFERS_ID } from "../constants/addresses";
 import {
   InvalidSerializedDataError,
   PrimaryDomainNotFoundError,
@@ -78,9 +77,9 @@ export class PrimaryDomainState {
     return result;
   }
 
-  static async getAddress(walletAddress: Address) {
+  static async getAddress(programAddress: Address, walletAddress: Address) {
     const [address] = await getProgramDerivedAddress({
-      programAddress: NAME_OFFERS_ID,
+      programAddress,
       seeds: [
         utf8Codec.encode("favourite_domain"),
         addressCodec.encode(walletAddress),

@@ -9,7 +9,7 @@ import {
 import { deserialize } from "borsh";
 
 import { addressCodec, base64Codec, utf8Codec } from "../codecs";
-import { NAME_TOKENIZER_ID } from "../constants/addresses";
+import { NAME_TOKENIZER_ADDRESS } from "../constants/addresses";
 import { InvalidSerializedDataError, NftAccountNotFoundError } from "../errors";
 
 export enum NftTag {
@@ -78,7 +78,7 @@ export class NftState {
     mint: Address
   ): Promise<NftState> {
     const data = await rpc
-      .getProgramAccounts(NAME_TOKENIZER_ID, {
+      .getProgramAccounts(NAME_TOKENIZER_ADDRESS, {
         encoding: "base64",
         filters: [
           { dataSize: BigInt(NftState.LEN) },
@@ -111,7 +111,7 @@ export class NftState {
 
   static async getAddress(domainAddress: Address): Promise<Address> {
     const [address] = await getProgramDerivedAddress({
-      programAddress: NAME_TOKENIZER_ID,
+      programAddress: NAME_TOKENIZER_ADDRESS,
       seeds: [
         utf8Codec.encode("nft_record"),
         addressCodec.encode(domainAddress),

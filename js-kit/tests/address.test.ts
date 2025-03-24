@@ -1,27 +1,13 @@
 import { describe, expect, jest, test } from "@jest/globals";
-import {
-  Address,
-  createDefaultRpcTransport,
-  createSolanaRpcFromTransport,
-} from "@solana/kit";
-import * as dotenv from "dotenv";
+import { Address } from "@solana/kit";
 
 import { getNftsForAddress } from "../src/address/getNftsForAddress";
 import { getPrimaryDomain } from "../src/address/getPrimaryDomain";
 import { getPrimaryDomainsBatch } from "../src/address/getPrimaryDomainsBatch";
-import { RANDOM_ADDRESS } from "./constants";
-
-dotenv.config();
+import { RANDOM_ADDRESS, TEST_RPC } from "./constants";
 
 jest.setTimeout(5_000);
 
-// Create an HTTP transport or any custom transport of your choice.
-const transport = createDefaultRpcTransport({
-  url: process.env.RPC_URL!,
-});
-
-// Create an RPC client using that transport.
-const rpc = createSolanaRpcFromTransport(transport);
 describe("Address methods", () => {
   describe("getPrimaryDomain", () => {
     test.each([
@@ -42,7 +28,7 @@ describe("Address methods", () => {
         },
       },
     ])("get primary domain (single)", async (e) => {
-      const primary = await getPrimaryDomain(rpc, e.user);
+      const primary = await getPrimaryDomain(TEST_RPC, e.user);
       expect(primary.domain).toBe(e.primary.domain);
       expect(primary.reverse).toBe("bonfida");
       expect(primary.stale).toBe(e.primary.stale);
@@ -73,7 +59,7 @@ describe("Address methods", () => {
     ];
 
     const result = await getPrimaryDomainsBatch(
-      rpc,
+      TEST_RPC,
       items.map((item) => item.address)
     );
     expect(result).toStrictEqual(items.map((item) => item.domain));
@@ -81,7 +67,7 @@ describe("Address methods", () => {
 
   describe("getNftsForAddress", () => {
     test("", async () => {
-      const result = await getNftsForAddress(rpc, RANDOM_ADDRESS);
+      const result = await getNftsForAddress(TEST_RPC, RANDOM_ADDRESS);
       expect(result).toStrictEqual([]);
     });
 
@@ -101,7 +87,7 @@ describe("Address methods", () => {
         ],
       },
     ])("nfts for $address retrieved correctly", async (item) => {
-      const result = await getNftsForAddress(rpc, item.address);
+      const result = await getNftsForAddress(TEST_RPC, item.address);
       expect(result).toStrictEqual(item.nfts);
     });
   });

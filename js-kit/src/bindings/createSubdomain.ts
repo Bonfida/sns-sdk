@@ -12,7 +12,7 @@ import { InvalidDomainError } from "../errors";
 import { RegistryState } from "../states/registry";
 import { getReverseAddress } from "../utils/getReverseAddress";
 import { createNameRegistry } from "./createNameRegistry";
-import { createReverseName } from "./createReverseName";
+import { createReverse } from "./createReverse";
 
 export const createSubdomain = async (
   rpc: Rpc<GetAccountInfoApi & GetMinimumBalanceForRentExemptionApi>,
@@ -54,7 +54,7 @@ export const createSubdomain = async (
   const reverseAccount = await fetchEncodedAccount(rpc, reverseKey);
 
   if (!reverseAccount.exists) {
-    const ix_reverse = await createReverseName(
+    const ix_reverse = await createReverse(
       address,
       "\0".concat(sub),
       feePayer || owner,

@@ -8,31 +8,33 @@ import {
 } from "../constants/addresses";
 import { getDomainAddress } from "../domain/getDomainAddress";
 import { InvalidParentError } from "../errors";
-import { deleteRecordInstruction } from "../instructions/deleteRecordInstructio copy";
+import { verifyWithSolSigInstruction } from "../instructions/verifyWithSolSigInstruction";
 import { Record, RecordVersion } from "../types/record";
 
-export const deleteRecord = async (
+export const verifyRecordWithSolSig = async (
+  staleness: boolean,
   domain: string,
   record: Record,
   owner: Address,
-  payer: Address
+  payer: Address,
+  verifier: Address
 ) => {
-  let { address, parentAddress, isSub } = await getDomainAddress(
+  let { address, isSub, parentAddress } = await getDomainAddress(
     `${record}.${domain}`,
     RecordVersion.V2
   );
 
   if (isSub) {
-    parentAddress = await getDomainAddress(domain).then(
-      (domainAddress) => domainAddress.address
-    );
+    parentAddress = (await getDomainAddress(domain)).address;
   }
 
   if (!parentAddress) {
     throw new InvalidParentError("Parent could not be found");
   }
 
-  const ix = new deleteRecordInstruction().getInstruction(
+  const ix = new verifyWithSolSigInstruction({
+    staleness,
+  }).getInstruction(
     RECORDS_PROGRAM_ADDRESS,
     SYSTEM_PROGRAM_ADDRESS,
     NAME_PROGRAM_ADDRESS,
@@ -40,7 +42,8 @@ export const deleteRecord = async (
     address,
     parentAddress,
     owner,
-    CENTRAL_STATE_DOMAIN_RECORDS
+    CENTRAL_STATE_DOMAIN_RECORDS,
+    verifier
   );
 
   return ix;

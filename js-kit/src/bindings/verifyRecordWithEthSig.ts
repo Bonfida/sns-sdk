@@ -1,17 +1,24 @@
 import { Address } from "@solana/kit";
 
-import { NAME_PROGRAM_ID, RECORDS_PROGRAM_ID } from "../constants/addresses";
+import {
+  CENTRAL_STATE_DOMAIN_RECORDS,
+  NAME_PROGRAM_ADDRESS,
+  RECORDS_PROGRAM_ADDRESS,
+  SYSTEM_PROGRAM_ADDRESS,
+} from "../constants/addresses";
 import { getDomainAddress } from "../domain/getDomainAddress";
 import { InvalidParentError } from "../errors";
+import { verifyWithEthSigInstruction } from "../instructions/verifyWithEthSigInstruction";
 import { Record, RecordVersion } from "../types/record";
-import { serializeRecordContent } from "../utils/serializers/serializeRecordContent";
+import { Validation } from "../types/validation";
 
-export const createRecordV2Instruction = async (
+export const verifyRecordWithEthSig = async (
   domain: string,
   record: Record,
-  content: string,
   owner: Address,
-  payer: Address
+  payer: Address,
+  signature: Uint8Array,
+  expectedPubkey: Uint8Array
 ) => {
   let { address, parentAddress, isSub } = await getDomainAddress(
     `${record}.${domain}`,
@@ -28,15 +35,20 @@ export const createRecordV2Instruction = async (
     throw new InvalidParentError("Parent could not be found");
   }
 
-  const ix = allocateAndPostRecord(
+  const ix = new verifyWithEthSigInstruction({
+    validation: Validation.Ethereum,
+    signature,
+    expectedPubkey,
+  }).getInstruction(
+    RECORDS_PROGRAM_ADDRESS,
+    SYSTEM_PROGRAM_ADDRESS,
+    NAME_PROGRAM_ADDRESS,
     payer,
     address,
     parentAddress,
     owner,
-    NAME_PROGRAM_ID,
-    `\x02${record}`,
-    serializeRecordContent(content, record),
-    RECORDS_PROGRAM_ID
+    CENTRAL_STATE_DOMAIN_RECORDS
   );
+
   return ix;
 };

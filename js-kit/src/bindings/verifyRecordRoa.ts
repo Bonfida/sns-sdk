@@ -8,31 +8,32 @@ import {
 } from "../constants/addresses";
 import { getDomainAddress } from "../domain/getDomainAddress";
 import { InvalidParentError } from "../errors";
-import { deleteRecordInstruction } from "../instructions/deleteRecordInstructio copy";
+import { verifyRoaInstruction } from "../instructions/verifyRoaInstruction";
 import { Record, RecordVersion } from "../types/record";
 
-export const deleteRecord = async (
+export const verifyRecordRoa = async (
   domain: string,
   record: Record,
   owner: Address,
-  payer: Address
+  payer: Address,
+  roaId: Address
 ) => {
-  let { address, parentAddress, isSub } = await getDomainAddress(
+  let { address, isSub, parentAddress } = await getDomainAddress(
     `${record}.${domain}`,
     RecordVersion.V2
   );
 
   if (isSub) {
-    parentAddress = await getDomainAddress(domain).then(
-      (domainAddress) => domainAddress.address
-    );
+    parentAddress = (await getDomainAddress(domain)).address;
   }
 
   if (!parentAddress) {
     throw new InvalidParentError("Parent could not be found");
   }
 
-  const ix = new deleteRecordInstruction().getInstruction(
+  const ix = new verifyRoaInstruction({
+    roaId,
+  }).getInstruction(
     RECORDS_PROGRAM_ADDRESS,
     SYSTEM_PROGRAM_ADDRESS,
     NAME_PROGRAM_ADDRESS,

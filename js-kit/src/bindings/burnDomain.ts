@@ -2,10 +2,10 @@ import { Address, getProgramDerivedAddress } from "@solana/kit";
 
 import { addressCodec } from "../codecs";
 import {
-  NAME_PROGRAM_ID,
-  REGISTRY_PROGRAM_ID,
+  NAME_PROGRAM_ADDRESS,
+  REGISTRY_PROGRAM_ADDRESS,
   REVERSE_LOOKUP_CLASS,
-  SYSTEM_PROGRAM,
+  SYSTEM_PROGRAM_ADDRESS,
 } from "../constants/addresses";
 import { getDomainAddress } from "../domain/getDomainAddress";
 import { burnDomainInstruction } from "../instructions/burnDomainInstruction";
@@ -20,21 +20,21 @@ export const burnDomain = async (
   const encoded = addressCodec.encode(domainAddress);
 
   const [pda] = await getProgramDerivedAddress({
-    programAddress: REGISTRY_PROGRAM_ID,
+    programAddress: REGISTRY_PROGRAM_ADDRESS,
     seeds: [encoded],
   });
 
   const [resellingPda] = await getProgramDerivedAddress({
-    programAddress: REGISTRY_PROGRAM_ID,
+    programAddress: REGISTRY_PROGRAM_ADDRESS,
     seeds: [encoded, Uint8Array.from([1, 1])],
   });
 
   const reverseAddress = await getReverseAddress(domain);
 
   const ix = new burnDomainInstruction().getInstruction(
-    REGISTRY_PROGRAM_ID,
-    NAME_PROGRAM_ID,
-    SYSTEM_PROGRAM,
+    REGISTRY_PROGRAM_ADDRESS,
+    NAME_PROGRAM_ADDRESS,
+    SYSTEM_PROGRAM_ADDRESS,
     domainAddress,
     reverseAddress,
     resellingPda,

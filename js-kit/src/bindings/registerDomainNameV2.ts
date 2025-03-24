@@ -1,96 +1,97 @@
 import {
-  TOKEN_PROGRAM_ID,
-  createAssociatedTokenAccountIdempotentInstruction,
-  getAssociatedTokenAddressSync,
-} from "@solana/spl-token";
+  ASSOCIATED_TOKEN_PROGRAM_ADDRESS,
+  findAssociatedTokenPda,
+} from "@solana-program/token";
 import {
-  Connection,
-  PublicKey,
-  SYSVAR_RENT_PUBKEY,
-  SystemProgram,
-  TransactionInstruction,
-} from "@solana/web3.js";
+  Address,
+  GetAccountInfoApi,
+  IInstruction,
+  Rpc,
+  fetchEncodedAccount,
+  getProgramDerivedAddress,
+} from "@solana/kit";
 
+import { addressCodec } from "../codecs";
 import {
   CENTRAL_STATE,
-  NAME_PROGRAM_ID,
-  PYTH_PULL_FEEDS,
+  NAME_PROGRAM_ADDRESS,
   REFERRERS,
-  REGISTER_PROGRAM_ID,
+  REGISTRY_PROGRAM_ADDRESS,
   ROOT_DOMAIN_ACCOUNT,
+  SYSTEM_PROGRAM_ADDRESS,
+  SYSVAR_RENT_ADDRESS,
+  TOKEN_PROGRAM_ADDRESS,
   USDC_MINT,
   VAULT_OWNER,
-} from "../constants";
-import { InvalidDomainError, PythFeedNotFoundError } from "../error";
+} from "../constants/addresses";
+import { PYTH_FEEDS } from "../constants/pyth_feeds";
+import { InvalidDomainError, PythFeedNotFoundError } from "../errors";
+import { _createAtaInstruction } from "../instructions/createAtaInstruction";
 import { createSplitV2Instruction } from "../instructions/createSplitV2Instruction";
-import { getHashedNameSync } from "../utils/getHashedNameSync";
-import { getNameAccountKeySync } from "../utils/getNameAccountKeySync";
-import { getPythFeedAccountKey } from "../utils/getPythFeedAccountKey";
+import { deriveAddress } from "../utils/deriveAddress";
+import { getPythFeedAddress } from "../utils/getPythFeedAddress";
 
-/**
- * This function can be used to register a .sol domain
- * @param connection The Solana RPC connection object
- * @param name The domain name to register e.g bonfida if you want to register bonfida.sol
- * @param space The domain name account size (max 10kB)
- * @param buyer The public key of the buyer
- * @param buyerTokenAccount The buyer token account (USDC)
- * @param mint Optional mint used to purchase the domain, defaults to USDC
- * @param referrerKey Optional referrer key
- * @returns
- */
 export const registerDomainNameV2 = async (
-  connection: Connection,
-  name: string,
+  rpc: Rpc<GetAccountInfoApi>,
+  domain: string,
   space: number,
   buyer: Address,
   buyerTokenAccount: Address,
   mint = USDC_MINT,
-  referrerKey?: Address
+  referrer?: Address
 ) => {
   // Basic validation
-  if (name.includes(".") || name.trim().toLowerCase() !== name) {
+  if (domain.includes(".") || domain.trim().toLowerCase() !== domain) {
     throw new InvalidDomainError("The domain name is malformed");
   }
 
-  const hashed = getHashedNameSync(name);
-  const nameAccount = getNameAccountKeySync(
-    hashed,
-    undefined,
-    ROOT_DOMAIN_ACCOUNT
-  );
+  const domainAddress = await deriveAddress(domain, ROOT_DOMAIN_ACCOUNT);
 
-  const hashedReverseLookup = getHashedNameSync(nameAccount.toBase58());
-  const reverseLookupAccount = getNameAccountKeySync(
-    hashedReverseLookup,
+  const reverseLookupAccount = await deriveAddress(
+    domainAddress,
+    undefined,
     CENTRAL_STATE
   );
 
-  const [derived_state] = PublicKey.findProgramAddressSync(
-    [nameAccount.toBuffer()],
-    REGISTER_PROGRAM_ID
-  );
+  const [stateAddress] = await getProgramDerivedAddress({
+    programAddress: REGISTRY_PROGRAM_ADDRESS,
+    seeds: [addressCodec.encode(domainAddress)],
+  });
 
-  const refIdx = REFERRERS.findIndex((e) => referrerKey?.equals(e));
-  let refTokenAccount: PublicKey | undefined = undefined;
+  const ixs: IInstruction[] = [];
+  const referrerIndex = REFERRERS.findIndex((e) => e === referrer);
+  const validReferrer = referrer && referrerIndex !== -1;
+  let ata: Address | undefined = undefined;
 
-  const ixs: TransactionInstruction[] = [];
+  if (validReferrer) {
+    [ata] = await findAssociatedTokenPda({
+      mint,
+      owner: referrer,
+      tokenProgram: TOKEN_PROGRAM_ADDRESS,
+    });
+    const ataAccount = await fetchEncodedAccount(rpc, ata);
 
-  if (refIdx !== -1 && !!referrerKey) {
-    refTokenAccount = getAssociatedTokenAddressSync(mint, referrerKey, true);
-    const acc = await connection.getAccountInfo(refTokenAccount);
-    if (!acc?.data) {
-      const ix = createAssociatedTokenAccountIdempotentInstruction(
+    if (!ataAccount.exists) {
+      const ix = _createAtaInstruction(
+        ASSOCIATED_TOKEN_PROGRAM_ADDRESS,
         buyer,
-        refTokenAccount,
-        referrerKey,
-        mint
+        ata,
+        referrer,
+        mint,
+        SYSTEM_PROGRAM_ADDRESS,
+        TOKEN_PROGRAM_ADDRESS
       );
+
       ixs.push(ix);
     }
   }
 
-  const vault = getAssociatedTokenAddressSync(mint, VAULT_OWNER, true);
-  const pythFeed = PYTH_PULL_FEEDS.get(mint.toBase58());
+  const [vaultAta] = await findAssociatedTokenPda({
+    mint,
+    owner: VAULT_OWNER,
+    tokenProgram: TOKEN_PROGRAM_ADDRESS,
+  });
+  const pythFeed = PYTH_FEEDS.get(mint);
 
   if (!pythFeed) {
     throw new PythFeedNotFoundError(
@@ -98,30 +99,30 @@ export const registerDomainNameV2 = async (
     );
   }
 
-  const [pythFeedAccount] = getPythFeedAccountKey(0, pythFeed);
+  const [pythFeedAddress] = await getPythFeedAddress(0, pythFeed);
 
   const ix = new createSplitV2Instruction({
-    name,
+    name: domain,
     space,
-    referrerIdxOpt: refIdx != -1 ? refIdx : null,
+    referrerIdxOpt: validReferrer ? referrerIndex : null,
   }).getInstruction(
-    REGISTER_PROGRAM_ID,
-    NAME_PROGRAM_ID,
+    REGISTRY_PROGRAM_ADDRESS,
+    NAME_PROGRAM_ADDRESS,
     ROOT_DOMAIN_ACCOUNT,
-    nameAccount,
+    domainAddress,
     reverseLookupAccount,
-    SystemProgram.programId,
+    SYSTEM_PROGRAM_ADDRESS,
     CENTRAL_STATE,
     buyer,
     buyer,
     buyer,
     buyerTokenAccount,
-    pythFeedAccount,
-    vault,
-    TOKEN_PROGRAM_ID,
-    SYSVAR_RENT_PUBKEY,
-    derived_state,
-    refTokenAccount
+    pythFeedAddress,
+    vaultAta,
+    TOKEN_PROGRAM_ADDRESS,
+    SYSVAR_RENT_ADDRESS,
+    stateAddress,
+    ata
   );
   ixs.push(ix);
 
