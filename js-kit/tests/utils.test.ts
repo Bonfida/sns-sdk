@@ -3,6 +3,7 @@ import { Address } from "@solana/kit";
 
 import { Record } from "../src/types/record";
 import { deserializeRecordContent } from "../src/utils/deserializers/deserializeRecordContent";
+import { getPythFeedAddress } from "../src/utils/getPythFeedAddress";
 import { reverseLookup } from "../src/utils/reverseLookup";
 import { reverseLookupBatch } from "../src/utils/reverseLookupBatch";
 import { serializeRecordContent } from "../src/utils/serializers/serializeRecordContent";
@@ -11,50 +12,37 @@ import { RANDOM_ADDRESS, TEST_RPC } from "./constants";
 jest.setTimeout(25_000);
 
 describe("Utils methods", () => {
-  // Reverse lookup cases
-  const cases = [
-    {
-      address: "Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb" as Address,
-      primary: "bonfida",
-    },
-    {
-      address: "6WWS69JbYTnQZ1WyGVsJsBAB35iaszgy9KqCANJfmQr8" as Address,
-      primary: "wallet-guide-1",
-    },
-    {
-      address: "5GUXAsmcn4pHzJyNFTxe6m9HQAmWE1eCmPL6RJoh3tcZ" as Address,
-      primary: "wallet-guide-2",
-    },
-  ];
+  describe("reverse lookup", () => {
+    const addresses = [
+      {
+        address: "Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb" as Address,
+        primary: "bonfida",
+      },
+      {
+        address: "6WWS69JbYTnQZ1WyGVsJsBAB35iaszgy9KqCANJfmQr8" as Address,
+        primary: "wallet-guide-1",
+      },
+      {
+        address: "5GUXAsmcn4pHzJyNFTxe6m9HQAmWE1eCmPL6RJoh3tcZ" as Address,
+        primary: "wallet-guide-2",
+      },
+    ];
 
-  describe("reverseLookup", () => {
-    test("bulk reverse lookup completed correctly ", async () => {
-      const domains = await reverseLookupBatch(
-        TEST_RPC,
-        cases.map((c) => c.address)
-      );
-      await expect(domains).toStrictEqual(cases.map((c) => c.primary));
+    test.each(addresses)("reverseLookup: $address", async (e) => {
+      const domain = await reverseLookup(TEST_RPC, e.address);
+      await expect(domain).toBe(e.primary);
     });
-    test.each(cases)(
-      "single reverse lookup for $address completed correctly ",
-      async (e) => {
-        const domain = await reverseLookup(TEST_RPC, e.address);
-        await expect(domain).toBe(e.primary);
-      }
-    );
-  });
 
-  describe("reverseLookupBatch", () => {
-    test("bulk reverse lookup completed correctly ", async () => {
+    test("reverseLookupBatch", async () => {
       const domains = await reverseLookupBatch(
         TEST_RPC,
-        cases.map((c) => c.address)
+        addresses.map((c) => c.address)
       );
-      await expect(domains).toStrictEqual(cases.map((c) => c.primary));
+      await expect(domains).toStrictEqual(addresses.map((c) => c.primary));
     });
   });
 
-  describe("serialize/deserializeRecordContent", () => {
+  describe("serializers/deserializers", () => {
     test.each([
       { content: "this is a test", record: Record.TXT },
       {
@@ -102,6 +90,41 @@ describe("Utils methods", () => {
       if (e.length) {
         expect(ser.length).toBe(e.length);
       }
+    });
+  });
+
+  describe("getPythFeedAddress", () => {
+    test.each([
+      {
+        mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        feed: [
+          234, 160, 32, 198, 28, 196, 121, 113, 40, 19, 70, 28, 225, 83, 137,
+          74, 150, 166, 192, 11, 33, 237, 12, 252, 39, 152, 209, 249, 169, 233,
+          201, 74,
+        ],
+        feedAddress: "Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX",
+      },
+      {
+        mint: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        feed: [
+          43, 137, 185, 220, 143, 223, 159, 52, 112, 154, 91, 16, 107, 71, 47,
+          15, 57, 187, 108, 169, 206, 4, 176, 253, 127, 46, 151, 22, 136, 226,
+          229, 59,
+        ],
+        feedAddress: "HT2PLQBcG5EiCcNSaMHAjSgd9F98ecpATbk4Sk5oYuM",
+      },
+      {
+        mint: "So11111111111111111111111111111111111111112",
+        feed: [
+          239, 13, 139, 111, 218, 44, 235, 164, 29, 161, 93, 64, 149, 209, 218,
+          57, 42, 13, 47, 142, 208, 198, 199, 188, 15, 76, 250, 200, 194, 128,
+          181, 109,
+        ],
+        feedAddress: "7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE",
+      },
+    ])("getPythFeedAddress: $mint", async ({ feed, feedAddress }) => {
+      const res = await getPythFeedAddress(0, feed);
+      expect(res).toBe(feedAddress);
     });
   });
 });

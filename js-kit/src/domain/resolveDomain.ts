@@ -7,8 +7,10 @@ import {
   fetchEncodedAccount,
   fetchEncodedAccounts,
 } from "@solana/kit";
+import { getPublicKeyFromAddress } from "@solana/kit";
 
 import { addressCodec } from "../codecs";
+import { utf8Codec } from "../codecs";
 import {
   CouldNotFindNftOwnerError,
   DomainDoesNotExistError,
@@ -18,21 +20,17 @@ import {
   RecordMalformedError,
 } from "../errors";
 import { getNftOwner } from "../nft/getNftOwner";
+import { getRecordV1Address } from "../record/getRecordV1Address";
+import { getRecordV2Address } from "../record/getRecordV2Address";
 import { NftState, NftTag } from "../states/nft";
 import { RecordState } from "../states/record";
 import { RegistryState } from "../states/registry";
 import { Record } from "../types/record";
 import { Validation } from "../types/validation";
 import { checkAddressOnCurve } from "../utils/checkAddressOnCurve";
-import { getRecordV1Address } from "../record/getRecordV1Address";
-import { getRecordV2Address } from "../record/getRecordV2Address";
+import { uint8ArrayToHex } from "../utils/uint8Array/uint8ArrayToHex";
 import { uint8ArraysEqual } from "../utils/uint8Array/uint8ArraysEqual";
 import { getDomainAddress } from "./getDomainAddress";
-
-import { getPublicKeyFromAddress } from "@solana/kit";
-
-import { utf8Codec } from "../codecs";
-import { uint8ArrayToHex } from "../utils/uint8Array/uint8ArrayToHex";
 
 export type AllowPda = "any" | boolean;
 
@@ -73,7 +71,7 @@ const verifySolRecordV1Signature = async ({
     },
     publicKey,
     signature,
-    encodedHexString,
+    encodedHexString
   );
 
   return result;
@@ -91,12 +89,13 @@ export const resolveDomain = async (
     GetAccountInfoApi & GetMultipleAccountsApi & GetTokenLargestAccountsApi
   >,
   domain: string,
-  config: ResolveConfig = { allowPda: false },
+  config: ResolveConfig = { allowPda: false }
 ): Promise<Address> => {
   const { address: domainAddress } = await getDomainAddress(domain);
   const nftAddress = await NftState.getAddress(domainAddress);
   const solRecordV1Address = await getRecordV1Address(domain, Record.SOL);
   const solRecordV2Address = await getRecordV2Address(domain, Record.SOL);
+  console.log({ domain, solRecordV1Address, solRecordV2Address });
   const [domainAccount, nftAccount, solRecordV1Account, solRecordV2Account] =
     await fetchEncodedAccounts(rpc, [
       domainAddress,
@@ -150,7 +149,7 @@ export const resolveDomain = async (
     }
 
     throw new InvalidRoAError(
-      `The RoA ID shoudl be ${addressCodec.decode(content)} but is ${addressCodec.decode(roaId)} `,
+      `The RoA ID shoudl be ${addressCodec.decode(content)} but is ${addressCodec.decode(roaId)} `
     );
   }
 
@@ -159,14 +158,14 @@ export const resolveDomain = async (
     const data = new Uint8Array([
       ...solRecordV1Account.data.slice(
         RegistryState.HEADER_LEN,
-        RegistryState.HEADER_LEN + 32,
+        RegistryState.HEADER_LEN + 32
       ),
       ...addressCodec.encode(solRecordV1Address),
     ]);
 
     const signature = solRecordV1Account.data.slice(
       RegistryState.HEADER_LEN + 32,
-      RegistryState.HEADER_LEN + 32 + 64,
+      RegistryState.HEADER_LEN + 32 + 64
     );
 
     const valid = await verifySolRecordV1Signature({
@@ -179,8 +178,8 @@ export const resolveDomain = async (
       return addressCodec.decode(
         solRecordV1Account.data.slice(
           RegistryState.HEADER_LEN,
-          RegistryState.HEADER_LEN + 32,
-        ),
+          RegistryState.HEADER_LEN + 32
+        )
       );
     }
   }
@@ -199,7 +198,7 @@ export const resolveDomain = async (
       }
 
       const isAllowed = config.programIds?.some(
-        (e) => ownerAccount.programAddress === e,
+        (e) => ownerAccount.programAddress === e
       );
 
       if (isAllowed) {
@@ -207,7 +206,7 @@ export const resolveDomain = async (
       }
 
       throw new PdaOwnerNotAllowedError(
-        `The program ${ownerAccount.programAddress} is not allowed`,
+        `The program ${ownerAccount.programAddress} is not allowed`
       );
     } else {
       throw new PdaOwnerNotAllowedError();

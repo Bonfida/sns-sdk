@@ -99,7 +99,7 @@ export const registerDomainNameV2 = async (
     );
   }
 
-  const [pythFeedAddress] = await getPythFeedAddress(0, pythFeed);
+  const pythFeedAddress = await getPythFeedAddress(0, pythFeed);
 
   const ix = new createSplitV2Instruction({
     name: domain,
