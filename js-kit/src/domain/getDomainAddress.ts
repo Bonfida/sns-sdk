@@ -1,6 +1,6 @@
 import {
   CENTRAL_STATE_DOMAIN_RECORDS,
-  ROOT_DOMAIN_ACCOUNT,
+  ROOT_DOMAIN_ADDRESS,
 } from "../constants/addresses";
 import { InvalidInputError } from "../errors";
 import { RecordVersion } from "../types/record";
@@ -30,7 +30,7 @@ export const getDomainAddress = async (
   const splitted = domain.split(".");
 
   if (splitted.length === 2) {
-    const parentAddress = await deriveAddress(splitted[1], ROOT_DOMAIN_ACCOUNT);
+    const parentAddress = await deriveAddress(splitted[1], ROOT_DOMAIN_ADDRESS);
     const address = await deriveAddress(
       recordPrefix + splitted[0],
       parentAddress,
@@ -40,7 +40,7 @@ export const getDomainAddress = async (
     return { address, parentAddress, isSub: true };
   } else if (splitted.length === 3 && !!record) {
     // Parent domain
-    const parentAddress = await deriveAddress(splitted[2], ROOT_DOMAIN_ACCOUNT);
+    const parentAddress = await deriveAddress(splitted[2], ROOT_DOMAIN_ADDRESS);
 
     // Sub domain
     const subAddress = await deriveAddress("\0" + splitted[1], parentAddress);
@@ -57,7 +57,7 @@ export const getDomainAddress = async (
     throw new InvalidInputError("The domain is malformed");
   }
 
-  const address = await deriveAddress(domain, ROOT_DOMAIN_ACCOUNT);
+  const address = await deriveAddress(domain, ROOT_DOMAIN_ADDRESS);
 
   return { address, isSub: false };
 };

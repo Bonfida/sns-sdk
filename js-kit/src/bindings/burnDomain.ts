@@ -43,5 +43,6 @@ export const burnDomain = async (
     owner,
     target
   );
+
   return ix;
 };

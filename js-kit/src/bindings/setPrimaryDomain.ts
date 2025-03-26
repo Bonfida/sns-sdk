@@ -2,7 +2,7 @@ import { Address, GetAccountInfoApi, Rpc } from "@solana/kit";
 
 import {
   NAME_OFFERS_ADDRESS,
-  ROOT_DOMAIN_ACCOUNT,
+  ROOT_DOMAIN_ADDRESS,
   SYSTEM_PROGRAM_ADDRESS,
 } from "../constants/addresses";
 import { registerFavoriteInstruction } from "../instructions/registerFavoriteInstruction";
@@ -20,7 +20,7 @@ export const setPrimaryDomain = async (
   ]);
 
   const parent =
-    registry.parentName !== ROOT_DOMAIN_ACCOUNT
+    registry.parentName !== ROOT_DOMAIN_ADDRESS
       ? registry.parentName
       : undefined;
 

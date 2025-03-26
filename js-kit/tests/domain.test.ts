@@ -19,8 +19,8 @@ import { TEST_RPC } from "./constants";
 jest.setTimeout(25_000);
 
 describe("Domain methods", () => {
-  test("getDomainAddress", async () => {
-    const items = [
+  describe("getDomainAddress", () => {
+    test.each([
       {
         domain: "sns-ip-5-wallet-1",
         address: "6qJtQdAJvAiSfGXWAuHDteAes6vnFcxtHmLzw1TStCrd",
@@ -37,16 +37,14 @@ describe("Domain methods", () => {
         domain: "test.sns-ip-5-wallet-1.sol",
         address: "EzQAeEBXpZWpsZXcZRwV63RRr2RkwBVqdYN53tcbTDEm",
       },
-    ];
-
-    for (let item of items) {
+    ])("$domain", async (item) => {
       const { address } = await getDomainAddress(item.domain);
       expect(address).toBe(item.address);
-    }
+    });
   });
 
-  test("getDomainOwner", async () => {
-    const domains = [
+  describe("getDomainOwner", () => {
+    test.each([
       {
         domain: "sns-ip-5-wallet-1",
         owner: "ALd1XSrQMCPSRayYUoUZnp6KcP6gERfJhWzkP49CkXKs",
@@ -95,116 +93,120 @@ describe("Domain methods", () => {
         domain: "sns-ip-5-wallet-12",
         owner: "ALd1XSrQMCPSRayYUoUZnp6KcP6gERfJhWzkP49CkXKs",
       },
-    ];
-    for (const domain of domains) {
-      const res = await getDomainOwner(TEST_RPC, domain.domain);
-      expect(res).toBe(domain.owner);
-    }
+    ])("$domain", async (item) => {
+      const res = await getDomainOwner(TEST_RPC, item.domain);
+      expect(res).toBe(item.owner);
+    });
   });
 
-  test("getDomainRecord", async () => {
-    const domain = "wallet-guide-9.sol";
-    const records = [
+  describe("getDomainRecord", () => {
+    test.each([
       {
+        domain: "wallet-guide-9.sol",
         record: Record.IPFS,
         value: "ipfs://test",
         verified: { staleness: true },
       },
       {
+        domain: "wallet-guide-9.sol",
         record: Record.BTC,
         error: new NoRecordDataError("Record account not found"),
       },
       {
+        domain: "wallet-guide-9.sol",
         record: Record.Email,
         value: "test@gmail.com",
         verified: { staleness: false },
       },
       {
+        domain: "wallet-guide-9.sol",
         record: Record.Url,
         value: "https://google.com",
         verified: { staleness: false, rightOfAssociation: false },
       },
       {
+        domain: "wallet-guide-9.sol",
         record: Record.ETH,
         error: new NoRecordDataError("Record account not found"),
       },
-    ];
-    for (const record of records) {
-      if (record.value) {
-        const res = await getDomainRecord(TEST_RPC, domain, record.record, {
+    ])("$domain $record", async (item) => {
+      if (item.value) {
+        const res = await getDomainRecord(TEST_RPC, item.domain, item.record, {
           deserialize: true,
         });
-        expect(res.deserializedContent).toBe(record.value);
-        expect(res.verified).toStrictEqual(record.verified);
+        expect(res.deserializedContent).toBe(item.value);
+        expect(res.verified).toStrictEqual(item.verified);
       } else {
         await expect(
-          getDomainRecord(TEST_RPC, domain, record.record, {
+          getDomainRecord(TEST_RPC, item.domain, item.record, {
             deserialize: true,
           })
-        ).rejects.toThrow(record.error);
-      }
-    }
-  });
-
-  test("getDomainRecords", async () => {
-    const domain = "wallet-guide-9.sol";
-    const records = [
-      {
-        record: Record.IPFS,
-        value: "ipfs://test",
-        verified: { staleness: true },
-      },
-      {
-        record: Record.BTC,
-      },
-      {
-        record: Record.Email,
-        value: "test@gmail.com",
-        verified: { staleness: false },
-      },
-      {
-        record: Record.Url,
-        value: "https://google.com",
-        verified: { staleness: false, rightOfAssociation: false },
-      },
-      {
-        record: Record.ETH,
-      },
-    ];
-
-    const res = await getDomainRecords(
-      TEST_RPC,
-      domain,
-      records.map((item) => item.record),
-      {
-        deserialize: true,
-        verifiers: records.map(() => undefined),
-      }
-    );
-    records.forEach((record, idx) => {
-      if (record.value) {
-        expect(res[idx]?.deserializedContent).toBe(record.value);
-        expect(res[idx]?.verified).toStrictEqual(record.verified);
-      } else {
-        expect(res[idx]).toBe(undefined);
+        ).rejects.toThrow(item.error);
       }
     });
+  });
 
-    await expect(
-      getDomainRecords(
+  describe("getDomainRecords", () => {
+    test("wallet-guide-9.sol [5 records]", async () => {
+      const domain = "wallet-guide-9.sol";
+      const records = [
+        {
+          record: Record.IPFS,
+          value: "ipfs://test",
+          verified: { staleness: true },
+        },
+        {
+          record: Record.BTC,
+        },
+        {
+          record: Record.Email,
+          value: "test@gmail.com",
+          verified: { staleness: false },
+        },
+        {
+          record: Record.Url,
+          value: "https://google.com",
+          verified: { staleness: false, rightOfAssociation: false },
+        },
+        {
+          record: Record.ETH,
+        },
+      ];
+
+      const res = await getDomainRecords(
         TEST_RPC,
         domain,
         records.map((item) => item.record),
         {
           deserialize: true,
-          verifiers: [],
+          verifiers: records.map(() => undefined),
         }
-      )
-    ).rejects.toThrow(
-      new MissingVerifierError(
-        "The number of verifiers must be the same as the number of records"
-      )
-    );
+      );
+      records.forEach((record, idx) => {
+        if (record.value) {
+          expect(res[idx]?.deserializedContent).toBe(record.value);
+          expect(res[idx]?.verified).toStrictEqual(record.verified);
+        } else {
+          expect(res[idx]).toBe(undefined);
+        }
+      });
+
+      await expect(
+        getDomainRecords(
+          TEST_RPC,
+          domain,
+          records.map((item) => item.record),
+          {
+            deserialize: true,
+            verifiers: [],
+          }
+        )
+      ).rejects.toThrow(
+        new MissingVerifierError(
+          "The number of verifiers must be the same as the number of records"
+        )
+      );
+    });
   });
 
   describe("resolveDomain", () => {
@@ -277,7 +279,7 @@ describe("Domain methods", () => {
         domain: "sns-ip-5-wallet-12",
         error: new InvalidRoAError(),
       },
-    ])("$domain throws an error", async (e) => {
+    ])("$domain throws correctly", async (e) => {
       await expect(resolveDomain(TEST_RPC, e.domain)).rejects.toThrow(e.error);
     });
 
@@ -320,7 +322,6 @@ describe("Domain methods", () => {
         domain: "wallet-guide-6",
         owner: "Hf4daCT4tC2Vy9RCe9q8avT68yAsNJ1dQe6xiQqyGuqZ",
       },
-
       {
         domain: "wallet-guide-8",
         owner: "36Dn3RWhB8x4c83W6ebQ2C2eH9sh5bQX2nMdkP2cWaA4",

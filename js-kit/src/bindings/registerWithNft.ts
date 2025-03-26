@@ -6,7 +6,7 @@ import {
   NAME_PROGRAM_ADDRESS,
   REGISTRY_PROGRAM_ADDRESS,
   REVERSE_LOOKUP_CLASS,
-  ROOT_DOMAIN_ACCOUNT,
+  ROOT_DOMAIN_ADDRESS,
   SYSTEM_PROGRAM_ADDRESS,
   SYSVAR_RENT_ADDRESS,
   TOKEN_PROGRAM_ADDRESS,
@@ -33,7 +33,7 @@ export const registerWithNft = async (
   const ix = new createWithNftInstruction({ space, name }).getInstruction(
     REGISTRY_PROGRAM_ADDRESS,
     NAME_PROGRAM_ADDRESS,
-    ROOT_DOMAIN_ACCOUNT,
+    ROOT_DOMAIN_ADDRESS,
     domainAddress,
     reverseLookupAccount,
     SYSTEM_PROGRAM_ADDRESS,

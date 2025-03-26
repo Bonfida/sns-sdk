@@ -6,11 +6,10 @@ import {
   Rpc,
   fetchEncodedAccount,
   fetchEncodedAccounts,
+  getPublicKeyFromAddress,
 } from "@solana/kit";
-import { getPublicKeyFromAddress } from "@solana/kit";
 
-import { addressCodec } from "../codecs";
-import { utf8Codec } from "../codecs";
+import { addressCodec, utf8Codec } from "../codecs";
 import {
   CouldNotFindNftOwnerError,
   DomainDoesNotExistError,
@@ -95,7 +94,6 @@ export const resolveDomain = async (
   const nftAddress = await NftState.getAddress(domainAddress);
   const solRecordV1Address = await getRecordV1Address(domain, Record.SOL);
   const solRecordV2Address = await getRecordV2Address(domain, Record.SOL);
-  console.log({ domain, solRecordV1Address, solRecordV2Address });
   const [domainAccount, nftAccount, solRecordV1Account, solRecordV2Account] =
     await fetchEncodedAccounts(rpc, [
       domainAddress,

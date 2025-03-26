@@ -8,8 +8,8 @@ import { TEST_RPC } from "./constants";
 jest.setTimeout(5_000);
 
 describe("Nft methods", () => {
-  test("getNftMint", async () => {
-    const addresses = [
+  describe("getNftMint", () => {
+    test.each([
       {
         // sns-ip-5-wallet-1.sol
         address: "6qJtQdAJvAiSfGXWAuHDteAes6vnFcxtHmLzw1TStCrd" as Address,
@@ -20,16 +20,14 @@ describe("Nft methods", () => {
         address: "FVLJ5KEqQk3jiHsB84Rt5cnUac4s8fyHC2YaNDJVwKHJ" as Address,
         mint: "CmThLmf7ndEbyPs2MyL3XXzLvCrmXtdNCrRcuNPHvkKL",
       },
-    ];
-
-    for (const { address, mint } of addresses) {
-      const res = await getNftMint(address);
-      expect(res).toBe(mint);
-    }
+    ])("$address", async (item) => {
+      const res = await getNftMint(item.address);
+      expect(res).toBe(item.mint);
+    });
   });
 
-  test("getNftOwner", async () => {
-    const addresses = [
+  describe("getNftOwner", () => {
+    test.each([
       {
         // sns-ip-5-wallet-1.sol
         address: "6qJtQdAJvAiSfGXWAuHDteAes6vnFcxtHmLzw1TStCrd" as Address,
@@ -40,11 +38,9 @@ describe("Nft methods", () => {
         address: "FVLJ5KEqQk3jiHsB84Rt5cnUac4s8fyHC2YaNDJVwKHJ" as Address,
         owner: null,
       },
-    ];
-
-    for (const { address, owner } of addresses) {
-      const res = await getNftOwner(TEST_RPC, address);
-      expect(res).toBe(owner);
-    }
+    ])("$address", async (item) => {
+      const res = await getNftOwner(TEST_RPC, item.address);
+      expect(res).toBe(item.owner);
+    });
   });
 });

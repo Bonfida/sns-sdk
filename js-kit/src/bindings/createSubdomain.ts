@@ -28,6 +28,9 @@ export const createSubdomain = async (
     throw new InvalidDomainError("The subdomain name is malformed");
   }
 
+  const a = await getDomainAddress(subdomain);
+  console.log(a);
+
   const [{ address, parentAddress }, lamports] = await Promise.all([
     getDomainAddress(subdomain),
     rpc
@@ -36,6 +39,8 @@ export const createSubdomain = async (
       )
       .send(),
   ]);
+
+  console.log({ address, parentAddress });
 
   const ix_create = await createNameRegistry(
     rpc,
@@ -61,7 +66,7 @@ export const createSubdomain = async (
       parentAddress,
       owner
     );
-    ixs.push(...ix_reverse);
+    ixs.push(ix_reverse);
   }
 
   return ixs;

@@ -12,28 +12,30 @@ import { RANDOM_ADDRESS, TEST_RPC } from "./constants";
 jest.setTimeout(25_000);
 
 describe("Utils methods", () => {
-  describe("reverse lookup", () => {
-    const addresses = [
-      {
-        address: "Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb" as Address,
-        primary: "bonfida",
-      },
-      {
-        address: "6WWS69JbYTnQZ1WyGVsJsBAB35iaszgy9KqCANJfmQr8" as Address,
-        primary: "wallet-guide-1",
-      },
-      {
-        address: "5GUXAsmcn4pHzJyNFTxe6m9HQAmWE1eCmPL6RJoh3tcZ" as Address,
-        primary: "wallet-guide-2",
-      },
-    ];
+  const addresses = [
+    {
+      address: "Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb" as Address,
+      primary: "bonfida",
+    },
+    {
+      address: "6WWS69JbYTnQZ1WyGVsJsBAB35iaszgy9KqCANJfmQr8" as Address,
+      primary: "wallet-guide-1",
+    },
+    {
+      address: "5GUXAsmcn4pHzJyNFTxe6m9HQAmWE1eCmPL6RJoh3tcZ" as Address,
+      primary: "wallet-guide-2",
+    },
+  ];
 
-    test.each(addresses)("reverseLookup: $address", async (e) => {
+  describe("reverseLookup", () => {
+    test.each(addresses)("$address", async (e) => {
       const domain = await reverseLookup(TEST_RPC, e.address);
       await expect(domain).toBe(e.primary);
     });
+  });
 
-    test("reverseLookupBatch", async () => {
+  describe("reverseLookupBatch", () => {
+    test("[3 addresses]", async () => {
       const domains = await reverseLookupBatch(
         TEST_RPC,
         addresses.map((c) => c.address)
@@ -42,7 +44,7 @@ describe("Utils methods", () => {
     });
   });
 
-  describe("serializers/deserializers", () => {
+  describe("serializeRecord/deserializeRecord", () => {
     test.each([
       { content: "this is a test", record: Record.TXT },
       {
@@ -83,7 +85,7 @@ describe("Utils methods", () => {
           "k51qzi5uqu5dlvj2baxnqndepeb86cbk3ng7n3i46uzyxzyqj2xjonzllnv0v8",
         record: Record.IPNS,
       },
-    ])("$record record serialized/deserialized correctly", (e) => {
+    ])("$record", (e) => {
       const ser = serializeRecordContent(e.content, e.record);
       const des = deserializeRecordContent(ser, e.record);
       expect(des).toBe(e.content);
@@ -122,7 +124,7 @@ describe("Utils methods", () => {
         ],
         feedAddress: "7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE",
       },
-    ])("getPythFeedAddress: $mint", async ({ feed, feedAddress }) => {
+    ])("$mint", async ({ feed, feedAddress }) => {
       const res = await getPythFeedAddress(0, feed);
       expect(res).toBe(feedAddress);
     });

@@ -21,7 +21,7 @@ export const NAME_PROGRAM_ADDRESS =
 /**
  * The `.sol` TLD
  */
-export const ROOT_DOMAIN_ACCOUNT =
+export const ROOT_DOMAIN_ADDRESS =
   "58PwtjSDuFHuUkYjH9BYnnQKHfwo9reZhC2zMJv9JPkx" as Address;
 
 /**

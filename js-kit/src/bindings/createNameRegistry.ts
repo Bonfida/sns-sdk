@@ -10,13 +10,13 @@ import {
   NAME_PROGRAM_ADDRESS,
   SYSTEM_PROGRAM_ADDRESS,
 } from "../constants/addresses";
-import { createRegistryInstruction } from "../instructions/createRegistryInstruction";
+import { createNameRegistryInstruction } from "../instructions/createNameRegistryInstruction";
 import { RegistryState } from "../states/registry";
 import { _generateHash, _getAddressFromHash } from "../utils/deriveAddress";
 
 export async function createNameRegistry(
   rpc: Rpc<GetAccountInfoApi & GetMinimumBalanceForRentExemptionApi>,
-  domainName: string,
+  name: string,
   space: number,
   payer: Address,
   owner: Address,
@@ -24,7 +24,7 @@ export async function createNameRegistry(
   classAddress?: Address,
   parentAddress?: Address
 ): Promise<IInstruction> {
-  const nameHash = await _generateHash(domainName);
+  const nameHash = await _generateHash(name);
   const domainAddress = await _getAddressFromHash(
     nameHash,
     parentAddress,
@@ -37,11 +37,11 @@ export async function createNameRegistry(
 
   let parentOwner: Address | undefined;
   if (parentAddress) {
-    const parentAccount = await RegistryState.retrieve(rpc, domainAddress);
+    const parentAccount = await RegistryState.retrieve(rpc, parentAddress);
     parentOwner = parentAccount.owner;
   }
 
-  const ix = new createRegistryInstruction({
+  const ix = new createNameRegistryInstruction({
     nameHash,
     lamports,
     space,

@@ -4,7 +4,7 @@ import {
   CENTRAL_STATE,
   NAME_PROGRAM_ADDRESS,
   REGISTRY_PROGRAM_ADDRESS,
-  ROOT_DOMAIN_ACCOUNT,
+  ROOT_DOMAIN_ADDRESS,
   SYSTEM_PROGRAM_ADDRESS,
   SYSVAR_RENT_ADDRESS,
 } from "../constants/addresses";
@@ -33,12 +33,12 @@ export const createReverse = async (
     CENTRAL_STATE
   );
 
-  let initCentralStateInstruction = new createReverseInstruction({
+  let ix = new createReverseInstruction({
     domain: domain,
   }).getInstruction(
     REGISTRY_PROGRAM_ADDRESS,
     NAME_PROGRAM_ADDRESS,
-    ROOT_DOMAIN_ACCOUNT,
+    ROOT_DOMAIN_ADDRESS,
     reverseLookupAccount,
     SYSTEM_PROGRAM_ADDRESS,
     CENTRAL_STATE,
@@ -48,7 +48,5 @@ export const createReverse = async (
     parentOwner
   );
 
-  let instructions = [initCentralStateInstruction];
-
-  return instructions;
+  return ix;
 };

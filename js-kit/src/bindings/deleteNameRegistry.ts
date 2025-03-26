@@ -1,7 +1,7 @@
 import { Address, GetAccountInfoApi, IInstruction, Rpc } from "@solana/kit";
 
 import { NAME_PROGRAM_ADDRESS } from "../constants/addresses";
-import { DeleteInstruction } from "../instructions/deleteInstruction";
+import { DeleteNameRegistryInstruction } from "../instructions/deleteNameRegistryInstruction";
 import { RegistryState } from "../states/registry";
 import { deriveAddress } from "../utils/deriveAddress";
 
@@ -17,12 +17,12 @@ export async function deleteNameRegistry(
   const owner =
     classAddress || (await RegistryState.retrieve(rpc, domainAddress)).owner;
 
-  const changeAuthoritiesInstr = new DeleteInstruction().getInstruction(
+  const ix = new DeleteNameRegistryInstruction().getInstruction(
     NAME_PROGRAM_ADDRESS,
     domainAddress,
     refundTarget,
     owner
   );
 
-  return changeAuthoritiesInstr;
+  return ix;
 }

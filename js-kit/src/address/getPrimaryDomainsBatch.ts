@@ -12,7 +12,7 @@ import {
   DEFAULT_ADDRESS,
   NAME_OFFERS_ADDRESS,
   NAME_PROGRAM_ADDRESS,
-  ROOT_DOMAIN_ACCOUNT,
+  ROOT_DOMAIN_ADDRESS,
   TOKEN_PROGRAM_ADDRESS,
 } from "../constants/addresses";
 import { getNftMint } from "../nft/getNftMint";
@@ -62,7 +62,7 @@ export const getPrimaryDomainsBatch = async (
   const atasPromises: Promise<Address>[] = [];
 
   for (const { index, address, registry } of validPrimaries) {
-    const isSub = registry!.parentName !== ROOT_DOMAIN_ACCOUNT;
+    const isSub = registry!.parentName !== ROOT_DOMAIN_ADDRESS;
 
     parentRevAddressesPromises.push(
       isSub

@@ -17,7 +17,7 @@ import {
   NAME_PROGRAM_ADDRESS,
   REFERRERS,
   REGISTRY_PROGRAM_ADDRESS,
-  ROOT_DOMAIN_ACCOUNT,
+  ROOT_DOMAIN_ADDRESS,
   SYSTEM_PROGRAM_ADDRESS,
   SYSVAR_RENT_ADDRESS,
   TOKEN_PROGRAM_ADDRESS,
@@ -45,7 +45,7 @@ export const registerDomainNameV2 = async (
     throw new InvalidDomainError("The domain name is malformed");
   }
 
-  const domainAddress = await deriveAddress(domain, ROOT_DOMAIN_ACCOUNT);
+  const domainAddress = await deriveAddress(domain, ROOT_DOMAIN_ADDRESS);
 
   const reverseLookupAccount = await deriveAddress(
     domainAddress,
@@ -108,7 +108,7 @@ export const registerDomainNameV2 = async (
   }).getInstruction(
     REGISTRY_PROGRAM_ADDRESS,
     NAME_PROGRAM_ADDRESS,
-    ROOT_DOMAIN_ACCOUNT,
+    ROOT_DOMAIN_ADDRESS,
     domainAddress,
     reverseLookupAccount,
     SYSTEM_PROGRAM_ADDRESS,

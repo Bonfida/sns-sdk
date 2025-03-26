@@ -1,6 +1,5 @@
 import { Address } from "@solana/kit";
 
-import { utf8Codec } from "../codecs";
 import {
   CENTRAL_STATE_DOMAIN_RECORDS,
   NAME_PROGRAM_ADDRESS,
@@ -11,6 +10,7 @@ import { getDomainAddress } from "../domain/getDomainAddress";
 import { InvalidParentError } from "../errors";
 import { allocateAndPostRecordInstruction } from "../instructions/allocateAndPostRecordInstructio";
 import { Record, RecordVersion } from "../types/record";
+import { serializeRecordContent } from "../utils/serializers/serializeRecordContent";
 
 export const createRecord = async (
   domain: string,
@@ -25,9 +25,7 @@ export const createRecord = async (
   );
 
   if (isSub) {
-    parentAddress = await getDomainAddress(domain).then(
-      (domainAddress) => domainAddress.address
-    );
+    parentAddress = (await getDomainAddress(domain)).address;
   }
 
   if (!parentAddress) {
@@ -35,8 +33,8 @@ export const createRecord = async (
   }
 
   const ix = new allocateAndPostRecordInstruction({
-    record,
-    content: utf8Codec.encode(content),
+    record: `\x02${record}`,
+    content: serializeRecordContent(content, record),
   }).getInstruction(
     RECORDS_PROGRAM_ADDRESS,
     SYSTEM_PROGRAM_ADDRESS,

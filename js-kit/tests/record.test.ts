@@ -61,23 +61,23 @@ describe("Record methods", () => {
     },
   ];
 
-  test("getRecordV1Address", async () => {
-    for (const { domain, solRecordV1Address } of domains) {
+  describe("getRecordV1Address", () => {
+    test.each(domains)("$domain", async ({ domain, solRecordV1Address }) => {
       const res = await getRecordV1Address(domain, Record.SOL);
       expect(res).toBe(solRecordV1Address);
-    }
+    });
   });
 
-  test("getRecordV2Address", async () => {
-    for (const { domain, solRecordV2Address } of domains) {
+  describe("getRecordV2Address", () => {
+    test.each(domains)("$domain", async ({ domain, solRecordV2Address }) => {
       const res = await getRecordV2Address(domain, Record.SOL);
       expect(res).toBe(solRecordV2Address);
-    }
+    });
   });
 
-  test("verifyRecordRightOfAssociation", async () => {
-    for (const { domain, records } of domains) {
-      for (const { record, verified, error } of records) {
+  describe("verifyRecordRightOfAssociation", () => {
+    describe.each(domains)("$domain", ({ domain, records }) => {
+      test.each(records)("$record", async ({ record, verified, error }) => {
         if (verified) {
           const res = await verifyRecordRightOfAssociation(
             TEST_RPC,
@@ -91,13 +91,13 @@ describe("Record methods", () => {
             verifyRecordRightOfAssociation(TEST_RPC, domain, record)
           ).rejects.toThrow(error);
         }
-      }
-    }
+      });
+    });
   });
 
-  test("verifyRecordStaleness", async () => {
-    for (const { domain, records } of domains) {
-      for (const { record, verified, error } of records) {
+  describe("verifyRecordStaleness", () => {
+    describe.each(domains)("$domain", ({ domain, records }) => {
+      test.each(records)("$record", async ({ record, verified, error }) => {
         if (verified) {
           const res = await verifyRecordStaleness(TEST_RPC, domain, record);
           expect(res).toBe(verified.staleness);
@@ -107,7 +107,7 @@ describe("Record methods", () => {
             verifyRecordStaleness(TEST_RPC, domain, record)
           ).rejects.toThrow(error);
         }
-      }
-    }
+      });
+    });
   });
 });
