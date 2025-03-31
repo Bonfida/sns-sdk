@@ -1,6 +1,7 @@
 import { describe, expect, jest, test } from "@jest/globals";
 
 import { SYSTEM_PROGRAM_ADDRESS } from "../src/constants/addresses";
+import { getAllDomains } from "../src/domain/getAllDomains";
 import { getDomainAddress } from "../src/domain/getDomainAddress";
 import { getDomainOwner } from "../src/domain/getDomainOwner";
 import { getDomainRecord } from "../src/domain/getDomainRecord";
@@ -16,7 +17,7 @@ import {
 import { Record } from "../src/types/record";
 import { TEST_RPC } from "./constants";
 
-jest.setTimeout(25_000);
+jest.setTimeout(3 * 60_000);
 
 describe("Domain methods", () => {
   describe("getDomainAddress", () => {
@@ -329,6 +330,14 @@ describe("Domain methods", () => {
     ])("$domain resolves correctly (backward compatibility)", async (e) => {
       const resolvedValue = await resolveDomain(TEST_RPC, e.domain);
       expect(resolvedValue.toString()).toBe(e.owner);
+    });
+  });
+
+  describe("getAllDomains", () => {
+    test("domainAddress/owner", async () => {
+      const registered = await getAllDomains(TEST_RPC);
+      console.log(registered[0]);
+      expect(registered.length).toBeGreaterThan(250_000);
     });
   });
 });

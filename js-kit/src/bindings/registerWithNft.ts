@@ -1,7 +1,8 @@
 import { Address, getProgramDerivedAddress } from "@solana/kit";
 
-import { addressCodec } from "../codecs";
+import { addressCodec, utf8Codec } from "../codecs";
 import {
+  CENTRAL_STATE,
   METAPLEX_PROGRAM_ADDRESS,
   NAME_PROGRAM_ADDRESS,
   REGISTRY_PROGRAM_ADDRESS,
@@ -13,24 +14,48 @@ import {
   WOLVES_COLLECTION_METADATA,
 } from "../constants/addresses";
 import { createWithNftInstruction } from "../instructions/createWithNftInstruction";
+import { deriveAddress } from "../utils/deriveAddress";
 
 export const registerWithNft = async (
-  name: string,
+  domain: string,
   space: number,
-  domainAddress: Address,
-  reverseLookupAccount: Address,
   buyer: Address,
   nftSource: Address,
-  nftMetadata: Address,
-  nftMint: Address,
-  masterEdition: Address
+  nftMint: Address
 ) => {
+  const domainAddress = await deriveAddress(domain, ROOT_DOMAIN_ADDRESS);
+  const reverseLookupAccount = await deriveAddress(
+    domainAddress,
+    undefined,
+    CENTRAL_STATE
+  );
+
   const [state] = await getProgramDerivedAddress({
     programAddress: REGISTRY_PROGRAM_ADDRESS,
     seeds: [addressCodec.encode(domainAddress)],
   });
+  const [nftMetadata] = await getProgramDerivedAddress({
+    programAddress: METAPLEX_PROGRAM_ADDRESS,
+    seeds: [
+      utf8Codec.encode("metadata"),
+      addressCodec.encode(METAPLEX_PROGRAM_ADDRESS),
+      addressCodec.encode(nftMint),
+    ],
+  });
+  const [masterEdition] = await getProgramDerivedAddress({
+    programAddress: METAPLEX_PROGRAM_ADDRESS,
+    seeds: [
+      utf8Codec.encode("metadata"),
+      addressCodec.encode(METAPLEX_PROGRAM_ADDRESS),
+      addressCodec.encode(nftMint),
+      utf8Codec.encode("edition"),
+    ],
+  });
 
-  const ix = new createWithNftInstruction({ space, name }).getInstruction(
+  const ix = new createWithNftInstruction({
+    space,
+    name: domain,
+  }).getInstruction(
     REGISTRY_PROGRAM_ADDRESS,
     NAME_PROGRAM_ADDRESS,
     ROOT_DOMAIN_ADDRESS,

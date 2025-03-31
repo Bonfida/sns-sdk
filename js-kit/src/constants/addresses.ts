@@ -80,6 +80,9 @@ export const VAULT_OWNER =
 export const USDC_MINT =
   "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" as Address;
 
+export const FIDA_MINT =
+  "EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp" as Address;
+
 export const METAPLEX_PROGRAM_ADDRESS =
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s" as Address;
 

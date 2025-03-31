@@ -1,5 +1,9 @@
 import { describe, expect, jest, test } from "@jest/globals";
 import {
+  TOKEN_PROGRAM_ADDRESS,
+  findAssociatedTokenPda,
+} from "@solana-program/token";
+import {
   Address,
   IInstruction,
   appendTransactionMessageInstructions,
@@ -10,6 +14,7 @@ import {
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
 } from "@solana/kit";
+import { randomBytes } from "crypto";
 
 import { burnDomain } from "../src/bindings/burnDomain";
 import { createNameRegistry } from "../src/bindings/createNameRegistry";
@@ -18,9 +23,19 @@ import { createReverse } from "../src/bindings/createReverse";
 import { createSubdomain } from "../src/bindings/createSubdomain";
 import { deleteNameRegistry } from "../src/bindings/deleteNameRegistry";
 import { deleteRecord } from "../src/bindings/deleteRecord";
+import { registerDomain } from "../src/bindings/registerDomain";
+import { registerWithNft } from "../src/bindings/registerWithNft";
 import { setPrimaryDomain } from "../src/bindings/setPrimaryDomain";
+import { transferDomain } from "../src/bindings/transferDomain";
+import { transferSubdomain } from "../src/bindings/transferSubdomain";
 import { updateRecord } from "../src/bindings/updateRecord";
-import { ROOT_DOMAIN_ADDRESS } from "../src/constants/addresses";
+import {
+  FIDA_MINT,
+  REFERRERS,
+  ROOT_DOMAIN_ADDRESS,
+  USDC_MINT,
+  VAULT_OWNER,
+} from "../src/constants/addresses";
 import { getDomainAddress } from "../src/domain/getDomainAddress";
 import { RegistryState } from "../src/states/registry";
 import { Record } from "../src/types/record";
@@ -50,7 +65,7 @@ const testInstructions = async (
   }).send();
 
   if (log) {
-    console.log(res.value);
+    console.log(res.value.logs);
   }
 
   expect(res.value.err).toBe(null);
@@ -70,8 +85,8 @@ describe("Bindings", () => {
   });
 
   describe("createNameRegistry", () => {
-    test("_TEST_", async () => {
-      const name = "_TEST_";
+    const domain = randomBytes(10).toString("hex");
+    test(domain, async () => {
       const space = 2000;
       const owner = "HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA" as Address;
       const lamports = await TEST_RPC.getMinimumBalanceForRentExemption(
@@ -80,7 +95,14 @@ describe("Bindings", () => {
 
       const ixs: IInstruction[] = [];
       ixs.push(
-        await createNameRegistry(TEST_RPC, name, space, owner, owner, lamports)
+        await createNameRegistry(
+          TEST_RPC,
+          domain,
+          space,
+          owner,
+          owner,
+          lamports
+        )
       );
       await testInstructions(ixs, owner);
     });
@@ -113,13 +135,13 @@ describe("Bindings", () => {
   });
 
   describe("createReverse", () => {
-    test("_TEST_", async () => {
-      const name = "_TEST_";
-      const { address } = await getDomainAddress(name);
+    const domain = randomBytes(10).toString("hex");
+    test(domain, async () => {
+      const { address } = await getDomainAddress(domain);
       const owner = "HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA" as Address;
 
       const ixs: IInstruction[] = [];
-      ixs.push(await createReverse(address, name, owner));
+      ixs.push(await createReverse(address, domain, owner));
 
       await testInstructions(ixs, owner);
     });
@@ -181,9 +203,94 @@ describe("Bindings", () => {
     });
   });
 
-  describe("registerDomain", () => {});
+  describe("registerDomain", () => {
+    describe("without referrer", () => {
+      test.each(
+        Array.from({ length: 3 }, () => ({
+          domain: randomBytes(10).toString("hex"),
+        }))
+      )("$domain", async ({ domain }) => {
+        const [ata] = await findAssociatedTokenPda({
+          mint: USDC_MINT,
+          owner: VAULT_OWNER,
+          tokenProgram: TOKEN_PROGRAM_ADDRESS,
+        });
 
-  describe("registerWithNft", () => {});
+        const ixs = await registerDomain(
+          TEST_RPC,
+          domain,
+          1_000,
+          VAULT_OWNER,
+          ata,
+          USDC_MINT
+        );
+
+        await testInstructions(ixs, VAULT_OWNER);
+      });
+    });
+    describe("with referrer", () => {
+      test.each(
+        Array.from({ length: 3 }, () => ({
+          domain: randomBytes(10).toString("hex"),
+        }))
+      )("$domain", async ({ domain }) => {
+        const [ata] = await findAssociatedTokenPda({
+          mint: FIDA_MINT,
+          owner: VAULT_OWNER,
+          tokenProgram: TOKEN_PROGRAM_ADDRESS,
+        });
+
+        const ixs = await registerDomain(
+          TEST_RPC,
+          domain,
+          1_000,
+          VAULT_OWNER,
+          ata,
+          FIDA_MINT,
+          REFERRERS[0]
+        );
+
+        await testInstructions(ixs, VAULT_OWNER);
+      });
+      test("Idempotent referrer ATA creation", async () => {
+        const [ata] = await findAssociatedTokenPda({
+          mint: FIDA_MINT,
+          owner: VAULT_OWNER,
+          tokenProgram: TOKEN_PROGRAM_ADDRESS,
+        });
+
+        const ixs: IInstruction[] = [];
+
+        for (let i = 0; i < 3; i++) {
+          ixs.push(
+            ...(await registerDomain(
+              TEST_RPC,
+              randomBytes(10).toString("hex"),
+              1_000,
+              VAULT_OWNER,
+              ata,
+              FIDA_MINT,
+              REFERRERS[0]
+            ))
+          );
+        }
+
+        await testInstructions(ixs, VAULT_OWNER);
+      });
+    });
+  });
+
+  describe("registerWithNft", () => {
+    const domain = randomBytes(10).toString("hex");
+    test(domain, async () => {
+      const buyer = "FiUYY19eXuVcEAHSJ87KEzYjYnfKZm6KbHoVtdQBNGfk" as Address;
+      const source = "Df9Jz3NrGVd5jjjrXbedwuHbCc1hL131bUXq2143tTfQ" as Address;
+      const nftMint = "7cpq5U6ze5PPcTPVxGifXA8xyDp8rgAJQNwBDj8eWd8w" as Address;
+
+      const ixs: IInstruction[] = [];
+      ixs.push(await registerWithNft(domain, 1_000, buyer, source, nftMint));
+    });
+  });
 
   describe("setPrimaryDomain", () => {
     test("domain [wallet-guide-9]", async () => {
@@ -205,6 +312,42 @@ describe("Bindings", () => {
       ixs.push(await setPrimaryDomain(TEST_RPC, domainAddress, owner));
 
       await testInstructions(ixs, owner);
+    });
+  });
+
+  describe("transferDomain", () => {
+    test("wallet-guide-9", async () => {
+      const domain = "wallet-guide-9";
+      const owner = "Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8" as Address;
+      const newOwner =
+        "ALd1XSrQMCPSRayYUoUZnp6KcP6gERfJhWzkP49CkXKs" as Address;
+
+      const ixs: IInstruction[] = [];
+      ixs.push(
+        await transferDomain(
+          TEST_RPC,
+          domain,
+          newOwner,
+          undefined,
+          ROOT_DOMAIN_ADDRESS
+        )
+      );
+
+      await testInstructions(ixs, owner, true);
+    });
+  });
+
+  describe("transferSubdomain", () => {
+    test("sub-0.wallet-guide-3", async () => {
+      const subdomain = "sub-0.wallet-guide-3";
+      const owner = "Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8" as Address;
+      const newOwner =
+        "ALd1XSrQMCPSRayYUoUZnp6KcP6gERfJhWzkP49CkXKs" as Address;
+
+      const ixs: IInstruction[] = [];
+      ixs.push(await transferSubdomain(TEST_RPC, subdomain, newOwner));
+
+      await testInstructions(ixs, owner, true);
     });
   });
 
@@ -239,4 +382,12 @@ describe("Bindings", () => {
       await testInstructions(ixs, owner);
     });
   });
+
+  describe("updateRegistry", () => {});
+
+  describe("VerifyRecordRoa", () => {});
+
+  describe("VerifyRecordWithEthSig", () => {});
+
+  describe("VerifyRecordWithSolSig", () => {});
 });

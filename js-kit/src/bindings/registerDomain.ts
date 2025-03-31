@@ -31,7 +31,7 @@ import { createSplitV2Instruction } from "../instructions/createSplitV2Instructi
 import { deriveAddress } from "../utils/deriveAddress";
 import { getPythFeedAddress } from "../utils/getPythFeedAddress";
 
-export const registerDomainNameV2 = async (
+export const registerDomain = async (
   rpc: Rpc<GetAccountInfoApi>,
   domain: string,
   space: number,

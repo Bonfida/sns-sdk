@@ -1,6 +1,7 @@
 import { describe, expect, jest, test } from "@jest/globals";
 import { Address } from "@solana/kit";
 
+import { getDomainsForAddress } from "../src/address/getDomainsForAddress";
 import { getNftsForAddress } from "../src/address/getNftsForAddress";
 import { getPrimaryDomain } from "../src/address/getPrimaryDomain";
 import { getPrimaryDomainsBatch } from "../src/address/getPrimaryDomainsBatch";
@@ -64,6 +65,48 @@ describe("Address methods", () => {
         items.map((item) => item.address)
       );
       expect(result).toStrictEqual(items.map((item) => item.domain));
+    });
+  });
+
+  describe("getDomainsForAddress", () => {
+    test.each([
+      {
+        address: RANDOM_ADDRESS,
+        domains: [],
+      },
+      {
+        address: "Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8" as Address,
+        domains: [
+          {
+            domain: "wallet-guide-10",
+            domainAddress: "9wcWEXmtUbmiAaWdhQ1nSaZ1cmDVdbYNbaeDcKoK5H8r",
+          },
+          {
+            domain: "wallet-guide-3",
+            domainAddress: "CZFQJkE2uBqdwHH53kBT6UStyfcbCWzh6WHwRRtaLgrm",
+          },
+          {
+            domain: "wallet-guide-4",
+            domainAddress: "ChkcdTKgyVsrLuD9zkUBoUkZ1GdZjTHEmgh5dhnR4haT",
+          },
+          {
+            domain: "wallet-guide-6",
+            domainAddress: "2NsGScxHd9bS6gA7tfY3xucCcg6H9qDqLdXLtAYFjCVR",
+          },
+          {
+            domain: "wallet-guide-7",
+            domainAddress: "6Yi9GyJKoFAv77pny4nxBqYYwFaAZ8dNPZX9HDXw5Ctw",
+          },
+          {
+            domain: "wallet-guide-9",
+            domainAddress: "8XXesVR1EEsCEePAEyXPL9A4dd9Bayhu9MRkFBpTkibS",
+          },
+        ],
+      },
+    ])("$address", async (item) => {
+      const result = await getDomainsForAddress(TEST_RPC, item.address);
+      result.sort((a, b) => a.domain.localeCompare(b.domain));
+      expect(result).toStrictEqual(item.domains);
     });
   });
 
