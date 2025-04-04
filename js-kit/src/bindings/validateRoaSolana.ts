@@ -8,10 +8,10 @@ import {
 } from "../constants/addresses";
 import { getDomainAddress } from "../domain/getDomainAddress";
 import { InvalidParentError } from "../errors";
-import { verifyWithSolSigInstruction } from "../instructions/verifyWithSolSigInstruction";
+import { validateRoaSolanaInstruction } from "../instructions/validateRoaSolanaInstruction";
 import { Record, RecordVersion } from "../types/record";
 
-export const verifyRecordWithSolSig = async (
+export const validateRoaSolana = async (
   staleness: boolean,
   domain: string,
   record: Record,
@@ -32,7 +32,7 @@ export const verifyRecordWithSolSig = async (
     throw new InvalidParentError("Parent could not be found");
   }
 
-  const ix = new verifyWithSolSigInstruction({
+  const ix = new validateRoaSolanaInstruction({
     staleness,
   }).getInstruction(
     RECORDS_PROGRAM_ADDRESS,

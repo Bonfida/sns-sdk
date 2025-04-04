@@ -7,7 +7,7 @@ import { getPrimaryDomain } from "../src/address/getPrimaryDomain";
 import { getPrimaryDomainsBatch } from "../src/address/getPrimaryDomainsBatch";
 import { RANDOM_ADDRESS, TEST_RPC } from "./constants";
 
-jest.setTimeout(5_000);
+jest.setTimeout(30_000);
 
 describe("Address methods", () => {
   describe("getPrimaryDomain", () => {

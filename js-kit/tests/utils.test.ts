@@ -9,7 +9,7 @@ import { reverseLookupBatch } from "../src/utils/reverseLookupBatch";
 import { serializeRecordContent } from "../src/utils/serializers/serializeRecordContent";
 import { RANDOM_ADDRESS, TEST_RPC } from "./constants";
 
-jest.setTimeout(25_000);
+jest.setTimeout(5_000);
 
 describe("Utils methods", () => {
   const addresses = [

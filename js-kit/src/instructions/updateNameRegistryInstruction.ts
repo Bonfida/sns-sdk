@@ -1,7 +1,7 @@
 import { AccountRole, Address, IAccountMeta, IInstruction } from "@solana/kit";
 import { serialize } from "borsh";
 
-export class UpdateRegistryInstruction {
+export class UpdateNameRegistryInstruction {
   tag: number;
   offset: number;
   inputData: Uint8Array;
@@ -21,7 +21,7 @@ export class UpdateRegistryInstruction {
   }
 
   serialize(): Uint8Array {
-    return serialize(UpdateRegistryInstruction.schema, this);
+    return serialize(UpdateNameRegistryInstruction.schema, this);
   }
 
   getInstruction(

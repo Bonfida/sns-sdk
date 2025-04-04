@@ -1,11 +1,11 @@
 import { Address, GetAccountInfoApi, IInstruction, Rpc } from "@solana/kit";
 
 import { NAME_PROGRAM_ADDRESS } from "../constants/addresses";
-import { UpdateRegistryInstruction } from "../instructions/updateRegistryInstruction";
+import { UpdateNameRegistryInstruction } from "../instructions/updateNameRegistryInstruction";
 import { RegistryState } from "../states/registry";
 import { deriveAddress } from "../utils/deriveAddress";
 
-export async function updateRegistry(
+export async function updateNameRegistry(
   rpc: Rpc<GetAccountInfoApi>,
   domain: string,
   offset: number,
@@ -22,7 +22,7 @@ export async function updateRegistry(
   const signer =
     classAddress || (await RegistryState.retrieve(rpc, domainAddress)).owner;
 
-  const ix = new UpdateRegistryInstruction({
+  const ix = new UpdateNameRegistryInstruction({
     offset,
     inputDat: data,
   }).getInstruction(NAME_PROGRAM_ADDRESS, domainAddress, signer);

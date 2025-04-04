@@ -5,10 +5,12 @@
  * @param {boolean} [trimFirstNullByte=false] - Whether to trim the first null byte from the result string.
  * @returns {string | undefined} - The deserialized string, or undefined if data is undefined.
  */
+import { ReadonlyUint8Array } from "@solana/kit";
+
 import { utf8Codec } from "../../codecs";
 
 export function deserializeReverse(
-  data: Uint8Array,
+  data: ReadonlyUint8Array,
   trimFirstNullByte?: boolean
 ): string;
 
@@ -18,7 +20,7 @@ export function deserializeReverse(
 ): undefined;
 
 export function deserializeReverse(
-  data: Uint8Array | undefined,
+  data: ReadonlyUint8Array | undefined,
   trimFirstNullByte = false
 ): string | undefined {
   if (!data) return undefined;

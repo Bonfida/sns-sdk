@@ -7,26 +7,34 @@ import {
 } from "@solana/kit";
 import { serialize } from "borsh";
 
-import { addressCodec } from "../codecs";
-
-export class verifyRoaInstruction {
+export class validateRoaEthereumInstruction {
   tag: number;
-  roaId: ReadonlyUint8Array;
+  validation: number;
+  signature: ReadonlyUint8Array;
+  expectedPubkey: ReadonlyUint8Array;
 
   static schema = {
     struct: {
       tag: "u8",
-      roaId: { array: { type: "u8" } },
+      validation: "u8",
+      signature: { array: { type: "u8" } },
+      expectedPubkey: { array: { type: "u8" } },
     },
   };
 
-  constructor(obj: { roaId: Address }) {
-    this.tag = 6;
-    this.roaId = addressCodec.encode(obj.roaId);
+  constructor(obj: {
+    validation: number;
+    signature: ReadonlyUint8Array;
+    expectedPubkey: ReadonlyUint8Array;
+  }) {
+    this.tag = 4;
+    this.validation = obj.validation;
+    this.signature = obj.signature;
+    this.expectedPubkey = obj.expectedPubkey;
   }
 
   serialize(): Uint8Array {
-    return serialize(verifyRoaInstruction.schema, this);
+    return serialize(validateRoaEthereumInstruction.schema, this);
   }
 
   getInstruction(

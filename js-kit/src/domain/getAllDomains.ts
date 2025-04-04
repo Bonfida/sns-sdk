@@ -12,8 +12,6 @@ import {
  * @returns
  */
 export const getAllDomains = async (rpc: Rpc<GetProgramAccountsApi>) => {
-  const dataSlice = { offset: 32, length: 32 };
-
   const accounts = await rpc
     .getProgramAccounts(NAME_PROGRAM_ADDRESS, {
       encoding: "base58",
@@ -26,7 +24,7 @@ export const getAllDomains = async (rpc: Rpc<GetProgramAccountsApi>) => {
           },
         },
       ],
-      dataSlice,
+      dataSlice: { offset: 32, length: 32 },
     })
     .send();
 

@@ -7,34 +7,26 @@ import {
 } from "@solana/kit";
 import { serialize } from "borsh";
 
-export class verifyWithEthSigInstruction {
+import { addressCodec } from "../codecs";
+
+export class writeRoaInstruction {
   tag: number;
-  validation: number;
-  signature: ReadonlyUint8Array;
-  expectedPubkey: ReadonlyUint8Array;
+  roaId: ReadonlyUint8Array;
 
   static schema = {
     struct: {
       tag: "u8",
-      validation: "u8",
-      signature: { array: { type: "u8" } },
-      expectedPubkey: { array: { type: "u8" } },
+      roaId: { array: { type: "u8" } },
     },
   };
 
-  constructor(obj: {
-    validation: number;
-    signature: ReadonlyUint8Array;
-    expectedPubkey: ReadonlyUint8Array;
-  }) {
-    this.tag = 4;
-    this.validation = obj.validation;
-    this.signature = obj.signature;
-    this.expectedPubkey = obj.expectedPubkey;
+  constructor(obj: { roaId: Address }) {
+    this.tag = 6;
+    this.roaId = addressCodec.encode(obj.roaId);
   }
 
   serialize(): Uint8Array {
-    return serialize(verifyWithEthSigInstruction.schema, this);
+    return serialize(writeRoaInstruction.schema, this);
   }
 
   getInstruction(

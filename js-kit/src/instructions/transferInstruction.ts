@@ -17,7 +17,7 @@ export class TransferInstruction {
   static schema = {
     struct: {
       tag: "u8",
-      encodedNewOwnerAddress: { array: { type: "u8" } },
+      encodedNewOwnerAddress: { array: { type: "u8", len: 32 } },
     },
   };
 

@@ -1,7 +1,7 @@
 import { AccountRole, Address, IAccountMeta, IInstruction } from "@solana/kit";
 import { serialize } from "borsh";
 
-export class verifyWithSolSigInstruction {
+export class validateRoaSolanaInstruction {
   tag: number;
   staleness: boolean;
   static schema = {
@@ -17,7 +17,7 @@ export class verifyWithSolSigInstruction {
   }
 
   serialize(): Uint8Array {
-    return serialize(verifyWithSolSigInstruction.schema, this);
+    return serialize(validateRoaSolanaInstruction.schema, this);
   }
 
   getInstruction(

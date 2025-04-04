@@ -6,6 +6,7 @@ import { getDomainAddress } from "../src/domain/getDomainAddress";
 import { getDomainOwner } from "../src/domain/getDomainOwner";
 import { getDomainRecord } from "../src/domain/getDomainRecord";
 import { getDomainRecords } from "../src/domain/getDomainRecords";
+import { getSubdomains } from "../src/domain/getSubdomains";
 import { AllowPda, resolveDomain } from "../src/domain/resolveDomain";
 import {
   InvalidRoAError,
@@ -17,7 +18,7 @@ import {
 import { Record } from "../src/types/record";
 import { TEST_RPC } from "./constants";
 
-jest.setTimeout(3 * 60_000);
+jest.setTimeout(60_000);
 
 describe("Domain methods", () => {
   describe("getDomainAddress", () => {
@@ -207,6 +208,14 @@ describe("Domain methods", () => {
           "The number of verifiers must be the same as the number of records"
         )
       );
+    });
+  });
+
+  describe("getSubdomains", () => {
+    test("wallet-guide-9.sol", async () => {
+      const domain = "wallet-guide-9.sol";
+      const subs = await getSubdomains(TEST_RPC, domain);
+      expect(subs).toStrictEqual(["sub-0"]);
     });
   });
 

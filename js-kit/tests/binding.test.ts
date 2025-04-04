@@ -28,7 +28,11 @@ import { registerWithNft } from "../src/bindings/registerWithNft";
 import { setPrimaryDomain } from "../src/bindings/setPrimaryDomain";
 import { transferDomain } from "../src/bindings/transferDomain";
 import { transferSubdomain } from "../src/bindings/transferSubdomain";
+import { updateNameRegistry } from "../src/bindings/updateNameRegistry";
 import { updateRecord } from "../src/bindings/updateRecord";
+import { validateRoaEthereum } from "../src/bindings/validateRoaEthereum";
+import { validateRoaSolana } from "../src/bindings/validateRoaSolana";
+import { writeRoa } from "../src/bindings/writeRoa";
 import {
   FIDA_MINT,
   REFERRERS,
@@ -41,7 +45,7 @@ import { RegistryState } from "../src/states/registry";
 import { Record } from "../src/types/record";
 import { TEST_RPC } from "./constants";
 
-jest.setTimeout(50_000);
+jest.setTimeout(30_000);
 
 const testInstructions = async (
   ixs: IInstruction[],
@@ -333,7 +337,7 @@ describe("Bindings", () => {
         )
       );
 
-      await testInstructions(ixs, owner, true);
+      await testInstructions(ixs, owner);
     });
   });
 
@@ -347,7 +351,7 @@ describe("Bindings", () => {
       const ixs: IInstruction[] = [];
       ixs.push(await transferSubdomain(TEST_RPC, subdomain, newOwner));
 
-      await testInstructions(ixs, owner, true);
+      await testInstructions(ixs, owner);
     });
   });
 
@@ -383,11 +387,104 @@ describe("Bindings", () => {
     });
   });
 
-  describe("updateRegistry", () => {});
+  describe("updateRegistry", () => {
+    test("wallet-guide-9", async () => {
+      const domain = "wallet-guide-9";
+      const owner = "Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8" as Address;
 
-  describe("VerifyRecordRoa", () => {});
+      const ixs: IInstruction[] = [];
+      ixs.push(
+        await updateNameRegistry(
+          TEST_RPC,
+          domain,
+          0,
+          Buffer.from("test data"),
+          undefined,
+          ROOT_DOMAIN_ADDRESS
+        )
+      );
 
-  describe("VerifyRecordWithEthSig", () => {});
+      await testInstructions(ixs, owner);
+    });
+  });
 
-  describe("VerifyRecordWithSolSig", () => {});
+  describe("validateRoaEthereum", () => {
+    test("wallet-guide-9", async () => {
+      const domain = "wallet-guide-9";
+      const owner = "Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8" as Address;
+
+      const ixs: IInstruction[] = [];
+      ixs.push(
+        await createRecord(
+          domain,
+          Record.ETH,
+          "0x4bfbfd1e018f9f27eeb788160579daf7e2cd7da7",
+          owner,
+          owner
+        )
+      );
+      ixs.push(
+        await validateRoaSolana(true, domain, Record.ETH, owner, owner, owner)
+      );
+      ixs.push(
+        await validateRoaEthereum(
+          domain,
+          Record.ETH,
+          owner,
+          owner,
+          new Uint8Array([
+            78, 235, 200, 2, 51, 5, 225, 127, 83, 156, 25, 226, 53, 239, 196,
+            189, 196, 197, 121, 2, 91, 2, 99, 11, 31, 179, 5, 233, 52, 246, 137,
+            252, 72, 27, 67, 15, 86, 42, 62, 117, 140, 223, 159, 142, 86, 227,
+            233, 185, 149, 111, 92, 122, 147, 23, 217, 1, 66, 72, 63, 150, 27,
+            219, 152, 10, 28,
+          ]),
+          new Uint8Array([
+            75, 251, 253, 30, 1, 143, 159, 39, 238, 183, 136, 22, 5, 121, 218,
+            247, 226, 205, 125, 167,
+          ])
+        )
+      );
+      await testInstructions(ixs, owner);
+    });
+  });
+
+  describe("validateRoaSolana", () => {
+    test("wallet-guide-9", async () => {
+      const domain = "wallet-guide-9";
+      const owner = "Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8" as Address;
+
+      const ixs: IInstruction[] = [];
+      ixs.push(
+        await createRecord(domain, Record.Twitter, "@sns", owner, owner)
+      );
+      ixs.push(
+        await validateRoaSolana(
+          true,
+          domain,
+          Record.Twitter,
+          owner,
+          owner,
+          owner
+        )
+      );
+
+      await testInstructions(ixs, owner);
+    });
+  });
+
+  describe("writeRoa", () => {
+    test("wallet-guide-9", async () => {
+      const domain = "wallet-guide-9";
+      const owner = "Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8" as Address;
+
+      const ixs: IInstruction[] = [];
+      ixs.push(
+        await createRecord(domain, Record.Twitter, "@sns", owner, owner)
+      );
+      ixs.push(await writeRoa(domain, Record.Twitter, owner, owner, owner));
+
+      await testInstructions(ixs, owner);
+    });
+  });
 });

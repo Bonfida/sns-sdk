@@ -8,31 +8,37 @@ import {
 } from "../constants/addresses";
 import { getDomainAddress } from "../domain/getDomainAddress";
 import { InvalidParentError } from "../errors";
-import { verifyRoaInstruction } from "../instructions/verifyRoaInstruction";
+import { validateRoaEthereumInstruction } from "../instructions/validateRoaEthereumInstruction";
 import { Record, RecordVersion } from "../types/record";
+import { Validation } from "../types/validation";
 
-export const verifyRecordRoa = async (
+export const validateRoaEthereum = async (
   domain: string,
   record: Record,
   owner: Address,
   payer: Address,
-  roaId: Address
+  signature: Uint8Array,
+  expectedPubkey: Uint8Array
 ) => {
-  let { address, isSub, parentAddress } = await getDomainAddress(
+  let { address, parentAddress, isSub } = await getDomainAddress(
     `${record}.${domain}`,
     RecordVersion.V2
   );
 
   if (isSub) {
-    parentAddress = (await getDomainAddress(domain)).address;
+    parentAddress = await getDomainAddress(domain).then(
+      (domainAddress) => domainAddress.address
+    );
   }
 
   if (!parentAddress) {
     throw new InvalidParentError("Parent could not be found");
   }
 
-  const ix = new verifyRoaInstruction({
-    roaId,
+  const ix = new validateRoaEthereumInstruction({
+    validation: Validation.Ethereum,
+    signature,
+    expectedPubkey,
   }).getInstruction(
     RECORDS_PROGRAM_ADDRESS,
     SYSTEM_PROGRAM_ADDRESS,
