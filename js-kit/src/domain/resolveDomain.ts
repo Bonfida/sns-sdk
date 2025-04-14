@@ -44,11 +44,12 @@ type ResolveConfig = AllowPda extends true
     };
 
 /**
- * Verify the validity of a SOL V1 record
- * @param data The record data to verify
- * @param signedRecord The signed data
- * @param pubkey The public key of the signer
- * @returns
+ * Verifies the signature of a Solana record using Ed25519 cryptographic verification.
+ *
+ * @param data - The record data to verify.
+ * @param signature - The signature associated with the record.
+ * @param address - The address of the record's ownery.
+ * @returns A promise that resolves to a boolean indicating whether the signature is valid.
  */
 const verifySolRecordV1Signature = async ({
   data,
@@ -77,11 +78,13 @@ const verifySolRecordV1Signature = async ({
 };
 
 /**
- * Resolve function according to SNS-IP 5
- * @param connection
- * @param domain
- * @param config
- * @returns
+ * Resolves domain according to SNS-IP 5
+ *
+ * @param rpc - An RPC interface implementing GetAccountInfoApi, GetMultipleAccountsApi, and GetTokenLargestAccountsApi.
+ * @param domain - The domain to resolve.
+ * @param config - (Optional) Configuration for resolving the domain, including whether to allow PDA owners
+ *   and permissible program IDs.
+ * @returns A promise that resolves to the target address.
  */
 export const resolveDomain = async (
   rpc: Rpc<

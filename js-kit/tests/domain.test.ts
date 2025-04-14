@@ -215,7 +215,12 @@ describe("Domain methods", () => {
     test("wallet-guide-9.sol", async () => {
       const domain = "wallet-guide-9.sol";
       const subs = await getSubdomains(TEST_RPC, domain);
-      expect(subs).toStrictEqual(["sub-0"]);
+      expect(subs).toStrictEqual([
+        {
+          subdomain: "sub-0",
+          owner: "Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8",
+        },
+      ]);
     });
   });
 
@@ -345,7 +350,6 @@ describe("Domain methods", () => {
   describe("getAllDomains", () => {
     test("domainAddress/owner", async () => {
       const registered = await getAllDomains(TEST_RPC);
-      console.log(registered[0]);
       expect(registered.length).toBeGreaterThan(250_000);
     });
   });

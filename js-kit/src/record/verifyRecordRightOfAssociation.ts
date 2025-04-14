@@ -20,10 +20,11 @@ import { uint8ArraysEqual } from "../utils/uint8Array/uint8ArraysEqual";
 
 /**
  * Gets the default verifier for a given record and record state.
- * This function is intended for internal use only.
- * @param {Record} record - The record to verify.
- * @param {RecordState} recordState - The state of the record.
- * @returns {ReadonlyUint8Array | undefined} - The default verifier or undefined if not found.
+ * This is an internal utility function.
+ *
+ * @param record - The record whose verifier is to be determined.
+ * @param recordState - The state of the record.
+ * @returns The default verifier as a ReadonlyUint8Array or undefined if no verifier is found.
  */
 export const _getDefaultVerifier = (
   record: Record,
@@ -41,12 +42,13 @@ export const _getDefaultVerifier = (
 };
 
 /**
- * Verifies the right of association of a record synchronously.
+ * Verifies the right of association for a record synchronously.
  * This function is intended for internal use only.
- * @param {Record} record - The record to verify.
- * @param {RecordState} recordState - The state of the record.
- * @param {ReadonlyUint8Array} verifier - The verifier for the record.
- * @returns {boolean} - True if the right of association is valid, false otherwise.
+ *
+ * @param record - The record to verify.
+ * @param recordState - The state of the record.
+ * @param verifier - The verifier for the record.
+ * @returns True if the association is valid, false otherwise.
  */
 export const _verifyRoaSync = (
   record: Record,
@@ -66,16 +68,14 @@ export const _verifyRoaSync = (
 };
 
 /**
- * Verifies the right of association of a record asynchronously.
- * @param {Rpc<GetAccountInfoApi & GetTokenLargestAccountsApi>} rpc - The RPC instance
- *     to interact with the blockchain.
- * @param {string} domain - The domain to check.
- * @param {Record} record - The record to verify.
- * @param {ReadonlyUint8Array} [verifier] - The optional verifier for the record.
- * @returns {Promise<boolean>} - A promise that resolves to true if the right of association
- *     is valid, false otherwise.
- * @throws {MissingVerifierError} - If the verifier is not specified and no default verifier
- *     is found.
+ * Verifies the right of association for a record asynchronously.
+ *
+ * @param rpc - The RPC interface implementing GetAccountInfoApi and GetTokenLargestAccountsApi.
+ * @param domain - The domain under which the record resides.
+ * @param record - The record to verify.
+ * @param verifier - (Optional) The verifier for the record. If not specified, a default verifier is derived.
+ * @returns A promise that resolves to true if the association is valid, false otherwise.
+ * @throws MissingVerifierError - If no verifier is specified and no default verifier is found.
  */
 export const verifyRecordRightOfAssociation = async (
   rpc: Rpc<GetAccountInfoApi & GetTokenLargestAccountsApi>,

@@ -14,12 +14,12 @@ import { Validation } from "../types/validation";
 import { uint8ArraysEqual } from "../utils/uint8Array/uint8ArraysEqual";
 
 /**
- * Verifies the staleness of a record synchronously using owner address
- * and record state.
- * This function is intended for internal use only.
- * @param {Address} domainOwner - The owner address.
- * @param {RecordState} recordState - The retrieved record state.
- * @returns {boolean} - True if the record is stale, false otherwise.
+ * Verifies the staleness of a record synchronously.
+ * This is intended for internal use only.
+ *
+ * @param domainOwner - The address of the domain's owner.
+ * @param recordState - The state of the record to verify.
+ * @returns True if the record's staleness validation passes, false otherwise.
  */
 export const _verifyStalenessSync = (
   domainOwner: Address,
@@ -34,13 +34,12 @@ export const _verifyStalenessSync = (
 };
 
 /**
- * Verifies the staleness of a record asynchronously
- * @param {Rpc<GetAccountInfoApi & GetTokenLargestAccountsApi>} rpc - The RPC instance
- *     to interact with the blockchain.
- * @param {string} domain - The domain to check.
- * @param {Record} record - The record to verify.
- * @returns {Promise<boolean>} - A promise that resolves to true if the record is stale,
- *     false otherwise.
+ * Verifies the staleness of a record asynchronously.
+ *
+ * @param rpc - The RPC interface implementing GetAccountInfoApi and GetTokenLargestAccountsApi.
+ * @param domain - The domain under which the record resides.
+ * @param record - The record to verify.
+ * @returns A promise that resolves to true if the record is stale, false otherwise.
  */
 export const verifyRecordStaleness = async (
   rpc: Rpc<GetAccountInfoApi & GetTokenLargestAccountsApi>,

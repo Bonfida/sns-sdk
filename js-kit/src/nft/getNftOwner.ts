@@ -11,6 +11,13 @@ import {
 import { tokenCodec } from "../codecs";
 import { getNftMint } from "./getNftMint";
 
+/**
+ * Retrieves the owner of a toknized domain.
+ *
+ * @param rpc - An RPC interface implementing GetAccountInfoApi and GetTokenLargestAccountsApi.
+ * @param domainAddress - The address of the domain whose owner is to be retrieved.
+ * @returns A promise that resolves to the NFT owner's address, or null if no owner is found.
+ */
 export const getNftOwner = async (
   rpc: Rpc<GetAccountInfoApi & GetTokenLargestAccountsApi>,
   domainAddress: Address

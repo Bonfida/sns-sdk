@@ -12,13 +12,14 @@ import { createReverseInstruction } from "../instructions/createReverseInstructi
 import { deriveAddress } from "../utils/deriveAddress";
 
 /**
+ * Creates a reverse lookup record for the specified domain.
  *
- * @param domainAddress The name account to create the reverse account for
- * @param domain The name of the domain
- * @param payer The fee payer of the transaction
- * @param parentAddress The parent name account
- * @param parentOwner The parent name owner
- * @returns
+ * @param domainAddress - The address of the domain for which the reverse lookup record is created.
+ * @param domain - The domain name to be associated with the reverse lookup record.
+ * @param payer - The address funding the creation of the reverse lookup record.
+ * @param parentAddress - (Optional) The address of the parent domain, if applicable.
+ * @param parentOwner - (Optional) The address of the parent domain owner, if applicable.
+ * @returns A promise which resolves to the create reverse lookup instruction.
  */
 export const createReverse = async (
   domainAddress: Address,

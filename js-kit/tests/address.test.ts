@@ -15,23 +15,25 @@ describe("Address methods", () => {
       {
         user: "FidaeBkZkvDqi1GXNEwB8uWmj9Ngx2HXSS5nyGRuVFcZ" as Address,
         primary: {
-          domain: "Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb" as Address,
-          reverse: "bonfida",
+          domainAddress:
+            "Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb" as Address,
+          domainName: "bonfida",
           stale: true,
         },
       },
       {
         user: "HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA" as Address,
         primary: {
-          domain: "Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb" as Address,
-          reverse: "bonfida",
+          domainAddress:
+            "Crf8hzfthWGbGbLTVCiqRqV5MVnbpHB1L9KQMd6gsinb" as Address,
+          domainName: "bonfida",
           stale: false,
         },
       },
     ])("$user", async (e) => {
       const primary = await getPrimaryDomain(TEST_RPC, e.user);
-      expect(primary.domain).toBe(e.primary.domain);
-      expect(primary.reverse).toBe("bonfida");
+      expect(primary.domainAddress).toBe(e.primary.domainAddress);
+      expect(primary.domainName).toBe("bonfida");
       expect(primary.stale).toBe(e.primary.stale);
     });
   });

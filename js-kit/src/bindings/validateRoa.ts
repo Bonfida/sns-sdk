@@ -8,10 +8,21 @@ import {
 } from "../constants/addresses";
 import { getDomainAddress } from "../domain/getDomainAddress";
 import { InvalidParentError } from "../errors";
-import { validateRoaSolanaInstruction } from "../instructions/validateRoaSolanaInstruction";
+import { validateRoaInstruction } from "../instructions/validateRoaInstruction";
 import { Record, RecordVersion } from "../types/record";
 
-export const validateRoaSolana = async (
+/**
+ * Validates the right of association of a record.
+ *
+ * @param staleness - Indicates whether the record validation is stale.
+ * @param domain - The domain under which the record resides.
+ * @param record - An enumeration representing the type of record to validate.
+ * @param owner - The address of the domain's owner.
+ * @param payer - The address funding the validation process.
+ * @param verifier - The address responsible for verifying the record.
+ * @returns A promise that resolves to the validate ROA instruction.
+ */
+export const validateRoa = async (
   staleness: boolean,
   domain: string,
   record: Record,
@@ -32,7 +43,7 @@ export const validateRoaSolana = async (
     throw new InvalidParentError("Parent could not be found");
   }
 
-  const ix = new validateRoaSolanaInstruction({
+  const ix = new validateRoaInstruction({
     staleness,
   }).getInstruction(
     RECORDS_PROGRAM_ADDRESS,

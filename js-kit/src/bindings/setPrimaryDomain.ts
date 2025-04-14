@@ -9,6 +9,15 @@ import { registerFavoriteInstruction } from "../instructions/registerFavoriteIns
 import { PrimaryDomainState } from "../states/primaryDomain";
 import { RegistryState } from "../states/registry";
 
+/**
+ * Sets the primary domain for the specified owner.
+ *
+ * @param rpc - An RPC interface implementing GetAccountInfoApi.
+ * @param domainAddress - The address of the domain to be set as primary.
+ * @param owner - The address of the domain owner.
+ * @returns A promise which resolves to the set primary domain instruction.
+ */
+
 export const setPrimaryDomain = async (
   rpc: Rpc<GetAccountInfoApi>,
   domainAddress: Address,

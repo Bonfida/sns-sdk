@@ -12,6 +12,16 @@ import { updateRecordInstruction } from "../instructions/updateRecordInstruction
 import { Record, RecordVersion } from "../types/record";
 import { serializeRecordContent } from "../utils/serializers/serializeRecordContent";
 
+/**
+ * Updates an existing record under the specified domain.
+ *
+ * @param domain - The domain under which the record resides.
+ * @param record - An enumeration representing the type of record to be updated.
+ * @param content - The updated content to be associated with the record.
+ * @param owner - The address of the domain's owner.
+ * @param payer - The address funding the record update.
+ * @returns A promise that resolves to the update record instruction.
+ */
 export const updateRecord = async (
   domain: string,
   record: Record,

@@ -5,6 +5,17 @@ import { UpdateNameRegistryInstruction } from "../instructions/updateNameRegistr
 import { RegistryState } from "../states/registry";
 import { deriveAddress } from "../utils/deriveAddress";
 
+/**
+ * Update the data of the given name registry.
+ *
+ * @param rpc - An RPC interface implementing GetAccountInfoApi.
+ * @param domain - The name of the domain whose registry will be updated.
+ * @param offset - The offset in bytes where the update should begin.
+ * @param data - The data to be written to the registry.
+ * @param classAddress - (Optional) The address of the class associated with the registry.
+ * @param parentAddress - (Optional) The address of the parent registry.
+ * @returns A promise that resolves to the update name registry instruction.
+ */
 export async function updateNameRegistry(
   rpc: Rpc<GetAccountInfoApi>,
   domain: string,

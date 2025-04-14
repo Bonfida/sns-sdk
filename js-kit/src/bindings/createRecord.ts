@@ -12,6 +12,18 @@ import { allocateAndPostRecordInstruction } from "../instructions/allocateAndPos
 import { Record, RecordVersion } from "../types/record";
 import { serializeRecordContent } from "../utils/serializers/serializeRecordContent";
 
+/**
+ * Creates a record for the specified domain. The record data will be serialized
+ * in compliance with the SNS-IP 1 guidelines.
+ *
+ * @param domain - The domain under which the record will be created.
+ * @param record - A record enum representing the type of record to be created.
+ * @param content - The record content.
+ * @param owner - The address of the domain's owner.
+ * @param payer - The address funding the record creation.
+ * @returns A promise which resolves to the create record instruction.
+ */
+
 export const createRecord = async (
   domain: string,
   record: Record,

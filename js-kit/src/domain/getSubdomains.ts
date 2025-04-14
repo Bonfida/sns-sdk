@@ -1,6 +1,6 @@
-import { GetProgramAccountsApi, Rpc } from "@solana/kit";
+import { Address, GetProgramAccountsApi, Rpc } from "@solana/kit";
 
-import { base58Codec } from "../codecs";
+import { addressCodec, base58Codec } from "../codecs";
 import {
   NAME_PROGRAM_ADDRESS,
   REVERSE_LOOKUP_CLASS,
@@ -9,10 +9,22 @@ import { deserializeReverse } from "../utils/deserializers/deserializeReverse";
 import { getReverseAddressFromDomainAddress } from "../utils/getReverseAddressFromDomainAddress";
 import { getDomainAddress } from "./getDomainAddress";
 
+interface Result {
+  subdomain: string;
+  owner: Address;
+}
+
+/**
+ * Retrieves all subdomains under the specified domain, including their owners.
+ *
+ * @param rpc - An RPC interface implementing GetProgramAccountsApi.
+ * @param domain - The domain whose subdomains are to be retrieved.
+ * @returns A promise that resolves to an array of subdomain objects, each containing the subdomain name and owner address.
+ */
 export const getSubdomains = async (
   rpc: Rpc<GetProgramAccountsApi>,
   domain: string
-): Promise<string[]> => {
+): Promise<Result[]> => {
   const { address, isSub } = await getDomainAddress(domain);
 
   if (isSub) return [];
@@ -51,7 +63,7 @@ export const getSubdomains = async (
           },
         },
       ],
-      dataSlice: { offset: 0, length: 0 },
+      dataSlice: { offset: 32, length: 32 },
     })
     .send();
 
@@ -66,9 +78,17 @@ export const getSubdomains = async (
 
   const result = await Promise.all(
     subs.map((sub) =>
-      getReverseAddressFromDomainAddress(sub.pubkey, address).then((revKey) =>
-        map.get(revKey)
-      )
+      getReverseAddressFromDomainAddress(sub.pubkey, address).then((revKey) => {
+        const subdomain = map.get(revKey);
+        return subdomain
+          ? {
+              subdomain,
+              owner: addressCodec.decode(
+                base58Codec.encode(sub.account.data[0])
+              ),
+            }
+          : undefined;
+      })
     )
   );
 

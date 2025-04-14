@@ -11,6 +11,15 @@ import { InvalidParentError } from "../errors";
 import { deleteRecordInstruction } from "../instructions/deleteRecordInstructio copy";
 import { Record, RecordVersion } from "../types/record";
 
+/**
+ * Deletes a record under the specified domain and refunds the rent to the payer.
+ *
+ * @param domain - The domain under which the record resides.
+ * @param record - An enumeration representing the type of record to be deleted.
+ * @param owner - The address of the domain's owner.
+ * @param payer - The address funding the record deletion.
+ * @returns A promise which resolves to the delete record instruction.
+ */
 export const deleteRecord = async (
   domain: string,
   record: Record,

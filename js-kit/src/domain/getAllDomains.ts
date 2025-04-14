@@ -6,10 +6,10 @@ import {
 } from "../constants/addresses";
 
 /**
- * This function can be used to retrieve all the registered `.sol` domains.
- * The account data is sliced to avoid enormous payload and only the owner is returned
- * @param connection The Solana RPC connection object
- * @returns
+ * Retrieves the addresses of all .sol domains .
+ *
+ * @param rpc - An RPC interface implementing GetProgramAccountsApi.
+ * @returns A promise that resolves to an array of objects representing domain addresses and owners.
  */
 export const getAllDomains = async (rpc: Rpc<GetProgramAccountsApi>) => {
   const accounts = await rpc

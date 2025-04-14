@@ -17,11 +17,11 @@ interface Result {
 }
 
 /**
- * Retrieves the NFT states for a given address.
- * @param {Rpc<GetProgramAccountsApi>} rpc - The RPC instance to interact with
- *     the blockchain.
- * @param {Address} address - The address to check.
- * @returns {Promise<NftState[]>} - A promise that resolves to an array of NFT states.
+ * Fetches NFT states for a given address.
+ *
+ * @param rpc - An RPC interface implementing GetProgramAccountsApi.
+ * @param address - The address whose associated NFT states are to be fetched.
+ * @returns A promise resolving to an array of NftState objects.
  */
 const getNftStatesForAddress = async (
   rpc: Rpc<GetProgramAccountsApi>,
@@ -56,13 +56,11 @@ const getNftStatesForAddress = async (
 };
 
 /**
- * Retrieves the NFTs associated with a given address.
- * @param {Rpc<GetMultipleAccountsApi & GetProgramAccountsApi>} rpc - The RPC
- *     instance to interact with the blockchain.
- * @param {Address} address - The address to check.
- * @returns {Promise<Result[]>}
- *     - A promise that resolves to an array of NFT details, including the domain,
- *     domain address, and mint.
+ * Retrieves NFTs owned by a given address.
+ *
+ * @param rpc - An RPC interface implementing GetMultipleAccountsApi and GetProgramAccountsApi.
+ * @param address - The address for which NFTs are to be fetched.
+ * @returns A promise resolving to an array of Result objects containing domain, domainAddress, and mint.
  */
 export const getNftsForAddress = async (
   rpc: Rpc<GetMultipleAccountsApi & GetProgramAccountsApi>,

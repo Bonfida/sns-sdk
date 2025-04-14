@@ -6,11 +6,11 @@ import { Record } from "../types/record";
 import { deriveAddress } from "../utils/deriveAddress";
 
 /**
- * Derives the address for a given domain and V2 record.
+ * Derives the address of a version 2 record.
  *
- * @param {string} domain - The domain name.
- * @param {Record} record - The record type.
- * @returns {Promise<Address>} - The corresponding address.
+ * @param domain - The domain under which the record resides.
+ * @param record - The type of record to derive the address for.
+ * @returns A promise that resolves to the derived record address.
  */
 export const getRecordV2Address = async (
   domain: string,

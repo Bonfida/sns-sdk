@@ -14,6 +14,16 @@ import { PrimaryDomainState } from "../states/primaryDomain";
 import { RegistryState } from "../states/registry";
 import { reverseLookup } from "../utils/reverseLookup";
 
+/**
+ * Fetches the primary domain associated with a given wallet address.
+ *
+ * @param rpc - An RPC interface implementing GetAccountInfoApi and GetTokenLargestAccountsApi.
+ * @param walletAddress - The wallet address for which the primary domain is retrieved.
+ * @returns A promise resolving to an object containing:
+ *   - domainAddress: The address of the primary domain.
+ *   - domainName: The primary domain name (without .sol suffix).
+ *   - stale: false if primary domain was set by the current domain owner, true otherwise.
+ */
 export const getPrimaryDomain = async (
   rpc: Rpc<GetAccountInfoApi & GetTokenLargestAccountsApi>,
   walletAddress: Address
@@ -42,11 +52,11 @@ export const getPrimaryDomain = async (
     lookups.push(reverseLookup(rpc, registry.parentName));
   }
 
-  const reverse = (await Promise.all(lookups)).join(".");
+  const domainName = (await Promise.all(lookups)).join(".");
 
   return {
-    domain: primary.nameAccount,
-    reverse,
+    domainAddress: primary.nameAccount,
+    domainName,
     stale: walletAddress !== domainOwner,
   };
 };

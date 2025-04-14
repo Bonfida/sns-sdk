@@ -17,10 +17,11 @@ interface Result {
 }
 
 /**
- * This function can be used to retrieve all domain names owned by `wallet`
- * @param connection The Solana RPC connection object
- * @param wallet The wallet you want to search domain names for
- * @returns
+ * Retrieves the domains owned by the given address.
+ *
+ * @param rpc - An RPC interface implementing GetProgramAccountsApi and GetMultipleAccountsApi.
+ * @param address - The address for which to retrieve associated domains.
+ * @returns A promise resolving to an array of objects containing domain and domainAddress.
  */
 export const getDomainsForAddress = async (
   rpc: Rpc<GetProgramAccountsApi & GetMultipleAccountsApi>,

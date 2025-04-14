@@ -27,6 +27,17 @@ interface Result {
   deserializedContent?: string;
 }
 
+/**
+ * Retrieves a specific record under a domain, verifies its state, and optionally deserializes its content.
+ *
+ * @param rpc - An RPC interface implementing GetAccountInfoApi, GetMultipleAccountsApi, and GetTokenLargestAccountsApi.
+ * @param domain - The domain whose record is to be retrieved.
+ * @param record - The type of record to retrieve.
+ * @param options - (Optional) Additional options for processing:
+ *   - deserialize: Whether to deserialize the record content.
+ *   - verifier: A custom verifier for the record.
+ * @returns A promise that resolves to the retrieved record, its verification status, and optionally its deserialized content.
+ */
 export async function getDomainRecord(
   rpc: Rpc<
     GetAccountInfoApi & GetMultipleAccountsApi & GetTokenLargestAccountsApi

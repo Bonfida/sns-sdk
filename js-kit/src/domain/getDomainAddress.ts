@@ -7,10 +7,10 @@ import { RecordVersion } from "../types/record";
 import { deriveAddress } from "../utils/deriveAddress";
 
 /**
- * This function can be used to compute the public key of a domain or subdomain
- * @param domain The domain to compute the public key for (e.g `bonfida.sol`, `dex.bonfida.sol`)
- * @param record Optional parameter: If the domain being resolved is a record
- * @returns
+ * Derives the address of a domain, a subdomain, or a record.
+ * @param domain - The (sub)domain to process, with or without the .sol suffix.
+ * @param record - (Optional) The record version. Only provide if the domain being resolved is a record.
+ * @returns A promise that resolves to an object containing the derived address and additional metadata.
  */
 export const getDomainAddress = async (
   domain: string,

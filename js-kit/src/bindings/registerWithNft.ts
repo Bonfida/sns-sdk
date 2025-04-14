@@ -16,6 +16,16 @@ import {
 import { createWithNftInstruction } from "../instructions/createWithNftInstruction";
 import { deriveAddress } from "../utils/deriveAddress";
 
+/**
+ * Registers a .sol domain using a Bonfida Wolves NFT.
+ *
+ * @param domain - The domain name to be registered.
+ * @param space - The space in bytes to be allocated for the domain registry.
+ * @param buyer - The address of the buyer registering the domain.
+ * @param nftSource - The address of the NFT source account.
+ * @param nftMint - The mint address of the NFT used for registration.
+ * @returns A promise which resolves to the register with NFT instruction.
+ */
 export const registerWithNft = async (
   domain: string,
   space: number,

@@ -31,6 +31,19 @@ import { createSplitV2Instruction } from "../instructions/createSplitV2Instructi
 import { deriveAddress } from "../utils/deriveAddress";
 import { getPythFeedAddress } from "../utils/getPythFeedAddress";
 
+/**
+ * Registers a .sol domain.
+ *
+ * @param rpc - An RPC interface implementing GetAccountInfoApi.
+ * @param domain - The domain name to be registered in lowercase.
+ * @param space - The space in bytes to be allocated for the domain registry (max: 10,000).
+ * @param buyer - The address of the buyer registering the domain.
+ * @param buyerTokenAccount - The associated token account of the buyer.
+ * @param mint - (Optional) The token mint used for payment. Defaults to USDC.
+ * @param referrer - (Optional) The address of the referrer.
+ * @returns A promise which resolves to an array of instructions required for domain registration.
+ */
+
 export const registerDomain = async (
   rpc: Rpc<GetAccountInfoApi>,
   domain: string,

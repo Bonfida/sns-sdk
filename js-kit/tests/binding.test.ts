@@ -30,8 +30,8 @@ import { transferDomain } from "../src/bindings/transferDomain";
 import { transferSubdomain } from "../src/bindings/transferSubdomain";
 import { updateNameRegistry } from "../src/bindings/updateNameRegistry";
 import { updateRecord } from "../src/bindings/updateRecord";
+import { validateRoa } from "../src/bindings/validateRoa";
 import { validateRoaEthereum } from "../src/bindings/validateRoaEthereum";
-import { validateRoaSolana } from "../src/bindings/validateRoaSolana";
 import { writeRoa } from "../src/bindings/writeRoa";
 import {
   FIDA_MINT,
@@ -47,11 +47,7 @@ import { TEST_RPC } from "./constants";
 
 jest.setTimeout(30_000);
 
-const testInstructions = async (
-  ixs: IInstruction[],
-  payer: Address,
-  log?: boolean
-) => {
+const testInstructions = async (ixs: IInstruction[], payer: Address) => {
   const { value: latestBlockhash } = await TEST_RPC.getLatestBlockhash().send();
 
   const encodedWireTransaction = pipe(
@@ -67,10 +63,6 @@ const testInstructions = async (
     encoding: "base64",
     sigVerify: false,
   }).send();
-
-  if (log) {
-    console.log(res.value.logs);
-  }
 
   expect(res.value.err).toBe(null);
 };
@@ -424,7 +416,7 @@ describe("Bindings", () => {
         )
       );
       ixs.push(
-        await validateRoaSolana(true, domain, Record.ETH, owner, owner, owner)
+        await validateRoa(true, domain, Record.ETH, owner, owner, owner)
       );
       ixs.push(
         await validateRoaEthereum(
@@ -449,7 +441,7 @@ describe("Bindings", () => {
     });
   });
 
-  describe("validateRoaSolana", () => {
+  describe("validateRoa", () => {
     test("wallet-guide-9", async () => {
       const domain = "wallet-guide-9";
       const owner = "Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8" as Address;
@@ -459,14 +451,7 @@ describe("Bindings", () => {
         await createRecord(domain, Record.Twitter, "@sns", owner, owner)
       );
       ixs.push(
-        await validateRoaSolana(
-          true,
-          domain,
-          Record.Twitter,
-          owner,
-          owner,
-          owner
-        )
+        await validateRoa(true, domain, Record.Twitter, owner, owner, owner)
       );
 
       await testInstructions(ixs, owner);

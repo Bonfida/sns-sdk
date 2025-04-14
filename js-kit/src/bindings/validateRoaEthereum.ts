@@ -12,6 +12,17 @@ import { validateRoaEthereumInstruction } from "../instructions/validateRoaEther
 import { Record, RecordVersion } from "../types/record";
 import { Validation } from "../types/validation";
 
+/**
+ * Validates the right of association of a record using an Ethereum signature.
+ *
+ * @param domain - The domain under which the record resides.
+ * @param record - An enumeration representing the type of record to validate.
+ * @param owner - The address of the domain's owner.
+ * @param payer - The address funding the validation process.
+ * @param signature - The signature used for validation.
+ * @param expectedPubkey - The expected public key associated with the validation.
+ * @returns A promise that resolves to the validate ROA Ethereum instruction.
+ */
 export const validateRoaEthereum = async (
   domain: string,
   record: Record,

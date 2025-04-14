@@ -11,6 +11,16 @@ import { InvalidParentError } from "../errors";
 import { writeRoaInstruction } from "../instructions/writeRoaInstruction";
 import { Record, RecordVersion } from "../types/record";
 
+/**
+ * Writes a ROA (Right of association) in a record.
+ *
+ * @param domain - The domain under which the record will be written.
+ * @param record - An enumeration representing the type of record to be written.
+ * @param owner - The address of the domain's owner.
+ * @param payer - The address funding the operation.
+ * @param roaId - The identifier for the ROA.
+ * @returns A promise that resolves to the write ROA instruction.
+ */
 export const writeRoa = async (
   domain: string,
   record: Record,

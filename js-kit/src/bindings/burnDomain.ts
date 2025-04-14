@@ -11,6 +11,14 @@ import { getDomainAddress } from "../domain/getDomainAddress";
 import { burnDomainInstruction } from "../instructions/burnDomainInstruction";
 import { getReverseAddress } from "../utils/getReverseAddress";
 
+/**
+ * Generates an instruction to burn a domain.
+ *
+ * @param domain - The domain name to be burned.
+ * @param owner - The address of the current owner of the domain.
+ * @param target - The address to which rent will be refunded.
+ * @returns A promise which resolves to the burn domain instruction.
+ */
 export const burnDomain = async (
   domain: string,
   owner: Address,
