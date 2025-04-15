@@ -24,7 +24,7 @@ import {
   USDC_MINT,
   VAULT_OWNER,
 } from "../constants/addresses";
-import { PYTH_FEEDS } from "../constants/pyth_feeds";
+import { PYTH_FEEDS } from "../constants/pythFeeds";
 import { InvalidDomainError, PythFeedNotFoundError } from "../errors";
 import { _createAtaInstruction } from "../instructions/createAtaInstruction";
 import { createSplitV2Instruction } from "../instructions/createSplitV2Instruction";

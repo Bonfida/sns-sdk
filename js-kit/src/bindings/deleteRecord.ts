@@ -8,7 +8,7 @@ import {
 } from "../constants/addresses";
 import { getDomainAddress } from "../domain/getDomainAddress";
 import { InvalidParentError } from "../errors";
-import { deleteRecordInstruction } from "../instructions/deleteRecordInstructio copy";
+import { deleteRecordInstruction } from "../instructions/deleteRecordInstruction";
 import { Record, RecordVersion } from "../types/record";
 
 /**

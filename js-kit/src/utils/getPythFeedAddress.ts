@@ -1,6 +1,6 @@
 import { getProgramDerivedAddress } from "@solana/kit";
 
-import { PYTH_PROGRAM_ID } from "../constants/pyth_feeds";
+import { PYTH_PROGRAM_ID } from "../constants/pythFeeds";
 
 export const getPythFeedAddress = async (
   shard: number,

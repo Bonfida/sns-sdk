@@ -4,23 +4,13 @@ import { nodeResolve } from "@rollup/plugin-node-resolve";
 import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
 import del from "rollup-plugin-delete";
-import multiInput from "rollup-plugin-multi-input";
 import { visualizer } from "rollup-plugin-visualizer";
 
 /**
  * @type {import('rollup').RollupOptions}
  */
 export default {
-  input: [
-    "src/codecs.ts",
-    "src/errors.ts",
-    "src/account/**/*.ts",
-    "src/domain/**/*.ts",
-    "src/nft/**/*.ts",
-    "src/states/**/*.ts",
-    "src/types/**/*.ts",
-    "src/utils/**/*.ts",
-  ],
+  input: ["src/index.ts"],
   output: [
     {
       dir: "dist",
@@ -50,7 +40,6 @@ export default {
   ],
   plugins: [
     del({ targets: "dist" }),
-    multiInput(),
     nodeResolve({
       browser: true,
       preferBuiltins: false,
