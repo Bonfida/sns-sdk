@@ -15,7 +15,7 @@ function byteToHex(byte: number): string {
 function decompressPointBytes(bytes: ReadonlyUint8Array): bigint {
   const hexString = bytes.reduce(
     (acc, byte, ii) => `${byteToHex(ii === 31 ? byte & ~0x80 : byte)}${acc}`,
-    "",
+    ""
   );
   const integerLiteralString = `0x${hexString}`;
 

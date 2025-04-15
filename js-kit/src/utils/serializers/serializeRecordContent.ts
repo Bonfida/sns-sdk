@@ -18,7 +18,7 @@ import { uint8ArrayFromHex } from "../uint8Array/uint8ArrayFromHex";
 
 export const serializeRecordContent = (
   content: string,
-  record: Record,
+  record: Record
 ): ReadonlyUint8Array => {
   const utf8Encoded = UTF8_ENCODED_RECORDS.has(record);
   if (utf8Encoded) {
@@ -31,13 +31,13 @@ export const serializeRecordContent = (
   } else if (EVM_RECORDS.has(record)) {
     _check(
       content.slice(0, 2) === "0x",
-      new InvalidEvmAddressError("The record content must start with `0x`"),
+      new InvalidEvmAddressError("The record content must start with `0x`")
     );
     _check(
       content.length === 42,
       new InvalidEvmAddressError(
-        "The record content must be 42 characters long",
-      ),
+        "The record content must be 42 characters long"
+      )
     );
     return uint8ArrayFromHex(content.slice(2));
   } else if (record === Record.Injective) {
@@ -45,26 +45,26 @@ export const serializeRecordContent = (
     _check(
       decoded.prefix === "inj" && content.length === 42,
       new InvalidInjectiveAddressError(
-        "The record content must start with `inj`",
-      ),
+        "The record content must start with `inj`"
+      )
     );
     _check(
       decoded.bytes.length === 20,
-      new InvalidInjectiveAddressError("The record data must be 20 bytes long"),
+      new InvalidInjectiveAddressError("The record data must be 20 bytes long")
     );
     return decoded.bytes;
   } else if (record === Record.A) {
     const array = parseIp(content).toByteArray();
     _check(
       array.length === 4,
-      new InvalidARecordError("The record content must be 4 bytes long"),
+      new InvalidARecordError("The record content must be 4 bytes long")
     );
     return new Uint8Array(array);
   } else if (record === Record.AAAA) {
     const array = parseIp(content).toByteArray();
     _check(
       array.length === 16,
-      new InvalidAAAARecordError("The record content must be 16 bytes long"),
+      new InvalidAAAARecordError("The record content must be 16 bytes long")
     );
     return new Uint8Array(array);
   } else {
