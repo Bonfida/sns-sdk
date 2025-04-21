@@ -10,7 +10,19 @@ import { visualizer } from "rollup-plugin-visualizer";
  * @type {import('rollup').RollupOptions}
  */
 export default {
-  input: ["src/index.ts"],
+  input: [
+    "src/index.ts",
+    "src/address/index.ts",
+    "src/bindings/index.ts",
+    "src/constants/index.ts",
+    "src/domain/index.ts",
+    "src/instructions/index.ts",
+    "src/nft/index.ts",
+    "src/record/index.ts",
+    "src/states/index.ts",
+    "src/types/index.ts",
+    "src/utils/index.ts",
+  ],
   output: [
     {
       dir: "dist",
