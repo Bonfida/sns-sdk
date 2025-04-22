@@ -14,6 +14,66 @@
       "import": "./dist/esm/index.mjs",
       "require": "./dist/cjs/index.cjs",
       "types": "./dist/types/index.d.ts"
+    },
+    "./address": {
+      "import": "./dist/esm/address/index.mjs",
+      "require": "./dist/cjs/address/index.cjs",
+      "types": "./dist/types/address/index.d.ts"
+    },
+    "./bindings": {
+      "import": "./dist/esm/bindings/index.mjs",
+      "require": "./dist/cjs/bindings/index.cjs",
+      "types": "./dist/types/bindings/index.d.ts"
+    },
+    "./codecs": {
+      "import": "./dist/esm/codecs/index.mjs",
+      "require": "./dist/cjs/codecs/index.cjs",
+      "types": "./dist/types/codecs/index.d.ts"
+    },
+    "./constants": {
+      "import": "./dist/esm/constants/index.mjs",
+      "require": "./dist/cjs/constants/index.cjs",
+      "types": "./dist/types/constants/index.d.ts"
+    },
+    "./domain": {
+      "import": "./dist/esm/domain/index.mjs",
+      "require": "./dist/cjs/domain/index.cjs",
+      "types": "./dist/types/domain/index.d.ts"
+    },
+    "./errors": {
+      "import": "./dist/esm/errors/index.mjs",
+      "require": "./dist/cjs/errors/index.cjs",
+      "types": "./dist/types/errors/index.d.ts"
+    },
+    "./instructions": {
+      "import": "./dist/esm/instructions/index.mjs",
+      "require": "./dist/cjs/instructions/index.cjs",
+      "types": "./dist/types/instructions/index.d.ts"
+    },
+    "./nft": {
+      "import": "./dist/esm/nft/index.mjs",
+      "require": "./dist/cjs/nft/index.cjs",
+      "types": "./dist/types/nft/index.d.ts"
+    },
+    "./record": {
+      "import": "./dist/esm/record/index.mjs",
+      "require": "./dist/cjs/record/index.cjs",
+      "types": "./dist/types/record/index.d.ts"
+    },
+    "./states": {
+      "import": "./dist/esm/states/index.mjs",
+      "require": "./dist/cjs/states/index.cjs",
+      "types": "./dist/types/states/index.d.ts"
+    },
+    "./types": {
+      "import": "./dist/esm/types/index.mjs",
+      "require": "./dist/cjs/types/index.cjs",
+      "types": "./dist/types/types/index.d.ts"
+    },
+    "./utils": {
+      "import": "./dist/esm/utils/index.mjs",
+      "require": "./dist/cjs/utils/index.cjs",
+      "types": "./dist/types/utils/index.d.ts"
     }
   },
   "repository": {
