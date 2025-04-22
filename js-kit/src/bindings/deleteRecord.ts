@@ -1,4 +1,4 @@
-import { Address } from "@solana/kit";
+import { Address, IInstruction } from "@solana/kit";
 
 import {
   CENTRAL_STATE_DOMAIN_RECORDS,
@@ -11,30 +11,36 @@ import { InvalidParentError } from "../errors";
 import { deleteRecordInstruction } from "../instructions/deleteRecordInstruction";
 import { Record, RecordVersion } from "../types/record";
 
+interface DeleteRecordParams {
+  domain: string;
+  record: Record;
+  owner: Address;
+  payer: Address;
+}
+
 /**
  * Deletes a record under the specified domain and refunds the rent to the payer.
  *
- * @param domain - The domain under which the record resides.
- * @param record - An enumeration representing the type of record to be deleted.
- * @param owner - The address of the domain's owner.
- * @param payer - The address funding the record deletion.
+ * @param params - An object containing the following properties:
+ *   - `domain`: The domain under which the record resides.
+ *   - `record`: An enumeration representing the type of record to be deleted.
+ *   - `owner`: The address of the domain's owner.
+ *   - `payer`: The address funding the record deletion.
  * @returns A promise which resolves to the delete record instruction.
  */
-export const deleteRecord = async (
-  domain: string,
-  record: Record,
-  owner: Address,
-  payer: Address
-) => {
-  let { address, parentAddress, isSub } = await getDomainAddress(
-    `${record}.${domain}`,
-    RecordVersion.V2
-  );
+export const deleteRecord = async ({
+  domain,
+  record,
+  owner,
+  payer,
+}: DeleteRecordParams): Promise<IInstruction> => {
+  let { domainAddress, parentAddress, isSub } = await getDomainAddress({
+    domain: `${record}.${domain}`,
+    record: RecordVersion.V2,
+  });
 
   if (isSub) {
-    parentAddress = await getDomainAddress(domain).then(
-      (domainAddress) => domainAddress.address
-    );
+    parentAddress = (await getDomainAddress({ domain })).domainAddress;
   }
 
   if (!parentAddress) {
@@ -46,7 +52,7 @@ export const deleteRecord = async (
     SYSTEM_PROGRAM_ADDRESS,
     NAME_PROGRAM_ADDRESS,
     payer,
-    address,
+    domainAddress,
     parentAddress,
     owner,
     CENTRAL_STATE_DOMAIN_RECORDS

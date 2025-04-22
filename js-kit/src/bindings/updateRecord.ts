@@ -1,4 +1,4 @@
-import { Address } from "@solana/kit";
+import { Address, IInstruction } from "@solana/kit";
 
 import {
   CENTRAL_STATE_DOMAIN_RECORDS,
@@ -12,31 +12,39 @@ import { updateRecordInstruction } from "../instructions/updateRecordInstruction
 import { Record, RecordVersion } from "../types/record";
 import { serializeRecordContent } from "../utils/serializers/serializeRecordContent";
 
+interface UpdateRecordParams {
+  domain: string;
+  record: Record;
+  content: string;
+  owner: Address;
+  payer: Address;
+}
+
 /**
  * Updates an existing record under the specified domain.
  *
- * @param domain - The domain under which the record resides.
- * @param record - An enumeration representing the type of record to be updated.
- * @param content - The updated content to be associated with the record.
- * @param owner - The address of the domain's owner.
- * @param payer - The address funding the record update.
+ * @param params - An object containing the following properties:
+ *   - `domain`: The domain under which the record resides.
+ *   - `record`: An enumeration representing the type of record to be updated.
+ *   - `content`: The updated content to be associated with the record.
+ *   - `owner`: The address of the domain's owner.
+ *   - `payer`: The address funding the record update.
  * @returns A promise that resolves to the update record instruction.
  */
-export const updateRecord = async (
-  domain: string,
-  record: Record,
-  content: string,
-  owner: Address,
-  payer: Address
-) => {
-  let { address, isSub, parentAddress } = await getDomainAddress(
-    `${record}.${domain}`,
-    RecordVersion.V2
-  );
+export const updateRecord = async ({
+  domain,
+  record,
+  content,
+  owner,
+  payer,
+}: UpdateRecordParams): Promise<IInstruction> => {
+  let { domainAddress, isSub, parentAddress } = await getDomainAddress({
+    domain: `${record}.${domain}`,
+    record: RecordVersion.V2,
+  });
 
   if (isSub) {
-    // parentAddress = getDomainKeySync(domain).pubkey;
-    parentAddress = (await getDomainAddress(domain)).address;
+    parentAddress = (await getDomainAddress({ domain })).domainAddress;
   }
 
   if (!parentAddress) {
@@ -45,13 +53,13 @@ export const updateRecord = async (
 
   const ix = new updateRecordInstruction({
     record: `\x02${record}`,
-    content: serializeRecordContent(content, record),
+    content: serializeRecordContent({ content, record }),
   }).getInstruction(
     RECORDS_PROGRAM_ADDRESS,
     SYSTEM_PROGRAM_ADDRESS,
     NAME_PROGRAM_ADDRESS,
     payer,
-    address,
+    domainAddress,
     parentAddress,
     owner,
     CENTRAL_STATE_DOMAIN_RECORDS

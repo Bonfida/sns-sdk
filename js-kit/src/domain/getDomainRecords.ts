@@ -18,6 +18,21 @@ import { Record } from "../types/record";
 import { deserializeRecordContent } from "../utils/deserializers/deserializeRecordContent";
 import { getDomainOwner } from "./getDomainOwner";
 
+interface GetDomainRecordsParams<
+  T extends Record[],
+  U extends { [K in keyof T]: ReadonlyUint8Array | undefined },
+> {
+  rpc: Rpc<
+    GetAccountInfoApi & GetMultipleAccountsApi & GetTokenLargestAccountsApi
+  >;
+  domain: string;
+  records: [...T];
+  options?: {
+    deserialize?: boolean;
+    verifiers?: [...U];
+  };
+}
+
 interface Result {
   record: Record;
   retrievedRecord: RecordState;
@@ -31,28 +46,24 @@ interface Result {
 /**
  * Retrieves multiple records under a domain, verifies their state, and optionally deserializes their content.
  *
- * @param rpc - An RPC interface implementing GetAccountInfoApi, GetMultipleAccountsApi, and GetTokenLargestAccountsApi.
- * @param domain - The domain whose records are to be retrieved.
- * @param records - An array of record types to retrieve.
- * @param options - (Optional) Additional options for processing:
- *   - deserialize: Whether to deserialize the record content.
- *   - verifiers: An array of custom verifiers for the records.
+ * @param params - An object containing the following properties:
+ *   - `rpc`: An RPC interface implementing GetAccountInfoApi, GetMultipleAccountsApi, and GetTokenLargestAccountsApi.
+ *   - `domain`: The domain whose records are to be retrieved.
+ *   - `records`: An array of record types to retrieve.
+ *   - `options`: (Optional) Additional options for processing:
+ *       - `deserialize`: Whether to deserialize the record content.
+ *       - `verifiers`: An array of custom verifiers for the records.
  * @returns A promise that resolves to an array of results for the retrieved records, including their verification status and optionally their deserialized content.
  */
 export async function getDomainRecords<
   T extends Record[],
   U extends { [K in keyof T]: ReadonlyUint8Array | undefined },
->(
-  rpc: Rpc<
-    GetAccountInfoApi & GetMultipleAccountsApi & GetTokenLargestAccountsApi
-  >,
-  domain: string,
-  records: [...T],
-  options: {
-    deserialize?: boolean;
-    verifiers?: [...U];
-  } = {}
-): Promise<(Result | undefined)[]> {
+>({
+  rpc,
+  domain,
+  records,
+  options = {},
+}: GetDomainRecordsParams<T, U>): Promise<(Result | undefined)[]> {
   const verifiers = options.verifiers;
   if (verifiers && verifiers.length !== records.length) {
     throw new MissingVerifierError(
@@ -60,35 +71,35 @@ export async function getDomainRecords<
     );
   }
 
-  const [domainOwner, retrievedRecords] = await Promise.all([
-    getDomainOwner(rpc, domain),
+  const [domainOwner, states] = await Promise.all([
+    getDomainOwner({ rpc, domain }),
     Promise.all(
-      records.map((record) => getRecordV2Address(domain, record))
+      records.map((record) => getRecordV2Address({ domain, record }))
     ).then((addresses) => RecordState.retrieveBatch(rpc, addresses)),
   ]);
 
-  return retrievedRecords.map((retrievedRecord, idx) => {
-    if (!retrievedRecord) return undefined;
+  return states.map((state, idx) => {
+    if (!state) return undefined;
 
     const record = records[idx];
     const verifier =
-      options.verifiers?.[idx] || _getDefaultVerifier(record, retrievedRecord);
+      options.verifiers?.[idx] || _getDefaultVerifier({ record, state });
     const verified = {
-      staleness: _verifyStalenessSync(domainOwner, retrievedRecord),
+      staleness: _verifyStalenessSync({ domainOwner, state }),
       ...(verifier && {
-        rightOfAssociation: _verifyRoaSync(record, retrievedRecord, verifier),
+        rightOfAssociation: _verifyRoaSync({ record, state, verifier }),
       }),
     };
 
     return {
       record,
-      retrievedRecord,
+      retrievedRecord: state,
       verified,
       ...(options.deserialize && {
-        deserializedContent: deserializeRecordContent(
-          retrievedRecord.getContent(),
-          record
-        ),
+        deserializedContent: deserializeRecordContent({
+          content: state.getContent(),
+          record,
+        }),
       }),
     };
   });

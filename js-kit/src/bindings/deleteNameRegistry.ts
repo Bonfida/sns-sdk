@@ -5,23 +5,32 @@ import { DeleteNameRegistryInstruction } from "../instructions/deleteNameRegistr
 import { RegistryState } from "../states/registry";
 import { deriveAddress } from "../utils/deriveAddress";
 
+interface DeleteNameRegistryParams {
+  rpc: Rpc<GetAccountInfoApi>;
+  name: string;
+  refundAddress: Address;
+  classAddress?: Address;
+  parentAddress?: Address;
+}
+
 /**
  * Deletes a name registry and refunds the associated rent balance to the specified target.
  *
- * @param rpc - An RPC interface implementing GetAccountInfoApi.
- * @param name - The name of the registry to be deleted.
- * @param refundTarget - The address to which the refunded rent balance will be sent.
- * @param classAddress - (Optional) The address of the class associated with the registry.
- * @param parentAddress - (Optional) The address of the parent registry.
+ * @param params - An object containing the following properties:
+ *   - `rpc`: An RPC interface implementing GetAccountInfoApi.
+ *   - `name`: The name of the registry to be deleted.
+ *   - `refundTarget`: The address to which the refunded rent balance will be sent.
+ *   - `classAddress`: (Optional) The address of the class associated with the registry.
+ *   - `parentAddress`: (Optional) The address of the parent registry.
  * @returns A promise which resolves to the delete name registry instruction.
  */
-export const deleteNameRegistry = async (
-  rpc: Rpc<GetAccountInfoApi>,
-  name: string,
-  refundTarget: Address,
-  classAddress?: Address,
-  parentAddress?: Address
-): Promise<IInstruction> => {
+export const deleteNameRegistry = async ({
+  rpc,
+  name,
+  refundAddress,
+  classAddress,
+  parentAddress,
+}: DeleteNameRegistryParams): Promise<IInstruction> => {
   const domainAddress = await deriveAddress(name, parentAddress, classAddress);
 
   const owner =
@@ -30,7 +39,7 @@ export const deleteNameRegistry = async (
   const ix = new DeleteNameRegistryInstruction().getInstruction(
     NAME_PROGRAM_ADDRESS,
     domainAddress,
-    refundTarget,
+    refundAddress,
     owner
   );
 

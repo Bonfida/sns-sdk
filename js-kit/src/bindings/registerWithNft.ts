@@ -1,4 +1,4 @@
-import { Address, getProgramDerivedAddress } from "@solana/kit";
+import { Address, IInstruction, getProgramDerivedAddress } from "@solana/kit";
 
 import { addressCodec, utf8Codec } from "../codecs";
 import {
@@ -16,23 +16,32 @@ import {
 import { createWithNftInstruction } from "../instructions/createWithNftInstruction";
 import { deriveAddress } from "../utils/deriveAddress";
 
+interface RegisterWithNftParams {
+  domain: string;
+  space: number;
+  buyer: Address;
+  nftSource: Address;
+  nftMint: Address;
+}
+
 /**
  * Registers a .sol domain using a Bonfida Wolves NFT.
  *
- * @param domain - The domain name to be registered.
- * @param space - The space in bytes to be allocated for the domain registry.
- * @param buyer - The address of the buyer registering the domain.
- * @param nftSource - The address of the NFT source account.
- * @param nftMint - The mint address of the NFT used for registration.
+ * @param params - An object containing the following properties:
+ *   - `domain`: The domain name to be registered.
+ *   - `space`: The space in bytes to be allocated for the domain registry.
+ *   - `buyer`: The address of the buyer registering the domain.
+ *   - `nftSource`: The address of the NFT source account.
+ *   - `nftMint`: The mint address of the NFT used for registration.
  * @returns A promise which resolves to the register with NFT instruction.
  */
-export const registerWithNft = async (
-  domain: string,
-  space: number,
-  buyer: Address,
-  nftSource: Address,
-  nftMint: Address
-) => {
+export const registerWithNft = async ({
+  domain,
+  space,
+  buyer,
+  nftSource,
+  nftMint,
+}: RegisterWithNftParams): Promise<IInstruction> => {
   const domainAddress = await deriveAddress(domain, ROOT_DOMAIN_ADDRESS);
   const reverseLookupAccount = await deriveAddress(
     domainAddress,

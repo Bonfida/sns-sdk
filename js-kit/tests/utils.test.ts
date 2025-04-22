@@ -29,17 +29,20 @@ describe("Utils methods", () => {
 
   describe("reverseLookup", () => {
     test.each(addresses)("$address", async (e) => {
-      const domain = await reverseLookup(TEST_RPC, e.address);
+      const domain = await reverseLookup({
+        rpc: TEST_RPC,
+        domainAddress: e.address,
+      });
       await expect(domain).toBe(e.primary);
     });
   });
 
   describe("reverseLookupBatch", () => {
     test("[3 addresses]", async () => {
-      const domains = await reverseLookupBatch(
-        TEST_RPC,
-        addresses.map((c) => c.address)
-      );
+      const domains = await reverseLookupBatch({
+        rpc: TEST_RPC,
+        domainAddresses: addresses.map((c) => c.address),
+      });
       await expect(domains).toStrictEqual(addresses.map((c) => c.primary));
     });
   });
@@ -86,8 +89,11 @@ describe("Utils methods", () => {
         record: Record.IPNS,
       },
     ])("$record", (e) => {
-      const ser = serializeRecordContent(e.content, e.record);
-      const des = deserializeRecordContent(ser, e.record);
+      const ser = serializeRecordContent({
+        content: e.content,
+        record: e.record,
+      });
+      const des = deserializeRecordContent({ content: ser, record: e.record });
       expect(des).toBe(e.content);
       if (e.length) {
         expect(ser.length).toBe(e.length);
@@ -99,7 +105,7 @@ describe("Utils methods", () => {
     test.each([
       {
         mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-        feed: [
+        priceFeed: [
           234, 160, 32, 198, 28, 196, 121, 113, 40, 19, 70, 28, 225, 83, 137,
           74, 150, 166, 192, 11, 33, 237, 12, 252, 39, 152, 209, 249, 169, 233,
           201, 74,
@@ -108,7 +114,7 @@ describe("Utils methods", () => {
       },
       {
         mint: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-        feed: [
+        priceFeed: [
           43, 137, 185, 220, 143, 223, 159, 52, 112, 154, 91, 16, 107, 71, 47,
           15, 57, 187, 108, 169, 206, 4, 176, 253, 127, 46, 151, 22, 136, 226,
           229, 59,
@@ -117,15 +123,15 @@ describe("Utils methods", () => {
       },
       {
         mint: "So11111111111111111111111111111111111111112",
-        feed: [
+        priceFeed: [
           239, 13, 139, 111, 218, 44, 235, 164, 29, 161, 93, 64, 149, 209, 218,
           57, 42, 13, 47, 142, 208, 198, 199, 188, 15, 76, 250, 200, 194, 128,
           181, 109,
         ],
         feedAddress: "7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE",
       },
-    ])("$mint", async ({ feed, feedAddress }) => {
-      const res = await getPythFeedAddress(0, feed);
+    ])("$mint", async ({ priceFeed, feedAddress }) => {
+      const res = await getPythFeedAddress({ shard: 0, priceFeed });
       expect(res).toBe(feedAddress);
     });
   });

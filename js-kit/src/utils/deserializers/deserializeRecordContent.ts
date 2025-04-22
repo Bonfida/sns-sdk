@@ -9,17 +9,24 @@ import { InvalidRecordDataError } from "../../errors";
 import { Record } from "../../types/record";
 import { uint8ArrayToHex } from "../uint8Array/uint8ArrayToHex";
 
+interface DeserializeRecordContentParams {
+  content: ReadonlyUint8Array;
+  record: Record;
+}
+
 /**
- * This function deserializes a buffer based on the type of record it corresponds to
- * If the record is not properly serialized according to SNS-IP 1 this function will throw an error
- * @param content The content to deserialize
- * @param record The type of record
- * @returns The deserialized content as a string
+ * This function deserializes a buffer based on the type of record it corresponds to.
+ * If the record is not properly serialized according to SNS-IP 1, this function will throw an error.
+ *
+ * @param params - An object containing the following properties:
+ *   - `content`: The content to deserialize.
+ *   - `record`: The type of record.
+ * @returns The deserialized content as a string.
  */
-export const deserializeRecordContent = (
-  content: ReadonlyUint8Array,
-  record: Record
-): string => {
+export const deserializeRecordContent = ({
+  content,
+  record,
+}: DeserializeRecordContentParams): string => {
   const isUtf8Encoded = UTF8_ENCODED_RECORDS.has(record);
 
   if (isUtf8Encoded) {

@@ -21,7 +21,7 @@ describe("Nft methods", () => {
         mint: "CmThLmf7ndEbyPs2MyL3XXzLvCrmXtdNCrRcuNPHvkKL",
       },
     ])("$address", async (item) => {
-      const res = await getNftMint(item.address);
+      const res = await getNftMint({ domainAddress: item.address });
       expect(res).toBe(item.mint);
     });
   });
@@ -39,7 +39,10 @@ describe("Nft methods", () => {
         owner: null,
       },
     ])("$address", async (item) => {
-      const res = await getNftOwner(TEST_RPC, item.address);
+      const res = await getNftOwner({
+        rpc: TEST_RPC,
+        domainAddress: item.address,
+      });
       expect(res).toBe(item.owner);
     });
   });

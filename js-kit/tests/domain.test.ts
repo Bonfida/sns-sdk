@@ -40,8 +40,10 @@ describe("Domain methods", () => {
         address: "EzQAeEBXpZWpsZXcZRwV63RRr2RkwBVqdYN53tcbTDEm",
       },
     ])("$domain", async (item) => {
-      const { address } = await getDomainAddress(item.domain);
-      expect(address).toBe(item.address);
+      const { domainAddress } = await getDomainAddress({
+        domain: item.domain,
+      });
+      expect(domainAddress).toBe(item.address);
     });
   });
 
@@ -96,7 +98,7 @@ describe("Domain methods", () => {
         owner: "ALd1XSrQMCPSRayYUoUZnp6KcP6gERfJhWzkP49CkXKs",
       },
     ])("$domain", async (item) => {
-      const res = await getDomainOwner(TEST_RPC, item.domain);
+      const res = await getDomainOwner({ rpc: TEST_RPC, domain: item.domain });
       expect(res).toBe(item.owner);
     });
   });
@@ -133,15 +135,25 @@ describe("Domain methods", () => {
       },
     ])("$domain $record", async (item) => {
       if (item.value) {
-        const res = await getDomainRecord(TEST_RPC, item.domain, item.record, {
-          deserialize: true,
+        const res = await getDomainRecord({
+          rpc: TEST_RPC,
+          domain: item.domain,
+          record: item.record,
+          options: {
+            deserialize: true,
+          },
         });
         expect(res.deserializedContent).toBe(item.value);
         expect(res.verified).toStrictEqual(item.verified);
       } else {
         await expect(
-          getDomainRecord(TEST_RPC, item.domain, item.record, {
-            deserialize: true,
+          getDomainRecord({
+            rpc: TEST_RPC,
+            domain: item.domain,
+            record: item.record,
+            options: {
+              deserialize: true,
+            },
           })
         ).rejects.toThrow(item.error);
       }
@@ -175,15 +187,15 @@ describe("Domain methods", () => {
         },
       ];
 
-      const res = await getDomainRecords(
-        TEST_RPC,
+      const res = await getDomainRecords({
+        rpc: TEST_RPC,
         domain,
-        records.map((item) => item.record),
-        {
+        records: records.map((item) => item.record),
+        options: {
           deserialize: true,
           verifiers: records.map(() => undefined),
-        }
-      );
+        },
+      });
       records.forEach((record, idx) => {
         if (record.value) {
           expect(res[idx]?.deserializedContent).toBe(record.value);
@@ -194,15 +206,15 @@ describe("Domain methods", () => {
       });
 
       await expect(
-        getDomainRecords(
-          TEST_RPC,
+        getDomainRecords({
+          rpc: TEST_RPC,
           domain,
-          records.map((item) => item.record),
-          {
+          records: records.map((item) => item.record),
+          options: {
             deserialize: true,
             verifiers: [],
-          }
-        )
+          },
+        })
       ).rejects.toThrow(
         new MissingVerifierError(
           "The number of verifiers must be the same as the number of records"
@@ -214,7 +226,7 @@ describe("Domain methods", () => {
   describe("getSubdomains", () => {
     test("wallet-guide-9.sol", async () => {
       const domain = "wallet-guide-9.sol";
-      const subs = await getSubdomains(TEST_RPC, domain);
+      const subs = await getSubdomains({ rpc: TEST_RPC, domain });
       expect(subs).toStrictEqual([
         {
           subdomain: "sub-0",
@@ -241,22 +253,22 @@ describe("Domain methods", () => {
       {
         domain: "sns-ip-5-wallet-5",
         result: "96GKJgm2W3P8Bae78brPrJf4Yi9AN1wtPJwg2XVQ2rMr",
-        config: { allowPda: true, programIds: [SYSTEM_PROGRAM_ADDRESS] },
+        options: { allowPda: true, programIds: [SYSTEM_PROGRAM_ADDRESS] },
       },
       {
         domain: "sns-ip-5-wallet-5",
         result: "96GKJgm2W3P8Bae78brPrJf4Yi9AN1wtPJwg2XVQ2rMr",
-        config: { allowPda: "any" as AllowPda },
+        options: { allowPda: "any" as AllowPda },
       },
       {
         domain: "sns-ip-5-wallet-7",
         result: "53Ujp7go6CETvC7LTyxBuyopp5ivjKt6VSfixLm1pQrH",
-        config: undefined,
+        options: undefined,
       },
       {
         domain: "sns-ip-5-wallet-8",
         result: "ALd1XSrQMCPSRayYUoUZnp6KcP6gERfJhWzkP49CkXKs",
-        config: undefined,
+        options: undefined,
       },
       {
         domain: "sns-ip-5-wallet-9",
@@ -265,15 +277,19 @@ describe("Domain methods", () => {
       {
         domain: "sns-ip-5-wallet-10",
         result: "96GKJgm2W3P8Bae78brPrJf4Yi9AN1wtPJwg2XVQ2rMr",
-        config: { allowPda: true, programIds: [SYSTEM_PROGRAM_ADDRESS] },
+        options: { allowPda: true, programIds: [SYSTEM_PROGRAM_ADDRESS] },
       },
       {
         domain: "sns-ip-5-wallet-10",
         result: "96GKJgm2W3P8Bae78brPrJf4Yi9AN1wtPJwg2XVQ2rMr",
-        config: { allowPda: "any" as AllowPda },
+        options: { allowPda: "any" as AllowPda },
       },
     ])("$domain resolves correctly", async (e) => {
-      const resolvedValue = await resolveDomain(TEST_RPC, e.domain, e?.config);
+      const resolvedValue = await resolveDomain({
+        rpc: TEST_RPC,
+        domain: e.domain,
+        options: e?.options,
+      });
       expect(resolvedValue.toString()).toBe(e.result);
     });
 
@@ -295,7 +311,9 @@ describe("Domain methods", () => {
         error: new InvalidRoAError(),
       },
     ])("$domain throws correctly", async (e) => {
-      await expect(resolveDomain(TEST_RPC, e.domain)).rejects.toThrow(e.error);
+      await expect(
+        resolveDomain({ rpc: TEST_RPC, domain: e.domain })
+      ).rejects.toThrow(e.error);
     });
 
     test.each([
@@ -342,14 +360,17 @@ describe("Domain methods", () => {
         owner: "36Dn3RWhB8x4c83W6ebQ2C2eH9sh5bQX2nMdkP2cWaA4",
       },
     ])("$domain resolves correctly (backward compatibility)", async (e) => {
-      const resolvedValue = await resolveDomain(TEST_RPC, e.domain);
+      const resolvedValue = await resolveDomain({
+        rpc: TEST_RPC,
+        domain: e.domain,
+      });
       expect(resolvedValue.toString()).toBe(e.owner);
     });
   });
 
   describe("getAllDomains", () => {
     test("domainAddress/owner", async () => {
-      const registered = await getAllDomains(TEST_RPC);
+      const registered = await getAllDomains({ rpc: TEST_RPC });
       expect(registered.length).toBeGreaterThan(250_000);
     });
   });

@@ -1,4 +1,4 @@
-import { Address, GetAccountInfoApi, Rpc } from "@solana/kit";
+import { Address, GetAccountInfoApi, IInstruction, Rpc } from "@solana/kit";
 
 import {
   NAME_OFFERS_ADDRESS,
@@ -9,20 +9,26 @@ import { registerFavoriteInstruction } from "../instructions/registerFavoriteIns
 import { PrimaryDomainState } from "../states/primaryDomain";
 import { RegistryState } from "../states/registry";
 
+export interface SetPrimaryDomainParams {
+  rpc: Rpc<GetAccountInfoApi>;
+  domainAddress: Address;
+  owner: Address;
+}
+
 /**
  * Sets the primary domain for the specified owner.
  *
- * @param rpc - An RPC interface implementing GetAccountInfoApi.
- * @param domainAddress - The address of the domain to be set as primary.
- * @param owner - The address of the domain owner.
+ * @param params - An object containing the following properties:
+ *   - `rpc`: An RPC interface implementing GetAccountInfoApi.
+ *   - `domainAddress`: The address of the domain to be set as primary.
+ *   - `owner`: The address of the domain owner.
  * @returns A promise which resolves to the set primary domain instruction.
  */
-
-export const setPrimaryDomain = async (
-  rpc: Rpc<GetAccountInfoApi>,
-  domainAddress: Address,
-  owner: Address
-) => {
+export const setPrimaryDomain = async ({
+  rpc,
+  domainAddress,
+  owner,
+}: SetPrimaryDomainParams): Promise<IInstruction> => {
   const [registry, primaryAddress] = await Promise.all([
     RegistryState.retrieve(rpc, domainAddress),
     PrimaryDomainState.getAddress(NAME_OFFERS_ADDRESS, owner),

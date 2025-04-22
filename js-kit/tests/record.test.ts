@@ -63,14 +63,14 @@ describe("Record methods", () => {
 
   describe("getRecordV1Address", () => {
     test.each(domains)("$domain", async ({ domain, solRecordV1Address }) => {
-      const res = await getRecordV1Address(domain, Record.SOL);
+      const res = await getRecordV1Address({ domain, record: Record.SOL });
       expect(res).toBe(solRecordV1Address);
     });
   });
 
   describe("getRecordV2Address", () => {
     test.each(domains)("$domain", async ({ domain, solRecordV2Address }) => {
-      const res = await getRecordV2Address(domain, Record.SOL);
+      const res = await getRecordV2Address({ domain, record: Record.SOL });
       expect(res).toBe(solRecordV2Address);
     });
   });
@@ -99,12 +99,16 @@ describe("Record methods", () => {
     describe.each(domains)("$domain", ({ domain, records }) => {
       test.each(records)("$record", async ({ record, verified, error }) => {
         if (verified) {
-          const res = await verifyRecordStaleness(TEST_RPC, domain, record);
+          const res = await verifyRecordStaleness({
+            rpc: TEST_RPC,
+            domain,
+            record,
+          });
           expect(res).toBe(verified.staleness);
         }
         if (error) {
           await expect(
-            verifyRecordStaleness(TEST_RPC, domain, record)
+            verifyRecordStaleness({ rpc: TEST_RPC, domain, record })
           ).rejects.toThrow(error);
         }
       });

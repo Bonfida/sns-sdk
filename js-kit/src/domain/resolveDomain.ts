@@ -31,9 +31,17 @@ import { uint8ArrayToHex } from "../utils/uint8Array/uint8ArrayToHex";
 import { uint8ArraysEqual } from "../utils/uint8Array/uint8ArraysEqual";
 import { getDomainAddress } from "./getDomainAddress";
 
+interface ResolveDomainParams {
+  rpc: Rpc<
+    GetAccountInfoApi & GetMultipleAccountsApi & GetTokenLargestAccountsApi
+  >;
+  domain: string;
+  options?: ResolveOptions;
+}
+
 export type AllowPda = "any" | boolean;
 
-type ResolveConfig = AllowPda extends true
+type ResolveOptions = AllowPda extends true
   ? {
       allowPda: true;
       programIds: Address[];
@@ -78,25 +86,30 @@ const verifySolRecordV1Signature = async ({
 };
 
 /**
- * Resolves domain according to SNS-IP 5
+ * Resolves domain according to SNS-IP 5.
  *
- * @param rpc - An RPC interface implementing GetAccountInfoApi, GetMultipleAccountsApi, and GetTokenLargestAccountsApi.
- * @param domain - The domain to resolve.
- * @param config - (Optional) Configuration for resolving the domain, including whether to allow PDA owners
- *   and permissible program IDs.
+ * @param params - An object containing the following properties:
+ *   - `rpc`: An RPC interface implementing GetAccountInfoApi, GetMultipleAccountsApi, and GetTokenLargestAccountsApi.
+ *   - `domain`: The domain to resolve.
+ *   - `config`: (Optional) Configuration for resolving the domain, including whether to allow PDA owners
+ *     and permissible program IDs.
  * @returns A promise that resolves to the target address.
  */
-export const resolveDomain = async (
-  rpc: Rpc<
-    GetAccountInfoApi & GetMultipleAccountsApi & GetTokenLargestAccountsApi
-  >,
-  domain: string,
-  config: ResolveConfig = { allowPda: false }
-): Promise<Address> => {
-  const { address: domainAddress } = await getDomainAddress(domain);
+export const resolveDomain = async ({
+  rpc,
+  domain,
+  options = { allowPda: false },
+}: ResolveDomainParams): Promise<Address> => {
+  const { domainAddress } = await getDomainAddress({ domain });
   const nftAddress = await NftState.getAddress(domainAddress);
-  const solRecordV1Address = await getRecordV1Address(domain, Record.SOL);
-  const solRecordV2Address = await getRecordV2Address(domain, Record.SOL);
+  const solRecordV1Address = await getRecordV1Address({
+    domain,
+    record: Record.SOL,
+  });
+  const solRecordV2Address = await getRecordV2Address({
+    domain,
+    record: Record.SOL,
+  });
   const [domainAccount, nftAccount, solRecordV1Account, solRecordV2Account] =
     await fetchEncodedAccounts(rpc, [
       domainAddress,
@@ -115,7 +128,7 @@ export const resolveDomain = async (
   if (nftAccount.exists) {
     const nftRecord = NftState.deserialize(nftAccount.data);
     if (nftRecord.tag === NftTag.ActiveRecord) {
-      const nftOwner = await getNftOwner(rpc, domainAddress);
+      const nftOwner = await getNftOwner({ rpc, domainAddress });
       if (!nftOwner) {
         throw new CouldNotFindNftOwnerError();
       }
@@ -189,16 +202,16 @@ export const resolveDomain = async (
   const isOnCurve = checkAddressOnCurve(registry.owner);
 
   if (!isOnCurve) {
-    if (config.allowPda === "any") {
+    if (options.allowPda === "any") {
       return registry.owner;
-    } else if (config.allowPda) {
+    } else if (options.allowPda) {
       const ownerAccount = await fetchEncodedAccount(rpc, registry.owner);
 
       if (!ownerAccount.exists) {
         throw new PdaOwnerNotAllowedError("Invalid domain owner account");
       }
 
-      const isAllowed = config.programIds?.some(
+      const isAllowed = options.programIds?.some(
         (e) => ownerAccount.programAddress === e
       );
 

@@ -18,40 +18,50 @@ import { uint8ArraysEqual } from "../utils/uint8Array/uint8ArraysEqual";
  * This is intended for internal use only.
  *
  * @param domainOwner - The address of the domain's owner.
- * @param recordState - The state of the record to verify.
+ * @param state - The state of the record to verify.
  * @returns True if the record's staleness validation passes, false otherwise.
  */
-export const _verifyStalenessSync = (
-  domainOwner: Address,
-  recordState: RecordState
-) => {
-  const stalenessId = recordState.getStalenessId();
+export const _verifyStalenessSync = ({
+  domainOwner,
+  state,
+}: {
+  domainOwner: Address;
+  state: RecordState;
+}) => {
+  const stalenessId = state.getStalenessId();
 
   return (
     uint8ArraysEqual(addressCodec.encode(domainOwner), stalenessId) &&
-    recordState.header.stalenessValidation === Validation.Solana
+    state.header.stalenessValidation === Validation.Solana
   );
 };
+
+interface VerifyRecordStalenessParams {
+  rpc: Rpc<GetAccountInfoApi & GetTokenLargestAccountsApi>;
+  domain: string;
+  record: Record;
+}
 
 /**
  * Verifies the staleness of a record asynchronously.
  *
- * @param rpc - The RPC interface implementing GetAccountInfoApi and GetTokenLargestAccountsApi.
- * @param domain - The domain under which the record resides.
- * @param record - The record to verify.
+ * @param params - An object containing the following properties:
+ *   - `rpc`: The RPC interface implementing GetAccountInfoApi and GetTokenLargestAccountsApi.
+ *   - `domain`: The domain under which the record resides.
+ *   - `record`: The record to verify.
  * @returns A promise that resolves to true if the record is stale, false otherwise.
  */
-export const verifyRecordStaleness = async (
-  rpc: Rpc<GetAccountInfoApi & GetTokenLargestAccountsApi>,
-  domain: string,
-  record: Record
-) => {
-  const [domainOwner, retrievedRecord] = await Promise.all([
-    getDomainOwner(rpc, domain),
-    getRecordV2Address(domain, record).then((address) =>
+export const verifyRecordStaleness = async ({
+  rpc,
+  domain,
+  record,
+}: VerifyRecordStalenessParams): Promise<boolean> => {
+  const [domainOwner, state] = await Promise.all([
+    getDomainOwner({ rpc, domain }),
+    getRecordV2Address({ domain, record }).then((address) =>
       RecordState.retrieve(rpc, address)
     ),
   ]);
 
-  return _verifyStalenessSync(domainOwner, retrievedRecord);
+  return _verifyStalenessSync({ domainOwner, state });
 };

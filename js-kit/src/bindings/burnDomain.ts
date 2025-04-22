@@ -1,4 +1,4 @@
-import { Address, getProgramDerivedAddress } from "@solana/kit";
+import { Address, IInstruction, getProgramDerivedAddress } from "@solana/kit";
 
 import { addressCodec } from "../codecs";
 import {
@@ -11,20 +11,27 @@ import { getDomainAddress } from "../domain/getDomainAddress";
 import { burnDomainInstruction } from "../instructions/burnDomainInstruction";
 import { getReverseAddress } from "../utils/getReverseAddress";
 
+interface BurnDomainParams {
+  domain: string;
+  owner: Address;
+  refundAddress: Address;
+}
+
 /**
  * Generates an instruction to burn a domain.
  *
- * @param domain - The domain name to be burned.
- * @param owner - The address of the current owner of the domain.
- * @param target - The address to which rent will be refunded.
+ * @param params - An object containing the following properties:
+ *   - `domain`: The domain name to be burned.
+ *   - `owner`: The address of the current owner of the domain.
+ *   - `refundAddress`: The address to which rent will be refunded.
  * @returns A promise which resolves to the burn domain instruction.
  */
-export const burnDomain = async (
-  domain: string,
-  owner: Address,
-  target: Address
-) => {
-  const { address: domainAddress } = await getDomainAddress(domain);
+export const burnDomain = async ({
+  domain,
+  owner,
+  refundAddress,
+}: BurnDomainParams): Promise<IInstruction> => {
+  const { domainAddress } = await getDomainAddress({ domain });
   const encoded = addressCodec.encode(domainAddress);
 
   const [pda] = await getProgramDerivedAddress({
@@ -49,7 +56,7 @@ export const burnDomain = async (
     pda,
     REVERSE_LOOKUP_CLASS,
     owner,
-    target
+    refundAddress
   );
 
   return ix;

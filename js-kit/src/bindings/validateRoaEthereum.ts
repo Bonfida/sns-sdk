@@ -1,4 +1,4 @@
-import { Address } from "@solana/kit";
+import { Address, IInstruction } from "@solana/kit";
 
 import {
   CENTRAL_STATE_DOMAIN_RECORDS,
@@ -12,34 +12,42 @@ import { validateRoaEthereumInstruction } from "../instructions/validateRoaEther
 import { Record, RecordVersion } from "../types/record";
 import { Validation } from "../types/validation";
 
+interface ValidateRoaEthereumParams {
+  domain: string;
+  record: Record;
+  owner: Address;
+  payer: Address;
+  signature: Uint8Array;
+  expectedPubkey: Uint8Array;
+}
+
 /**
  * Validates the right of association of a record using an Ethereum signature.
  *
- * @param domain - The domain under which the record resides.
- * @param record - An enumeration representing the type of record to validate.
- * @param owner - The address of the domain's owner.
- * @param payer - The address funding the validation process.
- * @param signature - The signature used for validation.
- * @param expectedPubkey - The expected public key associated with the validation.
+ * @param params - An object containing the following properties:
+ *   - `domain`: The domain under which the record resides.
+ *   - `record`: An enumeration representing the type of record to validate.
+ *   - `owner`: The address of the domain's owner.
+ *   - `payer`: The address funding the validation process.
+ *   - `signature`: The signature used for validation.
+ *   - `expectedPubkey`: The expected public key associated with the validation.
  * @returns A promise that resolves to the validate ROA Ethereum instruction.
  */
-export const validateRoaEthereum = async (
-  domain: string,
-  record: Record,
-  owner: Address,
-  payer: Address,
-  signature: Uint8Array,
-  expectedPubkey: Uint8Array
-) => {
-  let { address, parentAddress, isSub } = await getDomainAddress(
-    `${record}.${domain}`,
-    RecordVersion.V2
-  );
+export const validateRoaEthereum = async ({
+  domain,
+  record,
+  owner,
+  payer,
+  signature,
+  expectedPubkey,
+}: ValidateRoaEthereumParams): Promise<IInstruction> => {
+  let { domainAddress, parentAddress, isSub } = await getDomainAddress({
+    domain: `${record}.${domain}`,
+    record: RecordVersion.V2,
+  });
 
   if (isSub) {
-    parentAddress = await getDomainAddress(domain).then(
-      (domainAddress) => domainAddress.address
-    );
+    parentAddress = (await getDomainAddress({ domain })).domainAddress;
   }
 
   if (!parentAddress) {
@@ -55,7 +63,7 @@ export const validateRoaEthereum = async (
     SYSTEM_PROGRAM_ADDRESS,
     NAME_PROGRAM_ADDRESS,
     payer,
-    address,
+    domainAddress,
     parentAddress,
     owner,
     CENTRAL_STATE_DOMAIN_RECORDS

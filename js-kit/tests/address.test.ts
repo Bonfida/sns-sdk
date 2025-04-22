@@ -31,7 +31,10 @@ describe("Address methods", () => {
         },
       },
     ])("$user", async (e) => {
-      const primary = await getPrimaryDomain(TEST_RPC, e.user);
+      const primary = await getPrimaryDomain({
+        rpc: TEST_RPC,
+        walletAddress: e.user,
+      });
       expect(primary.domainAddress).toBe(e.primary.domainAddress);
       expect(primary.domainName).toBe("bonfida");
       expect(primary.stale).toBe(e.primary.stale);
@@ -62,10 +65,10 @@ describe("Address methods", () => {
         },
       ];
 
-      const result = await getPrimaryDomainsBatch(
-        TEST_RPC,
-        items.map((item) => item.address)
-      );
+      const result = await getPrimaryDomainsBatch({
+        rpc: TEST_RPC,
+        walletAddresses: items.map((item) => item.address),
+      });
       expect(result).toStrictEqual(items.map((item) => item.domain));
     });
   });
@@ -106,7 +109,10 @@ describe("Address methods", () => {
         ],
       },
     ])("$address", async (item) => {
-      const result = await getDomainsForAddress(TEST_RPC, item.address);
+      const result = await getDomainsForAddress({
+        rpc: TEST_RPC,
+        address: item.address,
+      });
       result.sort((a, b) => a.domain.localeCompare(b.domain));
       expect(result).toStrictEqual(item.domains);
     });
@@ -129,7 +135,10 @@ describe("Address methods", () => {
         ],
       },
     ])("$address", async (item) => {
-      const result = await getNftsForAddress(TEST_RPC, item.address);
+      const result = await getNftsForAddress({
+        rpc: TEST_RPC,
+        address: item.address,
+      });
       expect(result).toStrictEqual(item.nfts);
     });
   });

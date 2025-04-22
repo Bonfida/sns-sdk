@@ -10,6 +10,11 @@ import { TOKEN_PROGRAM_ADDRESS } from "../constants/addresses";
 import { NftState } from "../states/nft";
 import { reverseLookupBatch } from "../utils/reverseLookupBatch";
 
+interface GetNftsForAddressParams {
+  rpc: Rpc<GetMultipleAccountsApi & GetProgramAccountsApi>;
+  address: Address;
+}
+
 interface Result {
   domain: string;
   domainAddress: Address;
@@ -19,14 +24,18 @@ interface Result {
 /**
  * Fetches NFT states for a given address.
  *
- * @param rpc - An RPC interface implementing GetProgramAccountsApi.
- * @param address - The address whose associated NFT states are to be fetched.
+ * @param params - An object containing the following properties:
+ *   - `rpc`: An RPC interface implementing GetProgramAccountsApi.
+ *   - `address`: The address whose associated NFT states are to be fetched.
  * @returns A promise resolving to an array of NftState objects.
  */
-const getNftStatesForAddress = async (
-  rpc: Rpc<GetProgramAccountsApi>,
-  address: Address
-): Promise<NftState[]> => {
+const getNftStatesForAddress = async ({
+  rpc,
+  address,
+}: {
+  rpc: Rpc<GetProgramAccountsApi>;
+  address: Address;
+}): Promise<NftState[]> => {
   try {
     const results = await rpc
       .getProgramAccounts(TOKEN_PROGRAM_ADDRESS, {
@@ -58,17 +67,21 @@ const getNftStatesForAddress = async (
 /**
  * Retrieves NFTs owned by a given address.
  *
- * @param rpc - An RPC interface implementing GetMultipleAccountsApi and GetProgramAccountsApi.
- * @param address - The address for which NFTs are to be fetched.
+ * @param params - An object containing the following properties:
+ *   - `rpc`: An RPC interface implementing GetMultipleAccountsApi and GetProgramAccountsApi.
+ *   - `address`: The address for which NFTs are to be fetched.
  * @returns A promise resolving to an array of Result objects containing domain, domainAddress, and mint.
  */
-export const getNftsForAddress = async (
-  rpc: Rpc<GetMultipleAccountsApi & GetProgramAccountsApi>,
-  address: Address
-): Promise<Result[]> => {
-  const nftStates = await getNftStatesForAddress(rpc, address);
+export const getNftsForAddress = async ({
+  rpc,
+  address,
+}: GetNftsForAddressParams): Promise<Result[]> => {
+  const nftStates = await getNftStatesForAddress({ rpc, address });
   const nftNameAccounts = nftStates.map((state) => state.nameAccount);
-  const domains = await reverseLookupBatch(rpc, nftNameAccounts);
+  const domains = await reverseLookupBatch({
+    rpc,
+    domainAddresses: nftNameAccounts,
+  });
 
   return domains
     .map((domain, idx) =>

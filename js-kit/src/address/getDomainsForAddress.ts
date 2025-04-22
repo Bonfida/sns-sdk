@@ -11,6 +11,11 @@ import {
 } from "../constants/addresses";
 import { reverseLookupBatch } from "../utils/reverseLookupBatch";
 
+interface GetDomainsForAddressParams {
+  rpc: Rpc<GetProgramAccountsApi & GetMultipleAccountsApi>;
+  address: Address;
+}
+
 interface Result {
   domain: string;
   domainAddress: Address;
@@ -19,14 +24,15 @@ interface Result {
 /**
  * Retrieves the domains owned by the given address.
  *
- * @param rpc - An RPC interface implementing GetProgramAccountsApi and GetMultipleAccountsApi.
- * @param address - The address for which to retrieve associated domains.
+ * @param params - An object containing the following properties:
+ *   - `rpc`: An RPC interface implementing GetProgramAccountsApi and GetMultipleAccountsApi.
+ *   - `address`: The address for which to retrieve associated domains.
  * @returns A promise resolving to an array of objects containing domain and domainAddress.
  */
-export const getDomainsForAddress = async (
-  rpc: Rpc<GetProgramAccountsApi & GetMultipleAccountsApi>,
-  address: Address
-): Promise<Result[]> => {
+export const getDomainsForAddress = async ({
+  rpc,
+  address,
+}: GetDomainsForAddressParams): Promise<Result[]> => {
   const results = await rpc
     .getProgramAccounts(NAME_PROGRAM_ADDRESS, {
       encoding: "base64",
@@ -53,10 +59,10 @@ export const getDomainsForAddress = async (
     })
     .send();
 
-  const domains = await reverseLookupBatch(
+  const domains = await reverseLookupBatch({
     rpc,
-    results.map((r) => r.pubkey)
-  );
+    domainAddresses: results.map((r) => r.pubkey),
+  });
 
   return domains
     .map((domain, idx) =>

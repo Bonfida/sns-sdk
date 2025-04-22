@@ -17,6 +17,18 @@ import { Record } from "../types/record";
 import { deserializeRecordContent } from "../utils/deserializers/deserializeRecordContent";
 import { getDomainOwner } from "./getDomainOwner";
 
+interface GetDomainRecordParams {
+  rpc: Rpc<
+    GetAccountInfoApi & GetMultipleAccountsApi & GetTokenLargestAccountsApi
+  >;
+  domain: string;
+  record: Record;
+  options?: {
+    deserialize?: boolean;
+    verifier?: ReadonlyUint8Array;
+  };
+}
+
 interface Result {
   record: Record;
   retrievedRecord: RecordState;
@@ -30,50 +42,45 @@ interface Result {
 /**
  * Retrieves a specific record under a domain, verifies its state, and optionally deserializes its content.
  *
- * @param rpc - An RPC interface implementing GetAccountInfoApi, GetMultipleAccountsApi, and GetTokenLargestAccountsApi.
- * @param domain - The domain whose record is to be retrieved.
- * @param record - The type of record to retrieve.
- * @param options - (Optional) Additional options for processing:
- *   - deserialize: Whether to deserialize the record content.
- *   - verifier: A custom verifier for the record.
+ * @param params - An object containing the following properties:
+ *   - `rpc`: An RPC interface implementing GetAccountInfoApi, GetMultipleAccountsApi, and GetTokenLargestAccountsApi.
+ *   - `domain`: The domain whose record is to be retrieved.
+ *   - `record`: The type of record to retrieve.
+ *   - `options`: (Optional) Additional options for processing:
+ *       - `deserialize`: Whether to deserialize the record content.
+ *       - `verifier`: A custom verifier for the record.
  * @returns A promise that resolves to the retrieved record, its verification status, and optionally its deserialized content.
  */
-export async function getDomainRecord(
-  rpc: Rpc<
-    GetAccountInfoApi & GetMultipleAccountsApi & GetTokenLargestAccountsApi
-  >,
-  domain: string,
-  record: Record,
-  options: {
-    deserialize?: boolean;
-    verifier?: ReadonlyUint8Array;
-  } = {}
-): Promise<Result> {
-  const [domainOwner, retrievedRecord] = await Promise.all([
-    getDomainOwner(rpc, domain),
-    getRecordV2Address(domain, record).then((address) =>
+export async function getDomainRecord({
+  rpc,
+  domain,
+  record,
+  options = {},
+}: GetDomainRecordParams): Promise<Result> {
+  const [domainOwner, state] = await Promise.all([
+    getDomainOwner({ rpc, domain }),
+    getRecordV2Address({ domain, record }).then((address) =>
       RecordState.retrieve(rpc, address)
     ),
   ]);
 
-  const verifier =
-    options.verifier || _getDefaultVerifier(record, retrievedRecord);
+  const verifier = options.verifier || _getDefaultVerifier({ record, state });
   const verified = {
-    staleness: _verifyStalenessSync(domainOwner, retrievedRecord),
+    staleness: _verifyStalenessSync({ domainOwner, state }),
     ...(verifier && {
-      rightOfAssociation: _verifyRoaSync(record, retrievedRecord, verifier),
+      rightOfAssociation: _verifyRoaSync({ record, state, verifier }),
     }),
   };
 
   return {
     record,
-    retrievedRecord,
+    retrievedRecord: state,
     verified,
     ...(options.deserialize && {
-      deserializedContent: deserializeRecordContent(
-        retrievedRecord.getContent(),
-        record
-      ),
+      deserializedContent: deserializeRecordContent({
+        content: state.getContent(),
+        record,
+      }),
     }),
   };
 }

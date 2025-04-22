@@ -23,15 +23,18 @@ import { uint8ArraysEqual } from "../utils/uint8Array/uint8ArraysEqual";
  * This is an internal utility function.
  *
  * @param record - The record whose verifier is to be determined.
- * @param recordState - The state of the record.
+ * @param state - The state of the record.
  * @returns The default verifier as a ReadonlyUint8Array or undefined if no verifier is found.
  */
-export const _getDefaultVerifier = (
-  record: Record,
-  recordState: RecordState
-) => {
+export const _getDefaultVerifier = ({
+  record,
+  state,
+}: {
+  record: Record;
+  state: RecordState;
+}) => {
   if (SELF_SIGNED_RECORDS.has(record)) {
-    return recordState.getContent();
+    return state.getContent();
   } else {
     const guardian = GUARDIANS.get(record);
     if (guardian) {
@@ -46,16 +49,20 @@ export const _getDefaultVerifier = (
  * This function is intended for internal use only.
  *
  * @param record - The record to verify.
- * @param recordState - The state of the record.
+ * @param state - The state of the record.
  * @param verifier - The verifier for the record.
  * @returns True if the association is valid, false otherwise.
  */
-export const _verifyRoaSync = (
-  record: Record,
-  recordState: RecordState,
-  verifier: ReadonlyUint8Array
-) => {
-  const roaId = recordState.getRoAId();
+export const _verifyRoaSync = ({
+  record,
+  state,
+  verifier,
+}: {
+  record: Record;
+  state: RecordState;
+  verifier: ReadonlyUint8Array;
+}) => {
+  const roaId = state.getRoAId();
 
   const validation = ETH_ROA_RECORDS.has(record)
     ? Validation.Ethereum
@@ -63,7 +70,7 @@ export const _verifyRoaSync = (
 
   return (
     uint8ArraysEqual(roaId, verifier) &&
-    recordState.header.rightOfAssociationValidation === validation
+    state.header.rightOfAssociationValidation === validation
   );
 };
 
@@ -83,13 +90,13 @@ export const verifyRecordRightOfAssociation = async (
   record: Record,
   verifier?: ReadonlyUint8Array
 ) => {
-  const address = await getRecordV2Address(domain, record);
-  const retrievedRecord = await RecordState.retrieve(rpc, address);
+  const address = await getRecordV2Address({ domain, record });
+  const state = await RecordState.retrieve(rpc, address);
 
-  verifier = verifier || _getDefaultVerifier(record, retrievedRecord);
+  verifier = verifier || _getDefaultVerifier({ record, state });
   if (!verifier) {
     throw new MissingVerifierError("You must specify the verifier");
   }
 
-  return _verifyRoaSync(record, retrievedRecord, verifier);
+  return _verifyRoaSync({ record, state, verifier });
 };

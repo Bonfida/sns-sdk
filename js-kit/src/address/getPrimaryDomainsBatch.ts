@@ -21,24 +21,30 @@ import { RegistryState } from "../states/registry";
 import { deserializeReverse } from "../utils/deserializers/deserializeReverse";
 import { getReverseAddressFromDomainAddress } from "../utils/getReverseAddressFromDomainAddress";
 
+interface GetPrimaryDomainsBatchParams {
+  rpc: Rpc<GetMultipleAccountsApi & GetTokenLargestAccountsApi>;
+  walletAddresses: Address[];
+}
+
 interface ValidPrimary {
   index: number;
-  address: Address;
+  domainAddress: Address;
   registry?: RegistryState;
 }
 
 /**
  * Batch retrieves the primary domains associated with a list of wallet addresses.
  *
- * @param rpc - An RPC interface implementing GetMultipleAccountsApi and GetTokenLargestAccountsApi.
- * @param walletAddresses - An array of wallet addresses for which primary domains are to be fetched.
+ * @param params - An object containing the following properties:
+ *   - `rpc`: An RPC interface implementing GetMultipleAccountsApi and GetTokenLargestAccountsApi.
+ *   - `walletAddresses`: An array of wallet addresses for which primary domains are to be fetched.
  * @returns A promise resolving to an array of strings or undefined values, where each string represents
- *   the primary domain name if available and non-stale.
+ *          the primary domain name if available and non-stale.
  */
-export const getPrimaryDomainsBatch = async (
-  rpc: Rpc<GetMultipleAccountsApi & GetTokenLargestAccountsApi>,
-  walletAddresses: Address[]
-): Promise<(string | undefined)[]> => {
+export const getPrimaryDomainsBatch = async ({
+  rpc,
+  walletAddresses,
+}: GetPrimaryDomainsBatchParams): Promise<(string | undefined)[]> => {
   const result: (string | undefined)[] = new Array(walletAddresses.length).fill(
     undefined
   );
@@ -51,14 +57,14 @@ export const getPrimaryDomainsBatch = async (
 
   let validPrimaries = primaries.reduce<ValidPrimary[]>((acc, curr, idx) => {
     if (curr) {
-      acc.push({ index: idx, address: curr.nameAccount });
+      acc.push({ index: idx, domainAddress: curr.nameAccount });
     }
     return acc;
   }, []);
 
   const registries = await RegistryState.retrieveBatch(
     rpc,
-    validPrimaries.map((item) => item.address)
+    validPrimaries.map((item) => item.domainAddress)
   );
 
   validPrimaries = validPrimaries
@@ -69,22 +75,24 @@ export const getPrimaryDomainsBatch = async (
   const parentRevAddressesPromises: (Promise<Address> | Address)[] = [];
   const atasPromises: Promise<Address>[] = [];
 
-  for (const { index, address, registry } of validPrimaries) {
+  for (const { index, domainAddress, registry } of validPrimaries) {
     const isSub = registry!.parentName !== ROOT_DOMAIN_ADDRESS;
 
     parentRevAddressesPromises.push(
       isSub
-        ? getReverseAddressFromDomainAddress(registry!.parentName)
+        ? getReverseAddressFromDomainAddress({
+            domainAddress: registry!.parentName,
+          })
         : DEFAULT_ADDRESS
     );
     revAddressesPromises.push(
-      getReverseAddressFromDomainAddress(
-        address,
-        isSub ? registry!.parentName : undefined
-      )
+      getReverseAddressFromDomainAddress({
+        domainAddress,
+        parentAddress: isSub ? registry!.parentName : undefined,
+      })
     );
     atasPromises.push(
-      getNftMint(address)
+      getNftMint({ domainAddress })
         .then((mint) =>
           findAssociatedTokenPda({
             mint,
@@ -122,12 +130,16 @@ export const getPrimaryDomainsBatch = async (
       parentRevAccount.exists &&
       parentRevAccount.programAddress === NAME_PROGRAM_ADDRESS
     ) {
-      const des = deserializeReverse(parentRevAccount.data.slice(96));
+      const des = deserializeReverse({ data: parentRevAccount.data.slice(96) });
       parentRev = `.${des}`;
     }
 
     if (registry!.owner === walletAddresses[index]) {
-      result[index] = deserializeReverse(rev.data.slice(96), true) + parentRev;
+      result[index] =
+        deserializeReverse({
+          data: rev.data.slice(96),
+          trimFirstNullByte: true,
+        }) + parentRev;
       continue;
     }
 
@@ -136,7 +148,8 @@ export const getPrimaryDomainsBatch = async (
       tokenAcc.exists &&
       Number(tokenCodec.decode(tokenAcc.data).amount) === 1
     ) {
-      result[index] = deserializeReverse(rev?.data.slice(96)) + parentRev;
+      result[index] =
+        deserializeReverse({ data: rev?.data.slice(96) }) + parentRev;
       continue;
     }
 

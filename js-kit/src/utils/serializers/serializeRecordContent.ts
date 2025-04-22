@@ -16,10 +16,23 @@ import { Record } from "../../types/record";
 import { _check } from "../check";
 import { uint8ArrayFromHex } from "../uint8Array/uint8ArrayFromHex";
 
-export const serializeRecordContent = (
-  content: string,
-  record: Record
-): ReadonlyUint8Array => {
+interface SerializeRecordContentParams {
+  content: string;
+  record: Record;
+}
+
+/**
+ * Serializes record content based on its type.
+ *
+ * @param params - An object containing the following properties:
+ *   - `content`: The record content to serialize.
+ *   - `record`: The type of record for which the content is being serialized.
+ * @returns The serialized content as a ReadonlyUint8Array.
+ */
+export const serializeRecordContent = ({
+  content,
+  record,
+}: SerializeRecordContentParams): ReadonlyUint8Array => {
   const utf8Encoded = UTF8_ENCODED_RECORDS.has(record);
   if (utf8Encoded) {
     if (record === Record.CNAME || record === Record.TXT) {

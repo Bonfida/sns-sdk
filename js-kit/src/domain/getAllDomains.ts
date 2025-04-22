@@ -5,13 +5,18 @@ import {
   ROOT_DOMAIN_ADDRESS,
 } from "../constants/addresses";
 
+interface GetAllDomainsParams {
+  rpc: Rpc<GetProgramAccountsApi>;
+}
+
 /**
- * Retrieves the addresses of all .sol domains .
+ * Retrieves the addresses of all .sol domains.
  *
- * @param rpc - An RPC interface implementing GetProgramAccountsApi.
+ * @param params - An object containing the following properties:
+ *   - `rpc`: An RPC interface implementing GetProgramAccountsApi.
  * @returns A promise that resolves to an array of objects representing domain addresses and owners.
  */
-export const getAllDomains = async (rpc: Rpc<GetProgramAccountsApi>) => {
+export const getAllDomains = async ({ rpc }: GetAllDomainsParams) => {
   const accounts = await rpc
     .getProgramAccounts(NAME_PROGRAM_ADDRESS, {
       encoding: "base58",

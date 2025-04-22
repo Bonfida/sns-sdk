@@ -11,19 +11,25 @@ import {
 import { tokenCodec } from "../codecs";
 import { getNftMint } from "./getNftMint";
 
+interface GetNftOwnerParams {
+  rpc: Rpc<GetAccountInfoApi & GetTokenLargestAccountsApi>;
+  domainAddress: Address;
+}
+
 /**
- * Retrieves the owner of a toknized domain.
+ * Retrieves the owner of a tokenized domain.
  *
- * @param rpc - An RPC interface implementing GetAccountInfoApi and GetTokenLargestAccountsApi.
- * @param domainAddress - The address of the domain whose owner is to be retrieved.
+ * @param params - An object containing the following properties:
+ *   - `rpc`: An RPC interface implementing GetAccountInfoApi and GetTokenLargestAccountsApi.
+ *   - `domainAddress`: The address of the domain whose owner is to be retrieved.
  * @returns A promise that resolves to the NFT owner's address, or null if no owner is found.
  */
-export const getNftOwner = async (
-  rpc: Rpc<GetAccountInfoApi & GetTokenLargestAccountsApi>,
-  domainAddress: Address
-) => {
+export const getNftOwner = async ({
+  rpc,
+  domainAddress,
+}: GetNftOwnerParams): Promise<Address | null> => {
   try {
-    const mint = await getNftMint(domainAddress);
+    const mint = await getNftMint({ domainAddress });
     const largestAccounts = await rpc.getTokenLargestAccounts(mint).send();
 
     if (largestAccounts.value.length === 0) {

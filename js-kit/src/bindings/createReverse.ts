@@ -1,4 +1,4 @@
-import { Address } from "@solana/kit";
+import { Address, IInstruction } from "@solana/kit";
 
 import {
   CENTRAL_STATE,
@@ -11,23 +11,32 @@ import {
 import { createReverseInstruction } from "../instructions/createReverseInstruction";
 import { deriveAddress } from "../utils/deriveAddress";
 
+interface CreateReverseParams {
+  domainAddress: Address;
+  domain: string;
+  payer: Address;
+  parentAddress?: Address;
+  parentOwner?: Address;
+}
+
 /**
  * Creates a reverse lookup record for the specified domain.
  *
- * @param domainAddress - The address of the domain for which the reverse lookup record is created.
- * @param domain - The domain name to be associated with the reverse lookup record.
- * @param payer - The address funding the creation of the reverse lookup record.
- * @param parentAddress - (Optional) The address of the parent domain, if applicable.
- * @param parentOwner - (Optional) The address of the parent domain owner, if applicable.
+ * @param params - An object containing the following properties:
+ *   - `domainAddress`: The address of the domain for which the reverse lookup record is created.
+ *   - `domain`: The domain name to be associated with the reverse lookup record.
+ *   - `payer`: The address funding the creation of the reverse lookup record.
+ *   - `parentAddress`: (Optional) The address of the parent domain, if applicable.
+ *   - `parentOwner`: (Optional) The address of the parent domain owner, if applicable.
  * @returns A promise which resolves to the create reverse lookup instruction.
  */
-export const createReverse = async (
-  domainAddress: Address,
-  domain: string,
-  payer: Address,
-  parentAddress?: Address,
-  parentOwner?: Address
-) => {
+export const createReverse = async ({
+  domainAddress,
+  domain,
+  payer,
+  parentAddress,
+  parentOwner,
+}: CreateReverseParams): Promise<IInstruction> => {
   const reverseLookupAccount = await deriveAddress(
     domainAddress,
     parentAddress,

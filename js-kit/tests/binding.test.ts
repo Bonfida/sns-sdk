@@ -71,10 +71,17 @@ describe("Bindings", () => {
   describe("burnDomain", () => {
     test("wallet-guide-9", async () => {
       const owner = "Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8" as Address;
-      const target = "3Wnd5Df69KitZfUoPYZU438eFRNwGHkhLnSAWL65PxJX" as Address;
+      const refundAddress =
+        "3Wnd5Df69KitZfUoPYZU438eFRNwGHkhLnSAWL65PxJX" as Address;
 
       const ixs: IInstruction[] = [];
-      ixs.push(await burnDomain("wallet-guide-9", owner, target));
+      ixs.push(
+        await burnDomain({
+          domain: "wallet-guide-9",
+          owner,
+          refundAddress,
+        })
+      );
 
       await testInstructions(ixs, owner);
     });
@@ -91,14 +98,14 @@ describe("Bindings", () => {
 
       const ixs: IInstruction[] = [];
       ixs.push(
-        await createNameRegistry(
-          TEST_RPC,
-          domain,
+        await createNameRegistry({
+          rpc: TEST_RPC,
+          name: domain,
           space,
+          payer: owner,
           owner,
-          owner,
-          lamports
-        )
+          lamports,
+        })
       );
       await testInstructions(ixs, owner);
     });
@@ -111,7 +118,13 @@ describe("Bindings", () => {
 
       const ixs: IInstruction[] = [];
       ixs.push(
-        await createRecord(domain, Record.Twitter, "@sns", owner, owner)
+        await createRecord({
+          domain,
+          record: Record.Twitter,
+          content: "@sns",
+          owner,
+          payer: owner,
+        })
       );
 
       await testInstructions(ixs, owner);
@@ -123,7 +136,13 @@ describe("Bindings", () => {
 
       const ixs: IInstruction[] = [];
       ixs.push(
-        await createRecord(domain, Record.Twitter, "@sns", owner, owner)
+        await createRecord({
+          domain,
+          record: Record.Twitter,
+          content: "@sns",
+          owner,
+          payer: owner,
+        })
       );
 
       await testInstructions(ixs, owner);
@@ -133,11 +152,11 @@ describe("Bindings", () => {
   describe("createReverse", () => {
     const domain = randomBytes(10).toString("hex");
     test(domain, async () => {
-      const { address } = await getDomainAddress(domain);
+      const { domainAddress } = await getDomainAddress({ domain });
       const owner = "HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA" as Address;
 
       const ixs: IInstruction[] = [];
-      ixs.push(await createReverse(address, domain, owner));
+      ixs.push(await createReverse({ domainAddress, domain, payer: owner }));
 
       await testInstructions(ixs, owner);
     });
@@ -149,7 +168,11 @@ describe("Bindings", () => {
 
       const ixs: IInstruction[] = [];
       ixs.push(
-        ...(await createSubdomain(TEST_RPC, "sub-test.wallet-guide-9", owner))
+        ...(await createSubdomain({
+          rpc: TEST_RPC,
+          subdomain: "sub-test.wallet-guide-9",
+          owner,
+        }))
       );
 
       await testInstructions(ixs, owner);
@@ -162,13 +185,13 @@ describe("Bindings", () => {
 
       const ixs: IInstruction[] = [];
       ixs.push(
-        await deleteNameRegistry(
-          TEST_RPC,
-          "wallet-guide-9",
-          owner,
-          undefined,
-          ROOT_DOMAIN_ADDRESS
-        )
+        await deleteNameRegistry({
+          rpc: TEST_RPC,
+          name: "wallet-guide-9",
+          refundAddress: owner,
+          classAddress: undefined,
+          parentAddress: ROOT_DOMAIN_ADDRESS,
+        })
       );
 
       await testInstructions(ixs, owner);
@@ -190,9 +213,22 @@ describe("Bindings", () => {
         const ixs: IInstruction[] = [];
 
         ixs.push(
-          await createRecord(domain, item.record, item.content, owner, owner)
+          await createRecord({
+            domain,
+            record: item.record,
+            content: item.content,
+            owner,
+            payer: owner,
+          })
         );
-        ixs.push(await deleteRecord(domain, item.record, owner, owner));
+        ixs.push(
+          await deleteRecord({
+            domain,
+            record: item.record,
+            owner,
+            payer: owner,
+          })
+        );
 
         await testInstructions(ixs, owner);
       });
@@ -212,14 +248,14 @@ describe("Bindings", () => {
           tokenProgram: TOKEN_PROGRAM_ADDRESS,
         });
 
-        const ixs = await registerDomain(
-          TEST_RPC,
+        const ixs = await registerDomain({
+          rpc: TEST_RPC,
           domain,
-          1_000,
-          VAULT_OWNER,
-          ata,
-          USDC_MINT
-        );
+          space: 1_000,
+          buyer: VAULT_OWNER,
+          buyerTokenAccount: ata,
+          mint: USDC_MINT,
+        });
 
         await testInstructions(ixs, VAULT_OWNER);
       });
@@ -236,15 +272,15 @@ describe("Bindings", () => {
           tokenProgram: TOKEN_PROGRAM_ADDRESS,
         });
 
-        const ixs = await registerDomain(
-          TEST_RPC,
+        const ixs = await registerDomain({
+          rpc: TEST_RPC,
           domain,
-          1_000,
-          VAULT_OWNER,
-          ata,
-          FIDA_MINT,
-          REFERRERS[0]
-        );
+          space: 1_000,
+          buyer: VAULT_OWNER,
+          buyerTokenAccount: ata,
+          mint: FIDA_MINT,
+          referrer: REFERRERS[0],
+        });
 
         await testInstructions(ixs, VAULT_OWNER);
       });
@@ -259,15 +295,15 @@ describe("Bindings", () => {
 
         for (let i = 0; i < 3; i++) {
           ixs.push(
-            ...(await registerDomain(
-              TEST_RPC,
-              randomBytes(10).toString("hex"),
-              1_000,
-              VAULT_OWNER,
-              ata,
-              FIDA_MINT,
-              REFERRERS[0]
-            ))
+            ...(await registerDomain({
+              rpc: TEST_RPC,
+              domain: randomBytes(10).toString("hex"),
+              space: 1_000,
+              buyer: VAULT_OWNER,
+              buyerTokenAccount: ata,
+              mint: FIDA_MINT,
+              referrer: REFERRERS[0],
+            }))
           );
         }
 
@@ -280,32 +316,41 @@ describe("Bindings", () => {
     const domain = randomBytes(10).toString("hex");
     test(domain, async () => {
       const buyer = "FiUYY19eXuVcEAHSJ87KEzYjYnfKZm6KbHoVtdQBNGfk" as Address;
-      const source = "Df9Jz3NrGVd5jjjrXbedwuHbCc1hL131bUXq2143tTfQ" as Address;
+      const nftSource =
+        "Df9Jz3NrGVd5jjjrXbedwuHbCc1hL131bUXq2143tTfQ" as Address;
       const nftMint = "7cpq5U6ze5PPcTPVxGifXA8xyDp8rgAJQNwBDj8eWd8w" as Address;
 
       const ixs: IInstruction[] = [];
-      ixs.push(await registerWithNft(domain, 1_000, buyer, source, nftMint));
+      ixs.push(
+        await registerWithNft({
+          domain,
+          space: 1_000,
+          buyer,
+          nftSource,
+          nftMint,
+        })
+      );
     });
   });
 
   describe("setPrimaryDomain", () => {
     test("domain [wallet-guide-9]", async () => {
       const domain = "wallet-guide-9";
-      const domainAddress = (await getDomainAddress(domain)).address;
+      const domainAddress = (await getDomainAddress({ domain })).domainAddress;
       const owner = "Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8" as Address;
 
       const ixs: IInstruction[] = [];
-      ixs.push(await setPrimaryDomain(TEST_RPC, domainAddress, owner));
+      ixs.push(await setPrimaryDomain({ rpc: TEST_RPC, domainAddress, owner }));
 
       await testInstructions(ixs, owner);
     });
     test("subdomain [sub-0.wallet-guide-9]", async () => {
       const domain = "sub-0.wallet-guide-9";
-      const domainAddress = (await getDomainAddress(domain)).address;
+      const domainAddress = (await getDomainAddress({ domain })).domainAddress;
       const owner = "Fxuoy3gFjfJALhwkRcuKjRdechcgffUApeYAfMWck6w8" as Address;
 
       const ixs: IInstruction[] = [];
-      ixs.push(await setPrimaryDomain(TEST_RPC, domainAddress, owner));
+      ixs.push(await setPrimaryDomain({ rpc: TEST_RPC, domainAddress, owner }));
 
       await testInstructions(ixs, owner);
     });
@@ -320,13 +365,13 @@ describe("Bindings", () => {
 
       const ixs: IInstruction[] = [];
       ixs.push(
-        await transferDomain(
-          TEST_RPC,
+        await transferDomain({
+          rpc: TEST_RPC,
           domain,
           newOwner,
-          undefined,
-          ROOT_DOMAIN_ADDRESS
-        )
+          classAddress: undefined,
+          parentAddress: ROOT_DOMAIN_ADDRESS,
+        })
       );
 
       await testInstructions(ixs, owner);
@@ -341,7 +386,7 @@ describe("Bindings", () => {
         "ALd1XSrQMCPSRayYUoUZnp6KcP6gERfJhWzkP49CkXKs" as Address;
 
       const ixs: IInstruction[] = [];
-      ixs.push(await transferSubdomain(TEST_RPC, subdomain, newOwner));
+      ixs.push(await transferSubdomain({ rpc: TEST_RPC, subdomain, newOwner }));
 
       await testInstructions(ixs, owner);
     });
@@ -354,10 +399,22 @@ describe("Bindings", () => {
 
       const ixs: IInstruction[] = [];
       ixs.push(
-        await createRecord(domain, Record.Twitter, "@test", owner, owner)
+        await createRecord({
+          domain,
+          record: Record.Twitter,
+          content: "@test",
+          owner,
+          payer: owner,
+        })
       );
       ixs.push(
-        await updateRecord(domain, Record.Twitter, "@sns", owner, owner)
+        await updateRecord({
+          domain,
+          record: Record.Twitter,
+          content: "@sns",
+          owner,
+          payer: owner,
+        })
       );
 
       await testInstructions(ixs, owner);
@@ -369,10 +426,22 @@ describe("Bindings", () => {
 
       const ixs: IInstruction[] = [];
       ixs.push(
-        await createRecord(domain, Record.Twitter, "@test", owner, owner)
+        await createRecord({
+          domain,
+          record: Record.Twitter,
+          content: "@test",
+          owner,
+          payer: owner,
+        })
       );
       ixs.push(
-        await updateRecord(domain, Record.Twitter, "@sns", owner, owner)
+        await updateRecord({
+          domain,
+          record: Record.Twitter,
+          content: "@sns",
+          owner,
+          payer: owner,
+        })
       );
 
       await testInstructions(ixs, owner);
@@ -386,14 +455,14 @@ describe("Bindings", () => {
 
       const ixs: IInstruction[] = [];
       ixs.push(
-        await updateNameRegistry(
-          TEST_RPC,
+        await updateNameRegistry({
+          rpc: TEST_RPC,
           domain,
-          0,
-          Buffer.from("test data"),
-          undefined,
-          ROOT_DOMAIN_ADDRESS
-        )
+          offset: 0,
+          data: Uint8Array.from("test data"),
+          classAddress: undefined,
+          parentAddress: ROOT_DOMAIN_ADDRESS,
+        })
       );
 
       await testInstructions(ixs, owner);
@@ -407,35 +476,42 @@ describe("Bindings", () => {
 
       const ixs: IInstruction[] = [];
       ixs.push(
-        await createRecord(
+        await createRecord({
           domain,
-          Record.ETH,
-          "0x4bfbfd1e018f9f27eeb788160579daf7e2cd7da7",
+          record: Record.ETH,
+          content: "0x4bfbfd1e018f9f27eeb788160579daf7e2cd7da7",
           owner,
-          owner
-        )
+          payer: owner,
+        })
       );
       ixs.push(
-        await validateRoa(true, domain, Record.ETH, owner, owner, owner)
+        await validateRoa({
+          staleness: true,
+          domain,
+          record: Record.ETH,
+          owner,
+          payer: owner,
+          verifier: owner,
+        })
       );
       ixs.push(
-        await validateRoaEthereum(
+        await validateRoaEthereum({
           domain,
-          Record.ETH,
+          record: Record.ETH,
           owner,
-          owner,
-          new Uint8Array([
+          payer: owner,
+          signature: new Uint8Array([
             78, 235, 200, 2, 51, 5, 225, 127, 83, 156, 25, 226, 53, 239, 196,
             189, 196, 197, 121, 2, 91, 2, 99, 11, 31, 179, 5, 233, 52, 246, 137,
             252, 72, 27, 67, 15, 86, 42, 62, 117, 140, 223, 159, 142, 86, 227,
             233, 185, 149, 111, 92, 122, 147, 23, 217, 1, 66, 72, 63, 150, 27,
             219, 152, 10, 28,
           ]),
-          new Uint8Array([
+          expectedPubkey: new Uint8Array([
             75, 251, 253, 30, 1, 143, 159, 39, 238, 183, 136, 22, 5, 121, 218,
             247, 226, 205, 125, 167,
-          ])
-        )
+          ]),
+        })
       );
       await testInstructions(ixs, owner);
     });
@@ -448,10 +524,23 @@ describe("Bindings", () => {
 
       const ixs: IInstruction[] = [];
       ixs.push(
-        await createRecord(domain, Record.Twitter, "@sns", owner, owner)
+        await createRecord({
+          domain,
+          record: Record.Twitter,
+          content: "@sns",
+          owner,
+          payer: owner,
+        })
       );
       ixs.push(
-        await validateRoa(true, domain, Record.Twitter, owner, owner, owner)
+        await validateRoa({
+          staleness: true,
+          domain,
+          record: Record.Twitter,
+          owner,
+          payer: owner,
+          verifier: owner,
+        })
       );
 
       await testInstructions(ixs, owner);
@@ -465,9 +554,23 @@ describe("Bindings", () => {
 
       const ixs: IInstruction[] = [];
       ixs.push(
-        await createRecord(domain, Record.Twitter, "@sns", owner, owner)
+        await createRecord({
+          domain,
+          record: Record.Twitter,
+          content: "@sns",
+          owner,
+          payer: owner,
+        })
       );
-      ixs.push(await writeRoa(domain, Record.Twitter, owner, owner, owner));
+      ixs.push(
+        await writeRoa({
+          domain,
+          record: Record.Twitter,
+          owner,
+          payer: owner,
+          roaId: owner,
+        })
+      );
 
       await testInstructions(ixs, owner);
     });

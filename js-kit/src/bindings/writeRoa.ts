@@ -1,4 +1,4 @@
-import { Address } from "@solana/kit";
+import { Address, IInstruction } from "@solana/kit";
 
 import {
   CENTRAL_STATE_DOMAIN_RECORDS,
@@ -11,30 +11,39 @@ import { InvalidParentError } from "../errors";
 import { writeRoaInstruction } from "../instructions/writeRoaInstruction";
 import { Record, RecordVersion } from "../types/record";
 
+interface WriteRoaParams {
+  domain: string;
+  record: Record;
+  owner: Address;
+  payer: Address;
+  roaId: Address;
+}
+
 /**
  * Writes a ROA (Right of association) in a record.
  *
- * @param domain - The domain under which the record will be written.
- * @param record - An enumeration representing the type of record to be written.
- * @param owner - The address of the domain's owner.
- * @param payer - The address funding the operation.
- * @param roaId - The identifier for the ROA.
+ * @param params - An object containing the following properties:
+ *   - `domain`: The domain under which the record will be written.
+ *   - `record`: An enumeration representing the type of record to be written.
+ *   - `owner`: The address of the domain's owner.
+ *   - `payer`: The address funding the operation.
+ *   - `roaId`: The identifier for the ROA.
  * @returns A promise that resolves to the write ROA instruction.
  */
-export const writeRoa = async (
-  domain: string,
-  record: Record,
-  owner: Address,
-  payer: Address,
-  roaId: Address
-) => {
-  let { address, isSub, parentAddress } = await getDomainAddress(
-    `${record}.${domain}`,
-    RecordVersion.V2
-  );
+export const writeRoa = async ({
+  domain,
+  record,
+  owner,
+  payer,
+  roaId,
+}: WriteRoaParams): Promise<IInstruction> => {
+  let { domainAddress, isSub, parentAddress } = await getDomainAddress({
+    domain: `${record}.${domain}`,
+    record: RecordVersion.V2,
+  });
 
   if (isSub) {
-    parentAddress = (await getDomainAddress(domain)).address;
+    parentAddress = (await getDomainAddress({ domain })).domainAddress;
   }
 
   if (!parentAddress) {
@@ -48,7 +57,7 @@ export const writeRoa = async (
     SYSTEM_PROGRAM_ADDRESS,
     NAME_PROGRAM_ADDRESS,
     payer,
-    address,
+    domainAddress,
     parentAddress,
     owner,
     CENTRAL_STATE_DOMAIN_RECORDS

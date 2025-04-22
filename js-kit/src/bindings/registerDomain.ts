@@ -31,28 +31,38 @@ import { createSplitV2Instruction } from "../instructions/createSplitV2Instructi
 import { deriveAddress } from "../utils/deriveAddress";
 import { getPythFeedAddress } from "../utils/getPythFeedAddress";
 
+interface RegisterDomainParams {
+  rpc: Rpc<GetAccountInfoApi>;
+  domain: string;
+  space: number;
+  buyer: Address;
+  buyerTokenAccount: Address;
+  mint?: Address;
+  referrer?: Address;
+}
+
 /**
  * Registers a .sol domain.
  *
- * @param rpc - An RPC interface implementing GetAccountInfoApi.
- * @param domain - The domain name to be registered in lowercase.
- * @param space - The space in bytes to be allocated for the domain registry (max: 10,000).
- * @param buyer - The address of the buyer registering the domain.
- * @param buyerTokenAccount - The associated token account of the buyer.
- * @param mint - (Optional) The token mint used for payment. Defaults to USDC.
- * @param referrer - (Optional) The address of the referrer.
+ * @param params - An object containing the following properties:
+ *   - `rpc`: An RPC interface implementing GetAccountInfoApi.
+ *   - `domain`: The domain name to be registered in lowercase.
+ *   - `space`: The space in bytes to be allocated for the domain registry (max: 10,000).
+ *   - `buyer`: The address of the buyer registering the domain.
+ *   - `buyerTokenAccount`: The associated token account of the buyer.
+ *   - `mint`: (Optional) The token mint used for payment. Defaults to USDC.
+ *   - `referrer`: (Optional) The address of the referrer.
  * @returns A promise which resolves to an array of instructions required for domain registration.
  */
-
-export const registerDomain = async (
-  rpc: Rpc<GetAccountInfoApi>,
-  domain: string,
-  space: number,
-  buyer: Address,
-  buyerTokenAccount: Address,
+export const registerDomain = async ({
+  rpc,
+  domain,
+  space,
+  buyer,
+  buyerTokenAccount,
   mint = USDC_MINT,
-  referrer?: Address
-) => {
+  referrer,
+}: RegisterDomainParams): Promise<IInstruction[]> => {
   // Basic validation
   if (domain.includes(".") || domain.trim().toLowerCase() !== domain) {
     throw new InvalidDomainError("The domain name is malformed");
@@ -104,15 +114,18 @@ export const registerDomain = async (
     owner: VAULT_OWNER,
     tokenProgram: TOKEN_PROGRAM_ADDRESS,
   });
-  const pythFeed = PYTH_FEEDS.get(mint);
+  const priceFeed = PYTH_FEEDS.get(mint);
 
-  if (!pythFeed) {
+  if (!priceFeed) {
     throw new PythFeedNotFoundError(
       "The Pyth account for the provided mint was not found"
     );
   }
 
-  const pythFeedAddress = await getPythFeedAddress(0, pythFeed);
+  const pythFeedAddress = await getPythFeedAddress({
+    shard: 0,
+    priceFeed,
+  });
 
   const ix = new createSplitV2Instruction({
     name: domain,
