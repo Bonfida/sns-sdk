@@ -33,8 +33,6 @@ export class RecordHeaderState {
   rightOfAssociationValidation: number;
   contentLength: number;
 
-  static LEN = 8;
-
   static schema: Schema = {
     struct: {
       stalenessValidation: "u16",
@@ -42,6 +40,12 @@ export class RecordHeaderState {
       contentLength: "u32",
     },
   };
+
+  // The total length of the struct is calculated as the sum of:
+  // - `stalenessValidation`: 2 bytes (`u16`)
+  // - `rightOfAssociationValidation`: 2 bytes (`u16`)
+  // - `contentLength`: 4 bytes (`u32`)
+  static LEN = 8;
 
   constructor(obj: {
     stalenessValidation: number;

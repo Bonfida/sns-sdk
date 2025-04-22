@@ -26,8 +26,6 @@ export class NftState {
   owner: Address;
   nftMint: Address;
 
-  static LEN = 1 + 1 + 32 + 32 + 32;
-
   static schema = {
     struct: {
       tag: "u8",
@@ -37,6 +35,14 @@ export class NftState {
       nftMint: { array: { type: "u8", len: 32 } },
     },
   };
+
+  // The total length of the struct is calculated as the sum of:
+  // - `tag`: 1 byte (`u8`)
+  // - `nonce`: 1 byte (`u8`)
+  // - `nameAccount`: 32 bytes (array of `u8` with length 32)
+  // - `owner`: 32 bytes (array of `u8` with length 32)
+  // - `nftMint`: 32 bytes (array of `u8` with length 32)
+  static LEN = 1 + 1 + 32 + 32 + 32;
 
   constructor(obj: {
     tag: number;

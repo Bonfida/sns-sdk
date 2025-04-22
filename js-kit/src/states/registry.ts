@@ -12,7 +12,6 @@ import { addressCodec } from "../codecs";
 import { AccountDoesNotExistError } from "../errors";
 
 export class RegistryState {
-  static HEADER_LEN = 96;
   parentName: Address;
   owner: Address;
   class: Address;
@@ -25,6 +24,12 @@ export class RegistryState {
       class: { array: { type: "u8", len: 32 } },
     },
   };
+
+  // The total length is calculated as the sum of:
+  // - `parentName`: 32 bytes (array of `u8` with length 32)
+  // - `owner`: 32 bytes (array of `u8` with length 32)
+  // - `class`: 32 bytes (array of `u8` with length 32)
+  static HEADER_LEN = 96;
 
   constructor(obj: {
     parentName: Uint8Array;
