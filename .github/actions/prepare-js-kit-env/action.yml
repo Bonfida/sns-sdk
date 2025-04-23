@@ -1,0 +1,36 @@
+name: Prepare local env
+description: Prepare local environment by setup node, and cache dependencies
+outputs:
+  cache-hit:
+    description: Whether the dependencies were cached
+    value: ${{ steps.npm-cache.outputs.cache-hit }}
+runs:
+  using: composite
+  steps:
+    - name: Setup Node
+      # Use Node version specified in Volta config inside package.json
+      uses: volta-cli/action@v4
+
+    - name: Get working directory hash
+      id: dir-hash
+      shell: bash
+      run: |
+        # Generate short hash of relative path from repo root
+        REL_PATH=$(git rev-parse --show-prefix)
+        echo "hash=$(echo "$REL_PATH" | sha256sum | cut -c1-8)" >> $GITHUB_OUTPUT
+
+    - name: Get npm cache directory
+      id: npm-cache-dir
+      shell: bash
+      run: |
+        echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
+
+    - uses: actions/cache@v3
+      id: npm-cache
+      with:
+        path: |
+          **/node_modules
+          ${{ steps.npm-cache-dir.outputs.dir }}
+        key: ${{ runner.os }}-node-${{ steps.dir-hash.outputs.hash }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-${{ steps.dir-hash.outputs.hash }}-
