@@ -59,18 +59,23 @@ import {
   const rpc = createSolanaRpcFromTransport(transport);
 
   // Resolve .sol domain
-  const resolved = await resolveDomain(rpc, "sns.sol");
+  const resolved = await resolveDomain({ rpc, domain: "sns.sol" });
 
   // Get domain records
-  const records = await getDomainRecord(rpc, "sns.sol", Record.Url, {
-    deserialize: true,
+  const records = await getDomainRecord({
+    rpc,
+    domain: "sns.sol",
+    record: Record.Url,
+    options: {
+      deserialize: true,
+    },
   });
 
   // Get primary domain for address
-  const primaryDomain = await getPrimaryDomain(
+  const primaryDomain = await getPrimaryDomain({
     rpc,
-    "36Dn3RWhB8x4c83W6ebQ2C2eH9sh5bQX2nMdkP2cWaA4" as Address
-  );
+    walletAddress: "36Dn3RWhB8x4c83W6ebQ2C2eH9sh5bQX2nMdkP2cWaA4" as Address,
+  });
 
   console.log({ resolved, records, primaryDomain });
 })();
