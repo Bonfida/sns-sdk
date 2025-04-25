@@ -83,7 +83,10 @@
   "homepage": "https://sns.guide",
   "scripts": {
     "build": "rollup -c",
-    "prettier:format": "prettier --write src/**/*.ts",
+    "prepack": "npm run build",
+    "prepublish": "npm run build",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "prettier:fix": "prettier --write src/**/*.ts",
     "test": "jest ./tests"
   },
   "dependencies": {
