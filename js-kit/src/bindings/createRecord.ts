@@ -8,7 +8,7 @@ import {
 } from "../constants/addresses";
 import { getDomainAddress } from "../domain/getDomainAddress";
 import { InvalidParentError } from "../errors";
-import { allocateAndPostRecordInstruction } from "../instructions/allocateAndPostRecordInstructio";
+import { allocateAndPostRecordInstruction } from "../instructions/allocateAndPostRecordInstruction";
 import { Record, RecordVersion } from "../types/record";
 import { serializeRecordContent } from "../utils/serializers/serializeRecordContent";
 

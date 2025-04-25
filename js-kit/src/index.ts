@@ -37,7 +37,7 @@ export * from "./domain/resolveDomain";
 
 export * from "./errors";
 
-export * from "./instructions/allocateAndPostRecordInstructio";
+export * from "./instructions/allocateAndPostRecordInstruction";
 export * from "./instructions/burnDomainInstruction";
 export * from "./instructions/createAtaInstruction";
 export * from "./instructions/createInstructionV3";

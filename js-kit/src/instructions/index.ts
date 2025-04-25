@@ -1,4 +1,4 @@
-export * from "./allocateAndPostRecordInstructio";
+export * from "./allocateAndPostRecordInstruction";
 export * from "./burnDomainInstruction";
 export * from "./createAtaInstruction";
 export * from "./createInstructionV3";
